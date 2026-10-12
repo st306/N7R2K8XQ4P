@@ -1,0 +1,134 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex,nofollow">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Spotted">
+<meta name="theme-color" content="#111111">
+<link rel="manifest" href="spotted.webmanifest">
+<link rel="apple-touch-icon" href="spotted-icon-180.png">
+<title>Spotted</title>
+<style>
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;background:#111;color:#f2f2f2;font:17px/1.4 -apple-system,system-ui,Segoe UI,Roboto,sans-serif}
+main{min-height:100%;display:flex;flex-direction:column;padding:max(16px,env(safe-area-inset-top)) 16px max(16px,env(safe-area-inset-bottom))}
+#big{flex:1;min-height:46vh;border:0;border-radius:24px;background:#e8431f;color:#fff;font-size:44px;font-weight:800;letter-spacing:.02em;touch-action:manipulation}
+#big:active{background:#b83316}
+#big:disabled{background:#555}
+#status{margin:14px 2px;min-height:48px;font-size:16px;color:#cfcfcf}
+#status b{color:#fff}
+#after{display:none}
+.tags{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:8px 0}
+.tags button{padding:16px;border-radius:14px;border:2px solid #444;background:#1c1c1c;color:#f2f2f2;font-size:18px}
+.tags button.on{border-color:#e8431f;background:#3a1a12}
+textarea,input{width:100%;padding:12px;border-radius:12px;border:2px solid #444;background:#1c1c1c;color:#f2f2f2;font-size:17px}
+textarea{min-height:90px;margin:6px 0 10px}
+.save{width:100%;padding:16px;border-radius:14px;border:0;background:#2a7d46;color:#fff;font-size:19px;font-weight:700}
+small{color:#8a8a8a}
+a{color:#9bbcff}
+#tok{display:none;margin-top:10px}
+</style>
+</head>
+<body>
+<main>
+<button id="big">SPOTTED</button>
+<div id="status">Tap once when you see one. Location and time are logged straight away.</div>
+<div id="after">
+  <div class="tags" id="tags">
+    <button data-t="Rough">Rough</button><button data-t="Derelict">Derelict</button>
+    <button data-t="Empty">Empty</button><button data-t="Other">Other</button>
+  </div>
+  <textarea id="notes" placeholder="Details (optional). Safe to do at the lights or when parked."></textarea>
+  <button class="save" id="save">Save details</button>
+</div>
+<div id="tok"><small>Airtable token (once only, stays on this phone):</small><input id="tokin" type="password" autocomplete="off" placeholder="pat..."><button class="save" id="toksave" style="margin-top:8px">Save token</button></div>
+<p><small id="queue"></small></p>
+<p><small><a href="./">Open the Brain</a></small></p>
+</main>
+<script>
+(function(){
+'use strict';
+var BASE='appjVRP7n8LtgDkKn', TABLE='tblt4qzS2NyHzJw5v';
+var API='https://api.airtable.com/v0/'+BASE+'/'+TABLE;
+var $=function(i){return document.getElementById(i)};
+var cur=null, tag=null;
+function ls(k,v){try{if(v===undefined)return localStorage.getItem(k);if(v===null)localStorage.removeItem(k);else localStorage.setItem(k,v)}catch(e){return null}}
+function say(h){$('status').innerHTML=h}
+function token(){return ls('atToken')}
+function hdr(){return {'Authorization':'Bearer '+token(),'Content-Type':'application/json'}}
+function getQ(){try{return JSON.parse(ls('spottedQueue')||'[]')}catch(e){return[]}}
+function setQ(q){ls('spottedQueue',JSON.stringify(q));$('queue').textContent=q.length?q.length+' waiting to upload (will retry when signal returns)':''}
+function pos(){return new Promise(function(res,rej){
+  if(!navigator.geolocation)return rej(new Error('No GPS on this device'));
+  navigator.geolocation.getCurrentPosition(res,rej,{enableHighAccuracy:true,timeout:15000,maximumAge:5000});
+})}
+function ft(f){return fetch(f.u,f.o).then(function(r){if(!r.ok)throw new Error('HTTP '+r.status);return r.json()})}
+function create(fields){
+  return fetch(API,{method:'POST',headers:hdr(),body:JSON.stringify({records:[{fields:fields}],typecast:true})})
+   .then(function(r){if(!r.ok)throw new Error('Airtable '+r.status);return r.json()}).then(function(j){return j.records[0].id});
+}
+function patch(id,fields){
+  return fetch(API,{method:'PATCH',headers:hdr(),body:JSON.stringify({records:[{id:id,fields:fields}],typecast:true})})
+   .then(function(r){if(!r.ok)throw new Error('Airtable '+r.status);return r.json()});
+}
+function geocode(lat,lng){
+  var out={};
+  var a=fetch('https://api.postcodes.io/postcodes?lon='+lng+'&lat='+lat+'&limit=1').then(function(r){return r.json()}).then(function(j){
+    var p=j&&j.result&&j.result[0]; if(p){out.pc=p.postcode;out.dist=p.outcode}}).catch(function(){});
+  var b=fetch('https://nominatim.openstreetmap.org/reverse?format=jsonv2&zoom=18&lat='+lat+'&lon='+lng).then(function(r){return r.json()}).then(function(j){
+    var ad=j&&j.address; if(ad){out.street=ad.road||ad.pedestrian||ad.residential||'';out.town=ad.suburb||ad.town||ad.village||ad.city||''}}).catch(function(){});
+  return Promise.all([a,b]).then(function(){return out});
+}
+function flush(){
+  var q=getQ(); if(!q.length||!token())return Promise.resolve();
+  var left=[]; var p=Promise.resolve();
+  q.forEach(function(item){p=p.then(function(){return create(item).catch(function(){left.push(item)})})});
+  return p.then(function(){setQ(left)});
+}
+function go(){
+  if(!token()){$('tok').style.display='block';say('Paste your Airtable token first.');return}
+  $('big').disabled=true; $('after').style.display='none'; tag=null; cur=null;
+  [].forEach.call(document.querySelectorAll('#tags button'),function(b){b.classList.remove('on')});
+  $('notes').value='';
+  var when=new Date().toISOString();
+  say('Getting location...');
+  pos().then(function(p){
+    var lat=+p.coords.latitude.toFixed(6), lng=+p.coords.longitude.toFixed(6), acc=Math.round(p.coords.accuracy||0);
+    var base={'Spotted':lat+', '+lng,'Spotted at':when,'Latitude':lat,'Longitude':lng,'Accuracy m':acc,'Stage':'Spotted'};
+    return create(base).then(function(id){
+      cur={id:id,lat:lat,lng:lng};
+      say('<b>Logged.</b> Finding the street...');
+      $('after').style.display='block';
+      return geocode(lat,lng).then(function(g){
+        var f={}; if(g.street){f['Street']=g.street;f['Spotted']=g.street+(g.town?', '+g.town:'')}
+        if(g.pc){f['Postcode']=g.pc;f['Postcode District']=g.dist}
+        cur.label=g.street?g.street+(g.pc?' '+g.pc:''):'location only';
+        say('<b>Logged:</b> '+cur.label+'. Add details below if you want.');
+        if(Object.keys(f).length)return patch(id,f).catch(function(){});
+      });
+    }).catch(function(e){
+      var f=base; var q=getQ(); q.push(f); setQ(q);
+      say('<b>Saved on the phone</b> ('+(e.message||e)+'). It will upload when there is signal.');
+    });
+  }).catch(function(e){
+    say('<b>No location.</b> '+(e.code===1?'Allow location for this page in the phone settings.':(e.message||e)));
+  }).then(function(){$('big').disabled=false});
+}
+$('big').onclick=go;
+$('tags').onclick=function(e){var t=e.target.getAttribute&&e.target.getAttribute('data-t'); if(!t)return;
+  tag=t;[].forEach.call(this.children,function(b){b.classList.toggle('on',b===e.target)})};
+$('save').onclick=function(){
+  if(!cur)return; var f={}; if(tag)f['Tag']=tag; if($('notes').value.trim())f['Notes']=$('notes').value.trim();
+  if(!Object.keys(f).length){say('Nothing to add. Already logged.');return}
+  patch(cur.id,f).then(function(){say('<b>Saved:</b> '+(cur.label||'')+(tag?' ('+tag+')':''));$('after').style.display='none'})
+   .catch(function(e){say('Could not save details: '+(e.message||e))});
+};
+$('toksave').onclick=function(){var v=$('tokin').value.trim(); if(v){ls('atToken',v);$('tok').style.display='none';say('Token saved. Tap the button.');flush()}};
+setQ(getQ()); window.addEventListener('online',flush); flush();
+})();
+</script>
+</body>
+</html>

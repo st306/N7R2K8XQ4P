@@ -45,7 +45,8 @@ a{color:#9bbcff}
   <button class="save" id="save">Save details</button>
 </div>
 <div id="tok"><small>Airtable token (once only, stays on this phone):</small><input id="tokin" type="password" autocomplete="off" placeholder="pat..."><button class="save" id="toksave" style="margin-top:8px">Save token</button></div>
-<p><small id="queue"></small></p>
+<button class="save" id="retry" style="display:none;background:#444;margin-top:10px">Retry upload</button>
+<p><small id="queue"></small> <a href="#" id="newtok">Replace token</a></small></p>
 <p><small><a href="./">Open the Brain</a></small></p>
 </main>
 <script>
@@ -54,7 +55,7 @@ a{color:#9bbcff}
 var BASE='appjVRP7n8LtgDkKn', TABLE='tblt4qzS2NyHzJw5v';
 var API='https://api.airtable.com/v0/'+BASE+'/'+TABLE;
 var $=function(i){return document.getElementById(i)};
-var cur=null, tag=null;
+var cur=null, tag=null, lastErr='';
 function ls(k,v){try{if(v===undefined)return localStorage.getItem(k);if(v===null)localStorage.removeItem(k);else localStorage.setItem(k,v)}catch(e){return null}}
 function say(h){$('status').innerHTML=h}
 function token(){return ls('atToken')}
@@ -68,11 +69,16 @@ function pos(){return new Promise(function(res,rej){
 function ft(f){return fetch(f.u,f.o).then(function(r){if(!r.ok)throw new Error('HTTP '+r.status);return r.json()})}
 function create(fields){
   return fetch(API,{method:'POST',headers:hdr(),body:JSON.stringify({records:[{fields:fields}],typecast:true})})
-   .then(function(r){if(!r.ok)throw new Error('Airtable '+r.status);return r.json()}).then(function(j){return j.records[0].id});
+   .then(chk).then(function(j){return j.records[0].id});
 }
 function patch(id,fields){
   return fetch(API,{method:'PATCH',headers:hdr(),body:JSON.stringify({records:[{id:id,fields:fields}],typecast:true})})
-   .then(function(r){if(!r.ok)throw new Error('Airtable '+r.status);return r.json()});
+   .then(chk);
+}
+function chk(r){
+  if(r.ok)return r.json();
+  return r.text().then(function(t){var m='';try{var e=JSON.parse(t).error;m=(e&&(e.message||e.type))||''}catch(x){}
+    throw new Error('Airtable '+r.status+(m?': '+m:'')+(r.status===401||r.status===403?' (token wrong or not allowed to write to this base)':''))});
 }
 function geocode(lat,lng){
   var out={};
@@ -85,7 +91,7 @@ function geocode(lat,lng){
 function flush(){
   var q=getQ(); if(!q.length||!token())return Promise.resolve();
   var left=[]; var p=Promise.resolve();
-  q.forEach(function(item){p=p.then(function(){return create(item).catch(function(){left.push(item)})})});
+  q.forEach(function(item){p=p.then(function(){return create(item).catch(function(er){left.push(item);lastErr=er.message||String(er)})})});
   return p.then(function(){setQ(left)});
 }
 function go(){
@@ -111,7 +117,7 @@ function go(){
       });
     }).catch(function(e){
       var f=base; var q=getQ(); q.push(f); setQ(q);
-      say('<b>Saved on the phone</b> ('+(e.message||e)+'). It will upload when there is signal.');
+      say('<b>Not uploaded.</b> '+(e.message||e)+'. Kept on the phone. Tap <b>Retry upload</b> below.');$('retry').style.display='block';
     });
   }).catch(function(e){
     say('<b>No location.</b> '+(e.code===1?'Allow location for this page in the phone settings.':(e.message||e)));
@@ -126,6 +132,8 @@ $('save').onclick=function(){
   patch(cur.id,f).then(function(){say('<b>Saved:</b> '+(cur.label||'')+(tag?' ('+tag+')':''));$('after').style.display='none'})
    .catch(function(e){say('Could not save details: '+(e.message||e))});
 };
+$('retry').onclick=function(){say('Retrying...');flush().then(function(){var n=getQ().length;say(n?'Still not uploaded ('+n+' waiting): '+lastErr:'<b>Uploaded.</b>');if(!n)$('retry').style.display='none'})};
+$('newtok').onclick=function(e){e.preventDefault();ls('atToken',null);$('tok').style.display='block';say('Paste a fresh Airtable token.')};
 $('toksave').onclick=function(){var v=$('tokin').value.trim(); if(v){ls('atToken',v);$('tok').style.display='none';say('Token saved. Tap the button.');flush()}};
 setQ(getQ()); window.addEventListener('online',flush); flush();
 })();

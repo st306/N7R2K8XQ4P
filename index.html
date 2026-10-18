@@ -6,7 +6,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Brain">
 <meta name="robots" content="noindex,nofollow">
-<title>Stewart Thomson Property — Property Brain v3.13.2</title>
+<title>Stewart Thomson Property — Property Brain v3.13.3</title>
 <style>
   :root {
     color-scheme: light;
@@ -1104,7 +1104,7 @@
 </head>
 <body>
 <header>
-  <div class="brand"><h1>Property Brain · v3.13.2</h1><div class="sub">Buy better deals faster through superior intelligence · build 2026-10-15.1 · red-flag fixes: sold and stale listings out of Read and decide, one-click Review passes, Review before booking, working sort, cleaner triage feed, map fallback</div></div>
+  <div class="brand"><h1>Property Brain · v3.13.3</h1><div class="sub">Buy better deals faster through superior intelligence · build 2026-10-18.1 · steady screen: the auto-refresh no longer jumps or redraws when nothing changed, and holds while you type</div></div>
   <div class="modes" aria-label="Dashboard mode">
     <button class="mode" id="modeToday" type="button">Today</button>
     <button class="mode" id="modeTriage" type="button">Triage</button>
@@ -1218,7 +1218,25 @@ const BASE='appjVRP7n8LtgDkKn', TABLE='tblZlJuNnQpSDEInI';
    duplicates by address and price, each with a count and a show toggle; (12) map
    tiles carry attribution, and a failed map shows Google Maps links instead of a
    dead panel. Nothing here changes Airtable data or schema. */
-const BUILD='3.13.2'; /* v3.13.2 (15/10/2026): red-flag button logs to the Property Sprint Register (tbl5l7bViIJjBvfzz), not the dead capture queue. */
+/* v3.13.3 (18/10/2026), released 18/10/2026. Stage 1: the 60s auto-refresh no longer re-renders when nothing changed, and when something did it
+   keeps scroll, the open card, form drafts and focus; it never redraws under a focused field (queued until blur). Stage 2 prep: Edinburgh & Lothians
+   zone support behind EDINBURGH_OPEN (false = identical to v3.13.2, except that a renamed 'Edinburgh & Lothians' label without '(paused)' stays
+   out of box). Triage capacity (TRIAGE_WEEKLY_CAP_EDINBURGH, a true weekly cap, Mon to Sun) behind the same switch.
+   Review fixes (18/10/2026): restore only fields the user changed, signature committed only after a good redraw, per-page signature built in
+   fetchAll from Last Modified Time, held stamp kept, forced redraw on a new day and every 10 minutes, <details> keyed by id or summary. */
+/* ===== SWITCHES (v3.13.3-dev). Both ship dark. ===== */
+const EDINBURGH_OPEN=false;              /* true only on Stu's approval: Edinburgh & Lothians becomes a normal buying zone (scored like Fife, +18) */
+const TRIAGE_WEEKLY_CAP_EDINBURGH=100;   /* Edinburgh-zone records offered in Triage per week (Mon to Sun); shown about ceil(weekly/5) a day. Only read when EDINBURGH_OPEN is true */
+function isEdinburghZone(z){ return /^\s*Edinburgh/i.test(String(z||'')); }
+/* True when the zone label means "not being bought". With EDINBURGH_OPEN=false this is the v3.13.2 test (label contains "paused") plus the
+   renamed label 'Edinburgh & Lothians', so renaming the Airtable label cannot open Edinburgh by accident. With it true, Edinburgh is a normal zone. */
+function zonePaused(z){
+  z=String(z||'');
+  if(isEdinburghZone(z)) return !EDINBURGH_OPEN;
+  return /paused/i.test(z);
+}
+function isEdinburghRec(r){ const f=(r&&r.fields)||{}; return isEdinburghZone((f[F.zone]&&f[F.zone].name)||f[F.zone]||''); }
+const BUILD='3.13.3'; /* v3.13.3-dev changelog above. Previous: v3.13.2 (15/10/2026): v3.13.2 (15/10/2026): red-flag button logs to the Property Sprint Register (tbl5l7bViIJjBvfzz), not the dead capture queue. */
 const CONTROL_TABLE='tblDGKgorkTQkAXBc';
 /* v3.4.0 (28/08/2026), AC-BRAINUX-WINDOW-01 + AC-BRAIN-PROCEEDFLOW-01.
    THE YES BOARD BECOMES THE "WHERE WE ARE" SCREEN. Stu, 27/08, verbatim:
@@ -1666,7 +1684,7 @@ function outOfBox(r){
   const band=String((f[F.band]&&f[F.band].name)||f[F.band]||'');
   const zone=String((f[F.zone]&&f[F.zone].name)||f[F.zone]||'');
   if(/^OUT/i.test(band)) return 'over the £260k ceiling';
-  if(/paused/i.test(zone)) return 'Edinburgh — paused';
+  if(zonePaused(zone)) return 'Edinburgh — paused';
   if(/Outside box/i.test(zone)) return 'outside the buying box';
   const stock=stockExclusion(r);
   if(stock) return stock;
@@ -1905,7 +1923,7 @@ function stpMatch(rec,n){
   if(/^OUT/i.test(band)){ reasons.push(['warn','Above the £260k ceiling — outside the buying box']); }
   else if(/^No price/i.test(band)||!ask){ reasons.push(['warn','No asking price captured']); }
   else { score+=12; reasons.push(['good','In band: '+band.replace(/^\d+\s*·\s*/,'')]); }
-  if(/paused/i.test(zone)){ reasons.push(['warn','Edinburgh — currently paused, not being bought']); }
+  if(zonePaused(zone)){ reasons.push(['warn','Edinburgh — currently paused, not being bought']); }
   else if(/Unknown/i.test(zone)){ reasons.push(['warn','No postcode captured — zone unknown']); }
   else if(zone){ score+=8; reasons.push(['good','Zone: '+zone]); }
 
@@ -1938,7 +1956,7 @@ function stpMatch(rec,n){
          it. Anything outside the buying box is capped so it can never outrank
          stock he can actually purchase. Capped, not hidden: he asked for more
          data he can turn off, not less he has to turn on. */
-  const outOfBox = /^OUT/i.test(band) || /paused/i.test(zone) || /Outside box/i.test(zone);
+  const outOfBox = /^OUT/i.test(band) || zonePaused(zone) || /Outside box/i.test(zone);
   if(!st.usable){
     return {score:null,unscored:true,outOfBox,reasons,street:st,capped:false};
   }
@@ -2649,7 +2667,8 @@ function buyBoxScore(rec){
   else { const price=numeric(f[F.ask]); if(price==null) s-=10; else if(price>=40000&&price<=260000) s+=40; else s-=30; }
   const zone=String((f[F.zone]&&f[F.zone].name)||f[F.zone]||'');
   if(zone){
-    if(/paused/i.test(zone)) s-=20;
+    if(zonePaused(zone)) s-=20;
+    else if(EDINBURGH_OPEN&&isEdinburghZone(zone)) s+=18; /* v3.13.3-dev: explicit branch, same value as Fife */
     else if(/^Glasgow/i.test(zone)) s+=40;
     else if(/Lanarkshire|Renfrewshire|Falkirk/i.test(zone)) s+=32;
     else if(/Ayrshire|Fife|Perthshire|Tayside/i.test(zone)) s+=18;
@@ -2708,7 +2727,24 @@ function sortQueue(list,key){
   return copy;
 }
 /* v3.13.1: triage feed hygiene and duplicate collapse, all display side. */
-let queueStats={filtered:0,nopic:0,nondwelling:0,dups:0};
+let queueStats={filtered:0,nopic:0,nondwelling:0,dups:0,ediBacklog:0,ediDaily:0};
+let ediShowAll=false; /* v3.13.3-dev: session-only, deliberately not saved to localStorage */
+function ediDailyCap(){ return Math.ceil(TRIAGE_WEEKLY_CAP_EDINBURGH/5); }
+/* Distinct Edinburgh records decided since `since` (ms), read from the existing decisionHistory (local, newest 500 decisions). */
+function ediDecidedSince(since){
+  const byId=new Map(); for(const r of records) byId.set(r.id,r);
+  const seen=new Set();
+  for(const h of (decisionHistory||[])){ if(h.at>=since&&!seen.has(h.id)){ const r=byId.get(h.id); if(r&&isEdinburghRec(r)) seen.add(h.id); } }
+  return seen.size;
+}
+function startOfToday(){ const d=new Date(); d.setHours(0,0,0,0); return d.getTime(); }
+function startOfWeekMon(){ const d=new Date(); d.setHours(0,0,0,0); d.setDate(d.getDate()-((d.getDay()+6)%7)); return d.getTime(); }
+function ediDecidedToday(){ return ediDecidedSince(startOfToday()); }
+function ediDecidedThisWeek(){ return ediDecidedSince(startOfWeekMon()); }
+/* Today's allowance: about a fifth of the week, never past the weekly cap. */
+function ediAllowToday(){
+  return Math.max(0,Math.min(ediDailyCap()-ediDecidedToday(),TRIAGE_WEEKLY_CAP_EDINBURGH-ediDecidedThisWeek()));
+}
 const DUP_PRICE_TOLERANCE=0.05; /* asking prices within 5% of each other count as the same listing */
 /* Word-bounded, read from the address and the captured listing line (the title), not from raw Notes,
    where comps lines name other properties. */
@@ -2754,7 +2790,7 @@ function buildQueue(preferId,opts){
   const o=opts||{};
   baseQueue=baseForMode();
   queue=baseQueue.filter(filterRecord);
-  queueStats={filtered:baseQueue.length-queue.length,nopic:0,nondwelling:0,dups:0};
+  queueStats={filtered:baseQueue.length-queue.length,nopic:0,nondwelling:0,dups:0,ediBacklog:0,ediDaily:0};
   /* v3.13.1 (15/10/2026), Stu (red flags 8 to 10): no-picture listings and caravans, park homes,
      houseboats and land clog the triage feed. Hidden from TRIAGE by default, display only; the
      session bar states each count with a one-tap Show, so nothing is lost or written. */
@@ -2795,6 +2831,14 @@ function buildQueue(preferId,opts){
   const dupHide=dupCollapseSet(queue);
   queueStats.dups=dupHide.size;
   if(filters.dedupe&&dupHide.size) queue=queue.filter(r=>!dupHide.has(r.id));
+  /* v3.13.3-dev, Triage capacity. DARK unless EDINBURGH_OPEN. Edinburgh-zone records only: the first ceil(weekly/5) in the current sort order,
+     less those decided today and never past the weekly cap (Mon to Sun), are offered; the rest are counted as Backlog and shown by a one-tap show-all. Other zones are untouched. */
+  if(EDINBURGH_OPEN&&mode==='triage'&&!ediShowAll){
+    const cap=ediDailyCap(), allow=ediAllowToday();
+    let seenEdi=0, back=0;
+    queue=queue.filter(r=>{ if(!isEdinburghRec(r)) return true; if(seenEdi<allow){ seenEdi++; return true; } back++; return false; });
+    queueStats.ediBacklog=back; queueStats.ediDaily=cap;
+  }
   if(o.top){ qi=0; return; }
   let stored='';
   if(o.restore){ try{ stored=localStorage.getItem(positionKey(mode))||''; }catch(_){ stored=''; } }
@@ -4739,7 +4783,7 @@ function renderYesBoard(app){
   wireYesBoardRows(app);
   if(yesBoardCurrentId){
     const el=document.getElementById('yb-row-'+yesBoardCurrentId);
-    if(el) el.scrollIntoView({block:'center',behavior:'smooth'});
+    if(el&&!suppressYbScroll) el.scrollIntoView({block:'center',behavior:'smooth'});
   }
 }
 
@@ -7236,12 +7280,13 @@ function triageSessionBar(){
      dedupe is on by default, so activeFilterCount() is never zero and the word
      would show on every session whether or not anything was actually hidden. */
   /* v3.13.1: the filter-bar remainder only; the three feed hides have their own chips below. */
-  const qs=queueStats||{filtered:0,nopic:0,nondwelling:0,dups:0};
+  const qs=queueStats||{filtered:0,nopic:0,nondwelling:0,dups:0,ediBacklog:0,ediDaily:0};
   const hiddenN=qs.filtered||0;
   const chip=(key,n,hideTxt,showTxt)=>n?('<button type="button" class="trg-hide" data-trg-toggle="'+key+'">'+esc((key==='dedupe'?filters.dedupe===false:filters[key]===true)?showTxt:hideTxt)+'</button>'):'';
   const chips=chip('trgShowNoPic',qs.nopic,qs.nopic+' hidden: no pictures. Show',qs.nopic+' with no pictures showing. Hide')+
     chip('trgShowNonDwelling',qs.nondwelling,qs.nondwelling+' hidden: caravans, park homes, houseboats or land. Show',qs.nondwelling+' caravans, park homes, houseboats or land showing. Hide')+
-    chip('dedupe',qs.dups,qs.dups+' duplicates hidden. Show',qs.dups+' duplicates showing. Hide');
+    chip('dedupe',qs.dups,qs.dups+' duplicates hidden. Show',qs.dups+' duplicates showing. Hide')+
+    (EDINBURGH_OPEN&&(qs.ediBacklog||ediShowAll)?('<button type="button" class="trg-hide" data-edi-toggle="1">'+esc(ediShowAll?'Showing all Edinburgh. Back to '+ediDailyCap()+' a day':'Backlog ('+qs.ediBacklog+') Edinburgh. Show all')+'</button>'):'');
   return '<div class="trg-sess"><div class="trg-sess-n"><b>'+left+'</b><span>to triage'+(hiddenN?' (filters hiding '+hiddenN+')':'')+'</span></div>'+
     '<div class="trg-sess-n done"><b>'+done+'</b><span>done today</span></div>'+
     '<div class="trg-sess-p">'+(done+left?('<i style="width:'+Math.round(100*done/(done+left))+'%"></i>'):'')+'</div></div>'+
@@ -7250,6 +7295,7 @@ function triageSessionBar(){
 /* v3.13.1: one handler for the three triage hide chips. The dedupe chip flips the existing filter-bar
    setting, so the checkbox and the chip can never disagree. */
 function wireTriageHides(app){
+  app.querySelectorAll('[data-edi-toggle]').forEach(b=>b.onclick=(e)=>{ e.stopPropagation(); ediShowAll=!ediShowAll; buildQueue(null,{top:true}); render(); });
   app.querySelectorAll('[data-trg-toggle]').forEach(b=>b.onclick=(e)=>{
     e.stopPropagation();
     const k=b.getAttribute('data-trg-toggle');
@@ -7393,6 +7439,108 @@ function activateInMode(target,id){
 function closeJump(){ document.getElementById('jumpResults').classList.add('hidden'); document.getElementById('jumpSearch').value=''; }
 
 let refreshSeq=0;
+/* v3.13.3-dev, Stage 1. The timer used to refetch ~6,800 rows and redraw whatever screen was open, which reset scroll and, on the Yes board,
+   re-ran the scroll-to-current-card. Now: (1) a cheap signature of the fetched data (record id + every field, plus agent branches and health
+   rows); unchanged = no render, only the stamp updates. (2) changed = data updates underneath and the screen is redrawn with scroll, form
+   drafts, focus and open <details> put back. (3) never redraws while a field in the page is focused: the redraw is queued and runs on blur.
+   Pressing Refresh (manual) behaves as before. */
+let lastDataSig='', pendingRender=false, suppressYbScroll=false, refreshStats={skipped:0,rendered:0,queued:0};
+function hashStr(str){ let h1=5381,h2=52711; for(let i=0;i<str.length;i++){ const c=str.charCodeAt(i); h1=((h1<<5)+h1)^c; h2=((h2<<5)+h2)^c; } return (h1>>>0).toString(36)+(h2>>>0).toString(36)+str.length; }
+/* Per record: id + Last Modified Time (fldRgfk10HpX7Xdth, lastModifiedTime over all fields, confirmed in the schema 18/10/2026). Falls back
+   to a hash of the fields only where that value is missing. LMT does not move when a lookup or a time-based formula changes on its own,
+   which is why the timer still applies the data in full every 10 minutes and on a new day (see refreshData). */
+const LMT_FIELD='fldRgfk10HpX7Xdth';
+function pageSignature(list){
+  let s='';
+  for(let i=0;i<list.length;i++){ const r=list[i]; const f=r.fields||{}; const lm=f[LMT_FIELD]; s+=r.id+':'+(lm?String(lm):hashStr(JSON.stringify(f)))+'|'; }
+  return hashStr(s);
+}
+function dataSignature(list){
+  const main=(list&&list.__sig)||(hashStr([pageSignature(list)].join('|'))+'/'+list.length);
+  let extra=''; try{ extra=hashStr(JSON.stringify(agentBranches||{}))+hashStr(JSON.stringify(backlogRows||[]))+hashStr(JSON.stringify(captureRows||[])); }catch(_){}
+  return main+'/'+extra;
+}
+let lastFullApplyAt=0, lastApplyDay='';
+function dayKey(){ const d=new Date(); return d.getFullYear()+'-'+(d.getMonth()+1)+'-'+d.getDate(); }
+function markFullApply(){ lastFullApplyAt=Date.now(); lastApplyDay=dayKey(); }
+const FORCE_APPLY_MS=600000; /* 10 minutes */
+function userIsEditing(){
+  const a=document.activeElement; if(!a||a===document.body) return false;
+  if(a.isContentEditable) return true;
+  const t=(a.tagName||'').toUpperCase();
+  if(t==='TEXTAREA') return true;
+  if(t==='INPUT'){ const ty=(a.type||'text').toLowerCase(); return !['button','submit','checkbox','radio','reset','image','range','color','file'].includes(ty); }
+  return false;
+}
+function captureUiState(){
+  const app=document.getElementById('app'); const st={y:window.scrollY,x:window.scrollX,fields:[],focus:null,details:[],inner:[]};
+  if(!app) return st;
+  /* Only fields with an id or name, and only ones the user has changed from what the page rendered (value against defaultValue). A field
+     the user never touched is left to the new render, so fresh data (an updated AVM, a new price) always wins. */
+  app.querySelectorAll('input,textarea,select').forEach(el=>{
+    const key=el.id||el.name; if(!key) return; const ty=(el.type||'').toLowerCase();
+    if(['button','submit','reset','file','image','hidden'].includes(ty)) return;
+    const d=fieldDefault(el), v=fieldValue(el);
+    if(v!==d) st.fields.push({key,tag:el.tagName,def:d,value:v});
+  });
+  const a=document.activeElement;
+  if(a&&app.contains(a)&&(a.id||a.name)){ st.focus={key:a.id||a.name,s:a.selectionStart,e:a.selectionEnd}; }
+  app.querySelectorAll('details').forEach(d=>{ const k=detailsKey(d); if(k) st.details.push({k,open:d.open}); });
+  app.querySelectorAll('[id]').forEach(el=>{ if(el.scrollTop>0&&el.scrollHeight>el.clientHeight) st.inner.push({id:el.id,top:el.scrollTop}); });
+  return st;
+}
+function fieldValue(el){
+  const ty=(el.type||'').toLowerCase();
+  if(ty==='checkbox'||ty==='radio') return el.checked?'1':'0';
+  return String(el.value);
+}
+function fieldDefault(el){
+  const ty=(el.type||'').toLowerCase();
+  if(ty==='checkbox'||ty==='radio') return el.defaultChecked?'1':'0';
+  if(el.tagName==='SELECT'){ const opts=Array.from(el.options); const o=opts.find(x=>x.defaultSelected)||(el.multiple?null:opts[0]); return o?String(o.value):''; }
+  return String(el.defaultValue);
+}
+function detailsKey(d){ if(d.id) return '#'+d.id; const s=d.querySelector('summary'); const t=s?s.textContent.trim():''; return t?('s:'+t):''; }
+function restoreUiState(st){
+  const app=document.getElementById('app'); if(!app||!st) return;
+  st.fields.forEach(f=>{
+    const k=f.key.replace(/"/g,'');
+    const el=app.querySelector('[id="'+k+'"]')||app.querySelector('[name="'+k+'"]');
+    if(!el||el.tagName!==f.tag) return;
+    if(fieldDefault(el)!==f.def) return; /* the data behind this field changed: new data wins over the old edit */
+    const ty=(el.type||'').toLowerCase();
+    if(ty==='checkbox'||ty==='radio') el.checked=(f.value==='1'); else el.value=f.value;
+  });
+  const dmap=new Map(); st.details.forEach(x=>{ if(!dmap.has(x.k)) dmap.set(x.k,x.open); });
+  app.querySelectorAll('details').forEach(d=>{ const k=detailsKey(d); if(k&&dmap.has(k)) d.open=dmap.get(k); });
+  st.inner.forEach(x=>{ const el=document.getElementById(x.id); if(el&&app.contains(el)) el.scrollTop=x.top; });
+  if(st.focus){ const el=document.getElementById(st.focus.key); if(el){ try{ el.focus({preventScroll:true}); if(st.focus.s!=null&&el.setSelectionRange) el.setSelectionRange(st.focus.s,st.focus.e); }catch(_){} } }
+  try{ window.scrollTo({top:st.y,left:st.x,behavior:'auto'}); }catch(_){ window.scrollTo(st.x,st.y); }
+}
+function renderPreserving(){
+  const st=captureUiState();
+  suppressYbScroll=true;
+  try{ render(); } finally { suppressYbScroll=false; }
+  restoreUiState(st);
+}
+const HELD_STAMP='updated, redraw held while you type';
+let flushTimer=null, flushWaitStart=0; /* v3.13.3: one retry timer only, capped at 60s */
+function flushPendingRender(){
+  if(flushTimer){ clearTimeout(flushTimer); flushTimer=null; }
+  if(!pendingRender){ flushWaitStart=0; return; }
+  if(saving){
+    if(!flushWaitStart) flushWaitStart=Date.now();
+    if(Date.now()-flushWaitStart<60000) flushTimer=setTimeout(flushPendingRender,500); /* retry once the save finishes; give up after 60s, the next refresh retries */
+    return;
+  }
+  flushWaitStart=0;
+  if(userIsEditing()) return;
+  pendingRender=false;
+  try{ renderPreserving(); markFullApply(); }
+  catch(e){ lastDataSig=''; pendingRender=false; console.error('deferred redraw failed',e); return; } /* next refresh redraws in full */
+  const st=document.getElementById('stamp'); if(st) st.textContent='updated '+new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
+}
+document.addEventListener('focusout',()=>{ if(pendingRender){ if(flushTimer) clearTimeout(flushTimer); flushTimer=setTimeout(flushPendingRender,300); } });
 async function refreshData(options){
   const manual=!!(options&&options.manual);
   const token=localStorage.getItem('atToken'); if(!token) return;
@@ -7418,6 +7566,19 @@ async function refreshData(options){
     /* v3.13.1: the card on screen is read NOW, after the fetch, not before it. */
     const cur=currentRecord(); const curId=cur&&cur.id;
     const holding=!manual&&!inspectRecordId&&!analysisRecordId&&(mode==='triage'||mode==='review')&&!!curId;
+    /* v3.13.3-dev: signature of the RAW fetch (before local writes are laid over it). */
+    const sig=dataSignature(fresh);
+    /* v3.13.3-dev: forced full apply on a new day or every 10 minutes, so day counts and computed fields stay right. */
+    const due=(dayKey()!==lastApplyDay)||(Date.now()-lastFullApplyAt>=FORCE_APPLY_MS);
+    const unchanged=!manual&&!due&&sig===lastDataSig&&lastDataSig!=='';
+    if(unchanged){
+      refreshStats.skipped++;
+      if(pendingRender){ if(st) st.textContent=HELD_STAMP; flushPendingRender(); }
+      else if(st) st.textContent='updated '+new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
+      checkForNewBuild(token);
+      return;
+    }
+    const commit=()=>{ lastDataSig=sig; markFullApply(); }; /* only once the branch below has completed */
     applyLocalWrites(fresh,startedAt);
     records=fresh;
     normaliseRecords();
@@ -7428,25 +7589,32 @@ async function refreshData(options){
     /* v3.13.0: the timer must not rebuild Book a viewing, which would reset the map, pin highlight and popup. Data updates underneath; Refresh or any navigation redraws. */
     /* v3.13.1: a decision is mid-write. Data updates underneath; the decision's own render follows. */
     if(!manual&&saving){
+      commit();
       if(st) st.textContent='updated '+new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
       return;
     }
     if(!manual&&mode==='viewings'&&!inspectRecordId&&!analysisRecordId){
+      commit();
       checkForNewBuild(token);
       if(st) st.textContent='updated '+new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
       return;
     }
     if(holding){
+      commit();
       checkForNewBuild(token);
       if(st) st.textContent=(found>=0?'updated ':'updated · record changed ')+new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
       if(found<0) toast('A routine changed the property you are on and it has left this queue. Nothing moved — press \u2192 when you are ready.');
       return;
     }
-    render();
+    if(manual){ pendingRender=false; render(); }
+    else if(userIsEditing()){ pendingRender=true; refreshStats.queued++; commit(); if(st) st.textContent=HELD_STAMP; checkForNewBuild(token); return; }
+    else { refreshStats.rendered++; renderPreserving(); pendingRender=false; }
+    commit();
     if(st) st.textContent='updated '+new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
     if(manual) toast('Data refreshed.');
     checkForNewBuild(token);
   }catch(e){
+    lastDataSig=''; /* v3.13.3-dev: a failed refresh or redraw must never make the next refresh look "unchanged" */
     if(st) st.textContent='update failed';
     if(manual) toast('Refresh failed. Existing data remains visible.');
   }
@@ -7582,7 +7750,7 @@ async function fetchAll(token){
   // The id Set below is belt-and-braces: even a same-page duplicate can never
   // reach the queue.
   let out=[],offset='';
-  const seen=new Set();
+  const seen=new Set(), sigParts=[];
   // Secondary sort on Asking price narrows the tie-break group for the ~108
   // records with a blank Address (verified live 27/07) — Address alone would
   // otherwise leave all of them as one large equal-sort block.
@@ -7598,9 +7766,12 @@ async function fetchAll(token){
     }
     if(!r.ok) throw new Error('Airtable says '+r.status+' — check the token, base access or rate limits.');
     const d=await r.json();
-    for(const rec of (d.records||[])){ if(!seen.has(rec.id)){ seen.add(rec.id); out.push(rec); } }
+    const pageRecs=[];
+    for(const rec of (d.records||[])){ if(!seen.has(rec.id)){ seen.add(rec.id); out.push(rec); pageRecs.push(rec); } }
+    sigParts.push(pageSignature(pageRecs)); /* v3.13.3-dev: hashed per page as it arrives, so no single long block at the end */
     offset=d.offset||'';
   }while(offset);
+  out.__sig=hashStr(sigParts.join('|'))+'/'+out.length;
   return out;
 }
 
@@ -7727,6 +7898,7 @@ async function init(){
     records=await fetchAll(token);
     await loadAgentBranches(token); /* v3.4.0: non-fatal by construction — see loadAgentBranches */
     await loadHealthTables(token); /* v3.6.1: Health board inputs, same contract */
+    lastDataSig=dataSignature(records); markFullApply(); /* v3.13.3-dev: seed for the refresh diff (signature built in fetchAll) */
     normaliseRecords();
     buildQueue(null,{restore:true}); /* v2.7.3: first load is the ONLY place that reopens on the last-viewed record */
     checkForNewBuild(token);

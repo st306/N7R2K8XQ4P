@@ -6,3 +6,5 @@ STP's property triage dashboard. One file: `index.html`. Live copy is served by 
 - The map library is in `vendor/leaflet/`, so it loads from this site, not a third party.
 
 v3.13.0 (11 Oct 2026): moved here from Drive v3.12.1; map library bundled; postcode lookup failures now shown on the map screen.
+
+v3.13.2 (18 Oct 2026): phone copy brought up to the Drive build (red-flag fixes, Yes board flow, flag button writes to the Property Sprint Register), phone fit kept.

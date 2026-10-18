@@ -6,7 +6,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Brain">
 <meta name="robots" content="noindex,nofollow">
-<title>Stewart Thomson Property — Property Brain v3.13.1</title>
+<title>Stewart Thomson Property — Property Brain v3.13.2</title>
 <style>
   :root {
     color-scheme: light;
@@ -651,7 +651,15 @@
      Colour is keyed to the VERB (read / decide / call / wait), not to the
      column, so a Decide card reads as a decision even sitting beside reads.
      ============================================================ */
-  .yb-cols{display:grid;grid-template-columns:1.25fr 1.1fr .65fr;gap:14px;align-items:start;margin-top:12px}
+  /* v3.13.0: fourth column (Book a viewing: refurb) */
+  /* v3.13.0: Book a viewing, list beside map */
+  .vw-split{display:grid;grid-template-columns:minmax(0,3fr) minmax(0,2fr);gap:14px;align-items:start;margin-top:12px}
+  .vw-right{position:sticky;top:8px}
+  #viewMap{height:calc(100vh - 150px);min-height:360px;border:1px solid var(--line);border-radius:14px;background:#e9edf5;overflow:hidden;position:relative}
+  .vw-off{margin-top:8px;font-size:12px;color:var(--muted);line-height:1.5}
+  .vw-flash{outline:3px solid var(--navy2,#2c3e7a);outline-offset:2px;transition:outline-color .3s}
+  @media(max-width:900px){.vw-split{grid-template-columns:1fr}.vw-right{position:static;order:-1}#viewMap{height:320px;min-height:0}}
+  .yb-cols{display:grid;grid-template-columns:1.25fr 1.1fr 1.1fr .65fr;gap:14px;align-items:start;margin-top:12px}
   @media(max-width:1150px){.yb-cols{grid-template-columns:1fr 1fr}.yb-cols .ybcol.rail{grid-column:1/-1}}
   @media(max-width:780px){.yb-cols{grid-template-columns:1fr}.yb-cols .ybcol.rail{grid-column:auto}}
   .ybcol{border:1px solid var(--line);border-radius:14px;background:var(--card);padding:12px 12px 14px;min-width:0}
@@ -1063,6 +1071,13 @@
   .trg-sess-n.done b{color:#0e8a4d}
   .trg-sess-p{flex:1;height:6px;border-radius:99px;background:#e8ecf5;overflow:hidden;min-width:60px}
   .trg-sess-p i{display:block;height:100%;background:#0e8a4d}
+  /* v3.13.1: triage feed hide chips, Read and decide age/off-market pill, map fallback links */
+  .trg-hides{display:flex;flex-wrap:wrap;gap:6px;margin:-4px 0 12px}
+  .trg-hide{font:inherit;font-size:12px;font-weight:650;color:var(--navy);background:#eef2fb;border:1px dashed #9aa8cf;border-radius:99px;padding:5px 11px;cursor:pointer;text-align:left}
+  .yb-age-pill{display:inline-block;margin:4px 0 0;padding:2px 8px;border-radius:20px;font-size:10.5px;font-weight:750;background:#fff1d6;color:#8a5a00}
+  .yb-age-pill.gone{background:#fde2e2;color:#a11d1d}
+  .map-gmaps{display:flex;flex-direction:column;gap:6px;margin-top:8px}
+  .map-gmaps a{color:var(--navy2,#1e2a5a);font-weight:650}
   @media(max-width:700px){
     .trg-strip{grid-template-columns:1fr 1fr}
     .trg-light small{display:none}
@@ -1089,7 +1104,7 @@
 </head>
 <body>
 <header>
-  <div class="brand"><h1>Property Brain · v3.13.1</h1><div class="sub">Buy better deals faster through superior intelligence · build 2026-09-15.3 · The run clock on Health: when the next stock lands and when it gets enriched · intake moved to the hour · Y shortlists, the Home Report is one press on the Yes board</div></div>
+  <div class="brand"><h1>Property Brain · v3.13.2</h1><div class="sub">Buy better deals faster through superior intelligence · build 2026-10-15.1 · red-flag fixes: sold and stale listings out of Read and decide, one-click Review passes, Review before booking, working sort, cleaner triage feed, map fallback</div></div>
   <div class="modes" aria-label="Dashboard mode">
     <button class="mode" id="modeToday" type="button">Today</button>
     <button class="mode" id="modeTriage" type="button">Triage</button>
@@ -1097,8 +1112,7 @@
     <button class="mode" id="modeViewings" type="button">Book a viewing</button>
     <button class="mode" id="modeReview" type="button">Review</button>
     <button class="mode" id="modeWatch" type="button">Watch list</button>
-    <button class="mode" id="modeHealth" type="button">Health</button>
-    <button class="mode" id="modeMap" type="button">Map</button>
+    <!-- v3.13.0 (12/10/2026), Stu: "I think we're actually going to delete it" (Health); the Map is folded into Book a viewing. Health and Map nav buttons removed; renderHealth and renderMap are kept in the code, dead but restorable. -->
     <button class="mode" id="reportsBadge" type="button" style="display:none"></button>
   </div>
   <div class="jump">
@@ -1182,7 +1196,29 @@ const BASE='appjVRP7n8LtgDkKn', TABLE='tblZlJuNnQpSDEInI';
    the Brain compares it against the BUILD baked in below and raises a banner.
    BUILD MUST BE BUMPED ON EVERY SHIP, and App Control updated to match, or the
    banner either never fires or fires forever. */
-const BUILD='3.12.1';
+/* v3.13.0 (12/10/2026), Stu, build 2026-10-12.1. What changed: (1) Yes board runs
+   oldest first; (2) after a decision on a card opened from a Yes-board column the
+   Brain opens the next card in that column ("N of M"), Esc returns to the board;
+   (3) new Book a viewing: refurb column; (4) map tiles moved from OpenStreetMap
+   to CARTO (OSM returns 403 from file://); (5) Book a viewing screen has the list
+   beside a map; (6) Health and Map tabs removed from the nav (code kept);
+   (7) Today loses the Stuck and Current opportunities panels. */
+/* v3.13.1 (15/10/2026), Stu's twelve red flags, build 2026-10-15.1. What changed:
+   (1) Read and decide hides sold, under offer, withdrawn and let agreed listings
+   (chip to show them) and sinks anything listed over RD_MAX_AGE_DAYS to the bottom;
+   (2) Review gets one-click "Pass - Under offer" and "Pass - Sold / withdrawn";
+   (3) Book a viewing on the Yes board opens the record in Review first, which
+   carries the Book a viewing button; (4) Proceed and Pass in the Review queue move
+   to the next record waiting on a decision; (5) a background refresh can no longer
+   put back a record you have just decided (local writes survive a refresh that was
+   already in flight); (6) the sort control now orders the Yes board and Book a
+   viewing too, newest/oldest by listing date (added date where none), saved per
+   screen; (7) the triage countdown shows in every triage state; (8-11) triage hides
+   no-picture listings, caravans, park homes, houseboats and land, and collapses
+   duplicates by address and price, each with a count and a show toggle; (12) map
+   tiles carry attribution, and a failed map shows Google Maps links instead of a
+   dead panel. Nothing here changes Airtable data or schema. */
+const BUILD='3.13.2'; /* v3.13.2 (15/10/2026): red-flag button logs to the Property Sprint Register (tbl5l7bViIJjBvfzz), not the dead capture queue. */
 const CONTROL_TABLE='tblDGKgorkTQkAXBc';
 /* v3.4.0 (28/08/2026), AC-BRAINUX-WINDOW-01 + AC-BRAIN-PROCEEDFLOW-01.
    THE YES BOARD BECOMES THE "WHERE WE ARE" SCREEN. Stu, 27/08, verbatim:
@@ -1474,6 +1510,10 @@ let watchFocusId='';
    Yes board one row past the record just decided, highlighted, so the next
    thing to do is obvious without re-opening anything. */
 let yesBoardCurrentId='';
+/* v3.13.0 (12/10/2026), Stu: "If I'm looking at, say, Durban Avenue, Clydebank, and say No, it should then take me to the next one... I don't have to come out of it."
+   The ordered ids of the Yes-board column the open card came from, as rendered,
+   and the index of the card now open. null whenever the card was not opened from a column. */
+let ybSeq=null;
 /* v3.8.0 (14/09/2026), board pass change 2. Stu: "cards sticking in Read and
    Decide after Yes, No or Watch."
    TWO CAUSES, TWO FIXES, BOTH HERE.
@@ -1510,7 +1550,8 @@ let pendingPassRecord=null,selectedPassReason='';
    longer, is not a place you go to spend twenty minutes booking viewings. It
    is back as a mode of its own - full width, town then agency, every row
    carrying the call, the email and the save-the-date in one place. */
-function normaliseMode(v){ return ['today','triage','yesboard','viewings','review','watch','map','health'].includes(v)?v:'today'; }
+/* v3.13.0 (12/10/2026): Health and Map have no nav button any more (renderHealth/renderMap kept, dead but restorable). A stored or requested 'map' or 'health' mode now lands on Book a viewing, which carries the map. */
+function normaliseMode(v){ if(v==='map'||v==='health') v='viewings'; return ['today','triage','yesboard','viewings','review','watch'].includes(v)?v:'today'; }
 function loadJson(key,fallback){
   try{ const v=JSON.parse(localStorage.getItem(key)); return Object.assign({},fallback,v||{}); }
   catch(_){ return Object.assign({},fallback); }
@@ -1766,6 +1807,47 @@ function stalenessOf(rec){
     msg:'Known '+days+' days. Worth opening the listing to confirm it is still available.'};
   return {level:'ok',days,status,msg:''};
 }
+/* v3.13.1 (15/10/2026), Stu (red flag): "Read and decide shows sold listings, top one 91 days old and under offer."
+   Two display-side tests, nothing written. offMarketReason() reads the fields that can say a listing has gone:
+   the latest LIVENESS CHECKED line (via stalenessOf), Agent Status, Price qualifier, the latest LISTING STATUS
+   line in Notes, and the captured listing line. Raw Notes text is NOT word-searched, because comps lines in
+   Notes are full of the word "sold" about other properties. listingAgeDays() is the larger of days since the
+   portal listing date, the portal's days on market, and days since the record was added. */
+const RD_MAX_AGE_DAYS=60;
+const OFF_MARKET_RE=/\b(sold\s*stc|sstc|sold\s+subject\s+to\s+contract|under\s+offer|withdrawn|let\s+agreed|off\s+market)\b/i;
+function offMarketReason(rec){
+  try{
+    const f=rec.fields||{};
+    const st=stalenessOf(rec);
+    if(st.level==='dead'&&st.status&&!/parked/i.test(st.status)) return String(st.status).trim();
+    const fieldTxt=[selName(f[F.agentStatus]),selName(f[F.priceQualifier])].join(' ');
+    let m=fieldTxt.match(OFF_MARKET_RE);
+    if(m) return m[0];
+    const ls=String(f[F.notes]||'').match(/LISTING STATUS[^\n]*/gi);
+    if(ls&&ls.length){ const last=ls[ls.length-1]; m=last.match(OFF_MARKET_RE); if(m) return m[0]; }
+    let subj=''; try{ subj=String(cachedNotes(rec).subj||''); }catch(_){ subj=''; }
+    m=subj.match(OFF_MARKET_RE);
+    if(m) return m[0];
+  }catch(_){}
+  return '';
+}
+function listedOrAddedTime(rec){
+  const l=(rec.fields||{})[F.listedDate];
+  const t=l?new Date(l).getTime():NaN;
+  if(Number.isFinite(t)&&t>0) return t;
+  const c=new Date(rec.createdTime||0).getTime();
+  return Number.isFinite(c)?c:0;
+}
+function listingAgeDays(rec){
+  const f=rec.fields||{}, ages=[];
+  const l=f[F.listedDate]?new Date(f[F.listedDate]).getTime():NaN;
+  if(Number.isFinite(l)&&l>0) ages.push(Math.floor((Date.now()-l)/86400000));
+  const dom=numeric(f[F.daysOnMarket]); if(dom!=null) ages.push(Math.round(dom));
+  if(!ages.length){ const k=daysKnown(rec); if(k!=null) ages.push(k); }
+  return ages.length?Math.max.apply(null,ages):null;
+}
+/* Read and decide hides an off-market card unless the board's "show" chip is on. */
+function rdHidden(rec){ return !filters.ybShowOffMarket&&ybColumnOf(rec)==='decide'&&!!offMarketReason(rec); }
 function streetOf(rec){
   const f=rec.fields||{};
   const raw=f[F.streetWeight];
@@ -1959,7 +2041,7 @@ function openPassModal(r){
   document.getElementById('passModal').classList.add('open');
 }
 function closePassModal(){document.getElementById('passModal').classList.remove('open');pendingPassRecord=null;selectedPassReason='';}
-/* capture-insert 21 Aug 26: screen insert writing into the Workstream Register capture queue (app4ijRuyYLVNFpxZ/tblrheQdyhBd1mEJY),
+/* capture-insert 21 Aug 26 (repointed 15 Oct 26 to the Property Sprint Register, tbl5l7bViIJjBvfzz; it first wrote to the retired capture queue),
    same convention as the 20 Aug chat-capture rows (Status=Needs Review, Lifecycle=Open, REF/Desk/Priority left for triage).
    Reuses the dashboard's existing atToken. That token was scoped to the Property Analysis CRM base only when first set up,
    so it needs the STP Control base (app4ijRuyYLVNFpxZ) added at airtable.com/create/tokens, data.records:write, before this works. */
@@ -2017,13 +2099,42 @@ function closeIssueModal(){ document.getElementById('issueModal').classList.remo
 function ybColumnOf(r){
   const st=chainStage(r);
   if(['reportIn','reportRead','viewed','screen','noPicture','shortlisted'].includes(st)) return 'decide';
-  if(st==='proceedWanted') return 'book';
+  if(st==='proceedWanted') return isRefurbFlagged(r)?'bookRefurb':'book'; /* v3.13.0: refurb split */
   if(['requested','offer'].includes(st)) return 'agent';
   return '';
 }
+/* v3.13.0: record the column the card was opened from, read from the DOM so the
+   order is exactly what Stu saw (including the town/agency grouping). */
+function ybSeqStart(id){
+  ybSeq=null;
+  if(mode!=='yesboard'||inspectRecordId) return;
+  const el=document.getElementById('yb-row-'+id), col=el&&el.closest('.ybcol');
+  if(!col) return;
+  const ids=[...col.querySelectorAll('[id^="yb-row-"]')].map(e=>e.id.slice(7));
+  const i=ids.indexOf(id);
+  if(i>=0) ybSeq={ids:ids,i:i};
+}
+/* v3.13.0: after a decision on the open card, open the next one in the remembered
+   column, skipping ids that are gone, archived or passed. True when handled. When
+   the list runs out it returns to the board (directly, or by returning false to
+   goToYesBoardAfterDecision, which is already on its way there). */
+function ybSeqAdvance(rec,fromGoTo){
+  const s=ybSeq;
+  if(!s||!rec||s.ids[s.i]!==rec.id) return false;
+  for(let j=s.i+1;j<s.ids.length;j++){
+    const r=records.find(x=>x.id===s.ids[j]);
+    if(!r||isArchived(r)||ybIsPassed(r)||ybCleared[r.id]||sameStatus(dealOf(r),STATUS.watch)) continue; /* Watch matches yesBoardAll */
+    s.i=j; openAnalysis(r.id,false,true); return true;
+  }
+  ybSeq=null;
+  if(fromGoTo) return false;
+  goToYesBoardAfterDecision(rec); return true;
+}
 function goToYesBoardAfterDecision(rec){
+  if(ybSeqAdvance(rec,true)) return;
   const rows=yesBoardRows();
-  const needsMe=r=>r&&r.id!==rec.id&&!ybIsPassed(r)&&STAGE_OWNER[chainStage(r)]==='me';
+  /* v3.13.1: never land on a card Read and decide is hiding as off market. */
+  const needsMe=r=>r&&r.id!==rec.id&&!ybIsPassed(r)&&STAGE_OWNER[chainStage(r)]==='me'&&!rdHidden(r);
   let next=null;
   /* Same column first. The column is read from the record as it was BEFORE the
      write moved it on, which is the column Stu is still looking at. */
@@ -2080,10 +2191,49 @@ async function proceedDecision(rec){
        a manual step until the redesigned Proceed flow (AC-BRAIN-PROCEEDFLOW-01)
        ships. Longer toast + the destination is now visibly highlighted on
        the Yes board it lands on. */
-    toast('Marked Proceed — no viewing request sent.'+(fields[F.viewingDate]?' Viewing booked for '+raw.trim()+'.':' No date given yet.')+' → Yes board',3600);
-    goToYesBoardAfterDecision(rec);
+    toast('Marked Proceed — no viewing request sent.'+(fields[F.viewingDate]?' Viewing booked for '+raw.trim()+'.':' No date given yet.')+(ybSeq&&ybSeq.ids.slice(ybSeq.i+1).some(id=>{const x=records.find(r=>r.id===id);return x&&!isArchived(x)&&!ybIsPassed(x)&&!ybCleared[id]&&!sameStatus(dealOf(x),STATUS.watch);})?' → next card':(inReviewQueue()?' → next in Review':' → Yes board')),3600);
+    afterReviewDecision(rec); /* v3.13.1: was goToYesBoardAfterDecision(rec) */
   }catch(e){ alert(e.message); }
   finally{ saving=false; }
+}
+/* v3.13.1 (15/10/2026), Stu (red flag): "Proceed in Review must advance to the next task in the queue."
+   A card opened from a Yes-board column keeps the v3.13.0 behaviour (next card in that column). A card
+   reached through the Review queue itself now moves to the next Review record with no Decision yet,
+   instead of throwing Stu out to the Yes board. Anything else (a record opened from Today, the jump
+   search, the reports badge) still lands on the Yes board as before. */
+function inReviewQueue(){ return mode==='review'&&!analysisRecordId&&!inspectRecordId; }
+function reviewAdvance(rec){
+  buildQueue(rec.id);
+  if(!queue.length) return false;
+  const i=queue.findIndex(r=>r.id===rec.id);
+  const from=i>=0?i:Math.max(qi-1,-1);
+  const open=r=>r&&r.id!==rec.id&&!selName((r.fields||{})[F.decision])&&!ybIsPassed(r);
+  for(let k=1;k<=queue.length;k++){
+    const j=(from+k+queue.length)%queue.length;
+    if(open(queue[j])){ qi=j; selComp={om:0,sold:0,refurb:0}; scrollAppToTop(); render(); return true; }
+  }
+  toast('Nothing left in Review waiting on a decision.',3200);
+  return false;
+}
+function afterReviewDecision(rec){
+  if(ybSeq&&rec&&ybSeq.ids[ybSeq.i]===rec.id) return goToYesBoardAfterDecision(rec);
+  if(inReviewQueue()&&reviewAdvance(rec)) return;
+  goToYesBoardAfterDecision(rec);
+}
+/* v3.13.1 (15/10/2026), Stu (red flag): one-click "Pass - Under offer" and "Pass - Sold / withdrawn" on Review.
+   Same write as the general Pass (submitPassReason): Decision = Pass and Pass reason = the reason text, on one
+   patch. Pass reason is free text (the general Pass writes whatever is typed), so no select choice is needed. */
+const QUICK_PASS={uo:'Under offer',sold:'Sold / withdrawn'};
+async function quickPass(rec,key){
+  const text=QUICK_PASS[key];
+  if(!rec||!text||saving) return;
+  saving=true; setDecisionDisabled(true);
+  try{
+    await patchFields(rec,{[F.decision]:'Pass',[F.passReason]:text});
+    toast('Recorded Pass: '+text+'.');
+    afterReviewDecision(rec);
+  }catch(e){ alert(e.message); }
+  finally{ saving=false; setDecisionDisabled(false); }
 }
 let pendingPassReasonRecord=null;
 function openPassReasonModal(rec){
@@ -2108,7 +2258,7 @@ async function submitPassReason(){
     await patchFields(rec,{[F.decision]:'Pass',[F.passReason]:text});
     closePassReasonModal();
     toast('Recorded Pass.');
-    goToYesBoardAfterDecision(rec);
+    afterReviewDecision(rec); /* v3.13.1: same advance as Proceed and the quick passes */
   }catch(e){ err.textContent=String(e.message||e); err.classList.add('show'); }
   finally{ saving=false; btn.disabled=false; btn.textContent='Record Pass'; }
 }
@@ -2121,14 +2271,17 @@ async function submitIssue(){
   if(!token){ err.textContent='No Airtable token saved in this dashboard.'; err.classList.add('show'); return; }
   const btn=document.getElementById('submitIssue'); btn.disabled=true; btn.textContent='Logging…';
   try{
-    const r=await fetch('https://api.airtable.com/v0/app4ijRuyYLVNFpxZ/tblrheQdyhBd1mEJY',{
+    /* v3.13.2 (15/10/2026), Stu approved: the flag button logs to the Property Sprint Register
+       (Title, Spec, Owner, Status Open, Date) instead of the dead Workstream Register capture queue. */
+    const r=await fetch('https://api.airtable.com/v0/app4ijRuyYLVNFpxZ/tbl5l7bViIJjBvfzz',{
       method:'POST',
       headers:{Authorization:'Bearer '+token,'Content-Type':'application/json'},
       body:JSON.stringify({fields:{
-        'Action':text,
-        'Status':'Needs Review',
-        'Lifecycle':'Open',
-        'Notes':'Source: Stu — Brain screen insert — '+new Date().toISOString()
+        'fldLp04WaHJ3vbZ31':'Brain flag: '+Array.from(text.replace(/\s+/g,' ')).slice(0,90).join(''),
+        'flddDscvXKMPmEUYw':text+'\n\nSource: Stu, Brain screen flag, '+new Date().toISOString(),
+        'fld9ZNmyBwBRWDRuL':'Stu',
+        'fldkWQMHRO1xD5RvM':'Open',
+        'fldAE04yW9ixvXcXf':new Intl.DateTimeFormat('en-CA',{timeZone:'Europe/London'}).format(new Date())
       }})
     });
     if(!r.ok){
@@ -2354,6 +2507,38 @@ async function patchDeal(rec,statusName,extraFields){
     body:JSON.stringify({fields:Object.assign({[F.deal]:statusName},stamp?{[F.triageDate]:stamp}:{},extraFields||{}),typecast:true})});
   if(!r.ok){ const e=await r.json().catch(()=>({})); throw new Error('Write failed ('+r.status+'). Token needs data.records:write scope. '+((e.error&&e.error.message)||'')); }
   Object.assign(rec.fields,{[F.deal]:statusName},stamp?{[F.triageDate]:stamp}:{},extraFields||{});
+  noteLocalWrite(rec,Object.assign({[F.deal]:statusName},stamp?{[F.triageDate]:stamp}:{},extraFields||{}));
+}
+/* v3.13.1 (15/10/2026), Stu (red flag): "After clicking Yes, jumping back records after the click."
+   ROOT CAUSE. refreshData() runs every 60 seconds and a full fetch is ~70 sequential pages, so it can
+   still be in flight when Stu decides a record. Pages fetched before the write carry the OLD values;
+   when the refresh landed, records=fresh put the decided record back into the queue, and the record
+   id the refresh had captured BEFORE its fetch (the one he had just decided) was restored as the
+   current card. On the Yes board and Review that re-rendered at once (the jump back); in Triage it
+   surfaced on the next keypress, where Y could record it a second time.
+   FIX. Every successful write from this app is noted here, and a refresh re-applies any write made
+   after that refresh started, so stale pages can no longer undo a decision. The current-card id is
+   now read when the refresh lands, not when it starts. Display-side only; nothing extra is written. */
+let localWrites={};
+function noteLocalWrite(rec,fields){
+  try{
+    if(!rec||!rec.id) return;
+    const w=localWrites[rec.id]||(localWrites[rec.id]={at:0,fields:{}});
+    w.at=Date.now(); Object.assign(w.fields,fields||{});
+    /* A refresh may already have replaced records[] while the write was on the wire. */
+    const cur=records.find(x=>x.id===rec.id);
+    if(cur&&cur!==rec&&cur.fields) Object.assign(cur.fields,fields||{});
+  }catch(_){}
+}
+function applyLocalWrites(list,startedAt){
+  try{
+    const byId={}; list.forEach(r=>{ byId[r.id]=r; });
+    Object.keys(localWrites).forEach(id=>{
+      const w=localWrites[id];
+      if(w.at>=startedAt){ const r=byId[id]; if(r){ r.fields=r.fields||{}; Object.assign(r.fields,w.fields); } }
+      else delete localWrites[id]; /* written before this fetch began, so the fetch already has it */
+    });
+  }catch(_){}
 }
 
 function baseForMode(){
@@ -2483,9 +2668,22 @@ function buyBoxScore(rec){
   s+=(beds>=1)?10:-5;
   return s;
 }
-function sortQueue(list){
+/* v3.13.1 (15/10/2026), Stu (red flag): "the newest-first sort does nothing to listings on screen, even
+   after refresh." The control only ever reached the Triage and Review queues; the Yes board and Book a
+   viewing ignored it and always ran oldest first. sortQueue now takes the key to sort on, so those
+   screens sort through it too, with their own saved key (filters.ybSort, default oldest first, which is
+   the v3.13.0 order Stu asked for). Newest and Oldest now read the portal listing date where the record
+   has one and the added date where it does not. */
+function sortKeyForScreen(){ return (mode==='yesboard'||mode==='viewings')&&!analysisRecordId&&!inspectRecordId?'board':'queue'; }
+function ybSortKey(){ return filters.ybSort||'source'; }
+function syncSortSelect(){
+  try{ const s=document.getElementById('filterSort'); if(s) s.value=sortKeyForScreen()==='board'?ybSortKey():(filters.sort||'source'); }catch(_){}
+}
+function sortQueue(list,key){
+  const sortKey=key||filters.sort;
   const copy=list.slice();
   const created=r=>{ const t=new Date(r.createdTime||0).getTime(); return Number.isFinite(t)?t:0; };
+  const listed=r=>listedOrAddedTime(r);
   const price=r=>numeric((r.fields||{})[F.ask])||0;
   // 27/07/2026 fix: 'source' used to mean "whatever order fetchAll returned",
   // which was harmless when fetchAll had no sort of its own. Now that
@@ -2497,17 +2695,50 @@ function sortQueue(list){
   // another record, per live check) directly next to its duplicate. 'source'
   // is redefined here as chronological intake order (oldest first), fully
   // decoupled from fetchAll's internal fetch-stability sort.
-  if(filters.sort==='source') copy.sort((a,b)=>created(a)-created(b));
-  if(filters.sort==='newest') copy.sort((a,b)=>created(b)-created(a));
-  if(filters.sort==='oldest') copy.sort((a,b)=>created(a)-created(b));
-  if(filters.sort==='priceAsc') copy.sort((a,b)=>price(a)-price(b));
-  if(filters.sort==='priceDesc') copy.sort((a,b)=>price(b)-price(a));
+  if(sortKey==='source') copy.sort((a,b)=>created(a)-created(b));
+  if(sortKey==='newest') copy.sort((a,b)=>(listed(b)-listed(a))||(created(b)-created(a)));
+  if(sortKey==='oldest') copy.sort((a,b)=>(listed(a)-listed(b))||(created(a)-created(b)));
+  if(sortKey==='priceAsc') copy.sort((a,b)=>price(a)-price(b));
+  if(sortKey==='priceDesc') copy.sort((a,b)=>price(b)-price(a));
   /* v2.6.0: unscored records sink, they never lead the queue. */
-  if(filters.sort==='matchDesc') copy.sort((a,b)=>{const x=scoreOf(a),y=scoreOf(b);if(x==null&&y==null)return 0;if(x==null)return 1;if(y==null)return -1;return y-x;});
+  if(sortKey==='matchDesc') copy.sort((a,b)=>{const x=scoreOf(a),y=scoreOf(b);if(x==null&&y==null)return 0;if(x==null)return 1;if(y==null)return -1;return y-x;});
   /* Ties fall back to newest first, so within an equal Buy Box score the
      freshest stock is seen before something that has sat for a month. */
-  if(filters.sort==='buybox') copy.sort((a,b)=>(buyBoxScore(b)-buyBoxScore(a))||(created(b)-created(a)));
+  if(sortKey==='buybox') copy.sort((a,b)=>(buyBoxScore(b)-buyBoxScore(a))||(created(b)-created(a)));
   return copy;
+}
+/* v3.13.1: triage feed hygiene and duplicate collapse, all display side. */
+let queueStats={filtered:0,nopic:0,nondwelling:0,dups:0};
+const DUP_PRICE_TOLERANCE=0.05; /* asking prices within 5% of each other count as the same listing */
+/* Word-bounded, read from the address and the captured listing line (the title), not from raw Notes,
+   where comps lines name other properties. */
+const TRG_NON_DWELLING_RE=/\b(static\s+caravans?|caravans?|mobile\s+homes?|park\s+homes?|residential\s+park\s+home|holiday\s+park|house\s*boats?|plots?(?!\s*\d)|building\s+(plot|land|site)|plot\s+of\s+land|parcel\s+of\s+land|area\s+of\s+land|(development|residential)\s+(land|site)|site\s+for\s+(\d+\s+)?(houses?|homes?|dwellings?|development|sale)|land\s+(at|on|for|to\s+the|with\s+planning|adjacent|off|near|lying|extending|between|beside|opposite)|acres?\s+of\s+land)\b/i;
+function trgNoPicture(r){ try{ return !photosOf(r.fields||{},F.subjPhotos).length; }catch(_){ return false; } }
+function trgNonDwelling(r){ try{ return TRG_NON_DWELLING_RE.test(stockText(r)); }catch(_){ return false; } }
+function dupAddressKey(r){
+  return String((r.fields||{})[F.addr]||'').toLowerCase()
+    .replace(/\b([a-z]{1,2}\d[a-z\d]?)\s+(\d[a-z]{2})\b/g,'$1$2') /* postcode spacing */
+    .replace(/[^a-z0-9]+/g,'');
+}
+function dupCollapseSet(list){
+  const hide=new Set(), groups=new Map();
+  list.forEach(r=>{ const k=dupAddressKey(r); if(!k) return; if(!groups.has(k)) groups.set(k,[]); groups.get(k).push(r); });
+  groups.forEach(g=>{
+    if(g.length<2) return;
+    const byNew=g.slice().sort((a,b)=>(listedOrAddedTime(b)-listedOrAddedTime(a))||(new Date(b.createdTime||0)-new Date(a.createdTime||0)));
+    const kept=[];
+    byNew.forEach(r=>{
+      const p=numeric((r.fields||{})[F.ask]), bd=numeric((r.fields||{})[F.beds]);
+      const twin=kept.find(k=>{
+        const kp=numeric((k.fields||{})[F.ask]), kb=numeric((k.fields||{})[F.beds]);
+        if(bd!=null&&kb!=null&&bd!==kb) return false;
+        if(p==null||kp==null) return false;
+        return Math.abs(p-kp)<=Math.min(DUP_PRICE_TOLERANCE*Math.max(p,kp),5000);
+      });
+      if(twin) hide.add(r.id); else kept.push(r);
+    });
+  });
+  return hide;
 }
 function buildQueue(preferId,opts){
   /* v2.7.3 (21/08/2026, Stu: "the newest isnt being filtered... the filter
@@ -2522,7 +2753,17 @@ function buildQueue(preferId,opts){
      the last-viewed record ask for it. */
   const o=opts||{};
   baseQueue=baseForMode();
-  queue=sortQueue(baseQueue.filter(filterRecord));
+  queue=baseQueue.filter(filterRecord);
+  queueStats={filtered:baseQueue.length-queue.length,nopic:0,nondwelling:0,dups:0};
+  /* v3.13.1 (15/10/2026), Stu (red flags 8 to 10): no-picture listings and caravans, park homes,
+     houseboats and land clog the triage feed. Hidden from TRIAGE by default, display only; the
+     session bar states each count with a one-tap Show, so nothing is lost or written. */
+  if(mode==='triage'){
+    queueStats.nopic=queue.filter(trgNoPicture).length;
+    queueStats.nondwelling=queue.filter(r=>!trgNoPicture(r)&&trgNonDwelling(r)).length;
+    queue=queue.filter(r=>(filters.trgShowNoPic||!trgNoPicture(r))&&(filters.trgShowNonDwelling||!trgNonDwelling(r)));
+  }
+  queue=sortQueue(queue);
   /* 24/08/2026, Stu: "The review page doesnt seem to do anything." Root
      cause, checked against live data: isReviewEligible pulls in every Yes/
      Ready record whether or not a Home Report has actually arrived, and the
@@ -2544,17 +2785,19 @@ function buildQueue(preferId,opts){
      survives is the one the current sort puts first - on 'newest' that is the
      freshest listing of the pair, which is the one worth reading. Nothing is
      archived and nothing is deleted; untick to see every copy again. */
-  if(filters.dedupe){
-    const seenFp=new Set();
-    queue=queue.filter(function(r){
-      const fp=fingerprint(r);
-      if(!fp.replace(/\|/g,'')) return true;
-      if(seenFp.has(fp)) return false;
-      seenFp.add(fp); return true;
-    });
-  }
+  /* v3.13.1 (15/10/2026), Stu (red flag 11): duplicates. The v2.7.4 fingerprint (address, beds, price
+     to the nearest £5k bucket) missed pairs either side of a bucket edge and pairs where one portal
+     left beds blank. Copies now collapse on the normalised address with asking prices within
+     DUP_PRICE_TOLERANCE of each other (beds must agree only where both have them), and the copy kept
+     is the newest by listing or added date. Order of the survivors is unchanged. The count is shown
+     and the existing "Collapse duplicate copies" setting is the toggle. Display only: applyToTwins and
+     the duplicate banner still use the stricter fingerprint, so no write is ever widened by this. */
+  const dupHide=dupCollapseSet(queue);
+  queueStats.dups=dupHide.size;
+  if(filters.dedupe&&dupHide.size) queue=queue.filter(r=>!dupHide.has(r.id));
   if(o.top){ qi=0; return; }
-  const stored=o.restore?localStorage.getItem(positionKey(mode)):'';
+  let stored='';
+  if(o.restore){ try{ stored=localStorage.getItem(positionKey(mode))||''; }catch(_){ stored=''; } }
   const target=preferId||stored||'';
   const idx=target?queue.findIndex(r=>r.id===target):-1;
   qi=idx>=0?idx:Math.min(qi,Math.max(queue.length-1,0));
@@ -2565,6 +2808,9 @@ function savePosition(){
   try{ localStorage.setItem(positionKey(mode),queue[qi].id); }catch(_){}
 }
 function setMode(next,preferId){
+  /* v3.13.0: leaving a card opened from a Yes-board column for the board (Esc, the Yes board button) scrolls back to that card. */
+  if(next==='yesboard'&&ybSeq&&analysisRecordId&&ybSeq.ids[ybSeq.i]===analysisRecordId) yesBoardCurrentId=analysisRecordId;
+  ybSeq=null;
   analysisRecordId=''; if(location.hash) history.replaceState(null,'',location.href.split('#')[0]);
   if(mapInstance){try{mapInstance.remove();}catch(_){} mapInstance=null;mapMarkers=null;mapLoading=false;}
   mode=normaliseMode(next);
@@ -2789,7 +3035,7 @@ function ybIsPassed(r){
 function yesBoardRows(){
   const board=yesBoardAll();
   const q=String(filters.yesBoardSearch||'').trim().toLowerCase();
-  return board.filter(r=>{
+  return sortQueue(board.filter(r=>{
     if(ybCleared[r.id]) return false; /* v3.8.0 change 2, cause (2) */
     if(filters.ybHidePassed!==false&&ybIsPassed(r)) return false;
     /* v3.5.6 (28/08/2026), Stu: "the book a Viewing box on the Yes board doesnt
@@ -2812,11 +3058,10 @@ function yesBoardRows(){
     if(!q) return true;
     const f=r.fields||{};
     return [f[F.addr],agentOf(r),String(f[F.ask]||'')].join(' ').toLowerCase().includes(q);
-  }).sort((a,b)=>{
-    const sa=yesBoardAnalysisState(a).key==='ready', sb=yesBoardAnalysisState(b).key==='ready';
-    if(sa!==sb) return sa?-1:1;
-    return new Date(b.createdTime||0)-new Date(a.createdTime||0);
-  });
+  }),ybSortKey());
+  /* v3.13.0 (12/10/2026), Stu: "Anything you added should be at the bottom, and I start at the top and work my way down."
+     Oldest first is still the default. v3.13.1: the order now comes from the sort control (filters.ybSort,
+     default 'oldest'), so Newest first and the price sorts work on this board as well. */
 }
 /* v3.3.3 (26/08/2026), AC-BRAIN-YESBOARD-QUICKACTIONS-01, Stu approved same day.
    Stu: "a way to quickly scan the list to see what the next steps are... I
@@ -3079,7 +3324,7 @@ function ybDoAction(id,stage){
   const r=records.find(x=>x.id===id); if(!r) return;
   if(stage==='shortlisted') return requestHomeReport(r);
   if(stage==='requested') return ybChase(r);
-  if(stage==='proceedWanted') return ybBookViewing(r);
+  if(stage==='proceedWanted') return (mode==='yesboard'&&!analysisRecordId&&!inspectRecordId)?openAnalysis(id):ybBookViewing(r); /* v3.13.1: Yes board goes through Review first */
   /* v3.6.2: 'viewed' used to log an offer DATE in one tap, which recorded that
      something happened without recording what was decided or on what numbers.
      It now opens the post-viewing flow, which is the only route that writes
@@ -4047,6 +4292,11 @@ function ybVerb(r){
     return shot?{k:'read',label:'Picture is in — screen it',sub:'you can judge it now'}
                :{k:'call',label:'No picture — open the listing',sub:'you said yes without seeing it'};
   }
+  /* v3.13.1 (15/10/2026), Stu (red flag): Yes board > Review > Book a viewing. On the Yes board the
+     proceedWanted button opens the record in Review, which carries the Book a viewing button; the Book a
+     viewing screen itself still books in one tap. Same stage, same colour, only the route changes. */
+  if(chainStage(r)==='proceedWanted'&&mode==='yesboard'&&!analysisRecordId&&!inspectRecordId)
+    return {k:'call',label:'Review, then book the viewing',sub:'opens the record first'};
   return YB_VERB[chainStage(r)]||{k:'wait',label:'Open it',sub:'nothing else to do here'};
 }
 /* ============================================================================
@@ -4134,6 +4384,7 @@ function ybCard(r,opts){
   return '<div id="yb-row-'+esc(r.id)+'" class="ybc ybc-'+v.k+(current?' ybc-current':'')+(nopic?' ybc-nopic':'')+'" data-view-analysis="'+esc(r.id)+'">'+
     '<div class="ybc-addr">'+(refurb?'<span class="yb-refurb-pill refurb">Refurb</span> ':'')+(nopic?'<span class="yb-refurb-pill nopic">No picture</span> ':'')+esc(recordLabel(r))+'</div>'+
     '<div class="ybc-meta">'+esc(townOf(r)||'—')+' · '+gbp(f[F.ask])+' · '+esc(f[F.beds]||'?')+' bed</div>'+
+    (opts&&opts.rdFlag?ybAgePill(r):'')+
     '<div class="ybc-row">'+stagePill(r)+
       (passed?(why?('<span class="ybc-why">'+esc(why)+'</span>'):'')
              :('<span class="ybc-days'+(stalled?' bad':'')+'">'+age+' day'+(age===1?'':'s')+'</span>'))+
@@ -4144,6 +4395,14 @@ function ybCard(r,opts){
     (passed?'':ybContactLine(r))+
     (opts&&opts.note?ybNoteBlock(r):'')+
   '</div>';
+}
+/* v3.13.1: why a Read and decide card is where it is (off market, or listed over RD_MAX_AGE_DAYS). */
+function ybAgePill(r){
+  const off=offMarketReason(r);
+  if(off) return '<div><span class="yb-age-pill gone">'+esc(off)+'</span></div>';
+  const a=listingAgeDays(r);
+  if(a!=null&&a>RD_MAX_AGE_DAYS) return '<div><span class="yb-age-pill">Listed '+a+' days. Check it is still live</span></div>';
+  return '';
 }
 /* The note box. Collapsed to one line by default — an always-open textarea on
    every card would turn a scannable column into a form. The last note is shown
@@ -4194,6 +4453,7 @@ function ybRailRow(r){
    the bottom whatever their count. */
 function ybBookGroups(list){
   if(!list.length) return '';
+  list=sortQueue(list,ybSortKey()); /* v3.13.0: oldest first inside each town/agency group. v3.13.1: follows the sort control, oldest first by default */
   /* v3.8.0 (14/09/2026), board pass change 3. Stu: "sort by agent or agency
      within a town, then by town."
      WHAT CHANGED AND WHY. The v3.6 version grouped on ONE key per record -
@@ -4315,6 +4575,8 @@ function wireYesBoardRows(app){
   });
 }
 function renderViewings(app){
+  /* v3.13.0: tear down the previous map before the DOM it lives in is replaced (no "Map container is already initialized"). */
+  if(mapInstance){try{mapInstance.remove();}catch(_){} mapInstance=null;mapMarkers=null;mapLoading=false;}
   const {want,booked}=viewingsRows();
   const towns=new Set(want.map(r=>String(townOf(r)||'').trim()).filter(Boolean));
   app.innerHTML='<div class="command-wrap"><div class="command-head"><div><div class="eyebrow">Screen 2b</div><h2>Book a viewing</h2>'+
@@ -4325,13 +4587,65 @@ function renderViewings(app){
       ? '<p style="margin:6px 0 0;font-weight:800;color:var(--red)">Every one of these is waiting on you to pick up the phone.</p>'
       : '<p style="margin:6px 0 0;font-weight:800;color:var(--green)">Nothing is waiting to be booked.</p>')+
     '</div></div>'+
-    (want.length?('<div class="ybcol wide" style="max-width:none">'+ybBookGroups(want)+'</div>')
+    (want.length?('<div class="vw-split"><div class="vw-left"><div class="ybcol wide" style="max-width:none">'+ybBookGroups(want)+'</div></div>'+
+        '<div class="vw-right"><div id="viewMap"><div class="map-fallback">Loading the map.</div></div><div class="vw-off" id="viewNotOnMap"></div></div></div>')
       :('<div class="ybcol"><div class="ybcol-empty">Nothing here. That is a good thing.</div></div>'))+
     (booked.length?('<div class="ybcol" style="margin-top:14px"><div class="ybcol-h"><h3>Already booked</h3><span class="ybcol-n">'+booked.length+'</span></div>'+
       '<div class="ybcol-s">Dates in the diary, soonest first. Shown so you can see the run you are building before you add to it.</div>'+
       booked.map(ybRailRow).join('')+'</div>'):'')+
     '</div>';
   wireYesBoardRows(app);
+  /* v3.13.0 (12/10/2026), Stu: "divided in two, with Book a viewings on one side and then a map showing ... where I'm going, so I can put things together."
+     A click on a card body (not a button or link) highlights its pin and opens its popup. That click used to open the analysis (openAnalysis); the popup's Open record button now calls openAnalysis too, via the capture listener on #viewMap below, instead of the Map view's activateRecord (which goes to Review). A card with no pin still opens the analysis as before. */
+  const left=app.querySelector('.vw-left');
+  if(left) left.addEventListener('click',ev=>{
+    if(ev.target.closest('button,a,input,select,textarea')) return;
+    const card=ev.target.closest('[id^="yb-row-"]'); if(!card) return;
+    if(viewPinFor(card.id.slice(7))){ ev.stopPropagation(); }
+  },true);
+  if(want.length) setTimeout(()=>initViewingsMap(want),0);
+}
+let viewMarkers={}, viewHot='', viewMapSeq=0;
+function viewPinFor(id){
+  const m=viewMarkers[id]; if(!m||!mapInstance) return false;
+  if(viewHot&&viewMarkers[viewHot]) viewMarkers[viewHot].setStyle({radius:8,weight:2});
+  viewHot=id; m.setStyle({radius:12,weight:4}); m.bringToFront();
+  mapInstance.panTo(m.getLatLng()); m.openPopup();
+  return true;
+}
+async function initViewingsMap(list){
+  const seq=++viewMapSeq;
+  const ok=await loadLeaflet();
+  if(seq!==viewMapSeq||!document.getElementById('viewMap')) return;
+  if(!ok){ document.getElementById('viewMap').innerHTML=gmapsFallbackHtml(list,'The map library could not load.'); return; } /* v3.13.1: Google Maps links, not a dead panel */
+  await geocodeMissing(list);   /* same postcodes.io lookup and browser cache as the Map view */
+  const el=document.getElementById('viewMap');
+  if(seq!==viewMapSeq||!el||mode!=='viewings') return;
+  el.innerHTML='';
+  if(mapInstance){try{mapInstance.remove();}catch(_){} mapInstance=null;mapMarkers=null;}
+  mapInstance=L.map(el,{scrollWheelZoom:true}).setView([56.3,-4.2],6);
+  watchTiles(mapTiles(),el,list).addTo(mapInstance); /* v3.13.1: tile failure falls back to Google Maps links */
+  if(!el.dataset.openWired){ el.dataset.openWired='1'; el.addEventListener('click',ev=>{
+    const b=ev.target.closest&&ev.target.closest('[data-map-open]'); if(!b) return;
+    ev.stopPropagation(); openAnalysis(b.getAttribute('data-map-open'));
+  },true); }
+  renderMapMarkers(list);       /* same pins, fan-out and popups as the Map view */
+  /* renderMapMarkers adds one marker per placeable record, in list order, so they pair up by position. */
+  const placed=list.filter(r=>{const g=geoCache[postcodeOf(r)]; return g&&g.lat!=null;});
+  const layers=mapMarkers?mapMarkers.getLayers():[];
+  viewMarkers={}; viewHot='';
+  placed.forEach((r,i)=>{
+    const m=layers[i]; if(!m) return;
+    viewMarkers[r.id]=m;
+    m.on('click',()=>{
+      const c=document.getElementById('yb-row-'+r.id); if(!c) return;
+      c.scrollIntoView({block:'center',behavior:'smooth'});
+      c.classList.add('vw-flash'); setTimeout(()=>c.classList.remove('vw-flash'),1600);
+    });
+  });
+  const off=list.length-placed.length, note=document.getElementById('viewNotOnMap');
+  if(note) note.textContent=off?('Not on map: '+off+' (no postcode match)'):'';
+  setTimeout(()=>{ if(mapInstance) mapInstance.invalidateSize(); },0);
 }
 function renderYesBoard(app){
   const board=yesBoardAll();
@@ -4346,20 +4660,32 @@ function renderYesBoard(app){
      section underneath, so they can be reviewed without diluting live work. */
   const live=rows.filter(r=>!ybIsPassed(r));
   const passedRows=rows.filter(ybIsPassed);
-  const colDecide=live.filter(r=>['reportIn','reportRead','viewed','screen','noPicture','shortlisted'].includes(chainStage(r)));
-  const colBook  =live.filter(r=>chainStage(r)==='proceedWanted');
+  /* v3.13.1 (15/10/2026), Stu (red flag): "Read and decide shows sold listings, top one 91 days old and under offer."
+     Off-market cards (sold, under offer, withdrawn, let agreed) leave the column unless the header chip
+     shows them; cards listed over RD_MAX_AGE_DAYS sink to the bottom of the column, keeping the sort's
+     order within each part, and each carries a pill saying why. Nothing is written or hidden silently. */
+  const decideAll=live.filter(r=>['reportIn','reportRead','viewed','screen','noPicture','shortlisted'].includes(chainStage(r)));
+  const offMarketList=decideAll.filter(r=>offMarketReason(r));
+  const decideShown=filters.ybShowOffMarket?decideAll:decideAll.filter(r=>!offMarketReason(r));
+  const rdAged=r=>{ const a=listingAgeDays(r); return a!=null&&a>RD_MAX_AGE_DAYS; };
+  const colDecide=decideShown.filter(r=>!rdAged(r)&&!offMarketReason(r)).concat(decideShown.filter(r=>rdAged(r)&&!offMarketReason(r)),decideShown.filter(r=>offMarketReason(r)));
+  /* v3.13.0 (12/10/2026), Stu: "another column to show Book a viewing but only for items selected as refurb".
+     Proceed-and-no-date cards that are refurb flagged move to their own column; a card is in exactly one of the two. */
+  const colBookAll=live.filter(r=>chainStage(r)==='proceedWanted');
+  const colBookRefurb=colBookAll.filter(isRefurbFlagged);
+  const colBook  =colBookAll.filter(r=>!isRefurbFlagged(r));
   const colAgent =live.filter(r=>['requested','offer'].includes(chainStage(r)));
   const readCount=colDecide.filter(r=>ybVerb(r).k==='read').length;
   const lateCount=live.filter(r=>ybVerb(r).k==='late').length;
-  const onMeCount=colDecide.length+colBook.length;
+  const onMeCount=colDecide.length+colBook.length+colBookRefurb.length; /* v3.13.0: both Book columns count */
 
   /* START HERE. Three columns still leave him choosing WHICH column to be in,
      and that is a decision before the work. One named property removes it. The
      pick is the most overdue thing that is actually on him, reading before
      deciding before calling, which is the order the chain itself runs in. */
   const rank={late:-1,read:0,decide:1,call:2};
-  const startPick=live.filter(r=>['late','read','decide','call'].includes(ybVerb(r).k))
-    .sort((a,b)=>(isStalled(b)-isStalled(a))||(rank[ybVerb(a).k]-rank[ybVerb(b).k])||(stageAgeDays(b)-stageAgeDays(a)))[0];
+  const startPick=live.filter(r=>['late','read','decide','call'].includes(ybVerb(r).k)&&!(ybColumnOf(r)==='decide'&&offMarketReason(r))) /* v3.13.1: never start on a sold or under-offer Read and decide card */
+    .sort((a,b)=>((ybColumnOf(a)==='decide'&&rdAged(a))-(ybColumnOf(b)==='decide'&&rdAged(b)))||(isStalled(b)-isStalled(a))||(rank[ybVerb(a).k]-rank[ybVerb(b).k])||(stageAgeDays(b)-stageAgeDays(a)))[0]; /* v3.13.1: an over-age Read and decide card is never the first pick */
 
   const col=(title,note,list,cls,body)=>'<div class="ybcol '+cls+'">'+
     '<div class="ybcol-h"><h3>'+esc(title)+'</h3><span class="ybcol-n">'+list.length+'</span></div>'+
@@ -4370,11 +4696,12 @@ function renderYesBoard(app){
   app.innerHTML='<div class="command-wrap"><div class="command-head"><div><div class="eyebrow">Screen 2</div><h2>The Yes board</h2>'+
     '<p>'+board.length+' in · '+refurbCount+' refurb'+(nopicCount?(' · <b>'+nopicCount+' with no picture</b>'):'')+'. Split by the kind of work it needs. <b>Colour is the job, not the column</b> — so a Decide card is amber even though it sits with the reads.</p>'+
     (onMeCount
-      ? ('<p style="margin:6px 0 0;font-weight:800;color:var(--red)">'+onMeCount+' waiting on you. After each decision the board jumps to the next one.</p>')
+      ? ('<p style="margin:6px 0 0;font-weight:800;color:var(--red)">'+onMeCount+' waiting on you. Open a card and each decision moves you to the next one.</p>')
       : ('<p style="margin:6px 0 0;font-weight:800;color:var(--green)">Nothing on this board is waiting on you. Everything open is with an agent.</p>'))+
     '</div>'+
     '<label class="toggle-chip" style="display:inline-flex;align-items:center;gap:6px;margin-right:10px"><input id="ybHidePassed" type="checkbox"'+(filters.ybHidePassed!==false?' checked':'')+'> Hide passed ('+passedCount+')</label>'+
     (clearedCount?('<button class="toggle-chip" id="ybUndoCleared" type="button" style="margin-right:10px">Bring back '+clearedCount+' you cleared this session</button>'):'')+
+    (offMarketList.length?('<button class="toggle-chip" id="ybOffMarket" type="button" style="margin-right:10px">'+(filters.ybShowOffMarket?('Hide the '+offMarketList.length+' sold or under offer'):(offMarketList.length+' hidden: sold, under offer or withdrawn. Show'))+'</button>'):'')+
     '<input id="yesBoardSearch" type="search" autocomplete="off" placeholder="Search address, agent, price" value="'+esc(filters.yesBoardSearch||'')+'" style="min-width:240px">'+
     '</div>'+
     '<div class="yb-key">'+
@@ -4391,8 +4718,9 @@ function renderYesBoard(app){
       '<div class="yb-start-s">'+esc(STAGE_WAITING[chainStage(startPick)]||'')+' · '+stageAgeDays(startPick)+' days'+(isStalled(startPick)?', longer than it should sit':'')+'</div></div>'+
       '<button class="yb-start-go ybc-act-'+ybVerb(startPick).k+'" type="button" data-yb-act="'+esc(chainStage(startPick))+'" data-rid="'+esc(startPick.id)+'">'+esc(ybVerb(startPick).label)+' →</button></div>'):'')+
     '<div class="yb-cols">'+
-      col('Read and decide',readCount+' to read, '+(colDecide.length-readCount)+' to decide. The only work nobody else can start.',colDecide,'wide',colDecide.map(ybCard).join(''))+
+      col('Read and decide',readCount+' to read, '+(colDecide.length-readCount)+' to decide. The only work nobody else can start. Anything listed over '+RD_MAX_AGE_DAYS+' days sits at the bottom.',colDecide,'wide',colDecide.map(r=>ybCard(r,{rdFlag:true})).join(''))+
       col('Book a viewing','You said Proceed and there is still no date. Grouped by branch first, because three properties with one branch is one call, not three jobs.',colBook,'mid',ybBookGroups(colBook))+
+      col('Book a viewing: refurb','Proceed, refurb flagged, no date yet.',colBookRefurb,'mid',ybBookGroups(colBookRefurb))+
       col('With agents','Not on you. Worth a nudge once one goes old.',colAgent,'rail',colAgent.map(ybRailRow).join(''))+
     '</div>'+
     (passedRows.length?('<div class="ybcol" style="margin-top:14px"><div class="ybcol-h"><h3>Passed</h3><span class="ybcol-n">'+passedRows.length+'</span></div>'+
@@ -4406,6 +4734,8 @@ function renderYesBoard(app){
   if(hp){ hp.onchange=()=>{ filters.ybHidePassed=hp.checked; saveJson(LS.filters,filters); render(); }; }
   const uc=document.getElementById('ybUndoCleared');
   if(uc){ uc.onclick=()=>{ ybCleared={}; render(); }; }
+  const om=document.getElementById('ybOffMarket'); /* v3.13.1 */
+  if(om){ om.onclick=()=>{ filters.ybShowOffMarket=!filters.ybShowOffMarket; saveJson(LS.filters,filters); render(); }; }
   wireYesBoardRows(app);
   if(yesBoardCurrentId){
     const el=document.getElementById('yb-row-'+yesBoardCurrentId);
@@ -4790,27 +5120,8 @@ function renderToday(app){
     '<p class="command-note" style="margin-top:0">Has a photograph. '+(withEvidence?(withEvidence+' of these also carry a street ceiling and lead the list; the rest are newest first. '):'Newest first. ')+(notYet?(notYet+' more are untriaged with no picture at all, so they cannot be judged. They are not hidden \u2014 they are in the triage queue, and the burn-down fills pictures newest-first.'):'')+'</p>'+
     '<div class="action-list">'+(commandRows(ready,10,true)||'<div class="empty">Nothing is appraisable right now. Intake and the comps routine fill this; it is not a fault.</div>')+'</div></section>'+
 
-  '<section class="card pad"><div class="subject-top"><div><div class="eyebrow">Not moving</div><h2>Stuck</h2></div><span class="status-pill '+(stuck.length?'review':'ready')+'">'+stuck.length+'</span></div>'+
-    /* v3.5.4 (28/08/2026), Stu: "split it so I know the reason - Address and
-       then the reason." It was one run-on line, "12 days waiting on the agent",
-       so the address and the why ran into each other and neither scanned. Three
-       columns now: what it is, why it is stuck, how long. The reason turns red
-       once a record is past DOUBLE its patience window, because a day over is
-       noise and a week over is a different conversation. */
-    '<div class="action-list">'+(stuck.slice(0,10).map(function(x){
-      const f=x.r.fields||{};
-      const hard=x.d>(LIMIT[x.k]*2);
-      return '<button class="action-row" type="button" data-open-record="'+esc(x.r.id)+'">'+
-        '<span class="stuck-row">'+
-          '<span><span class="action-title">'+esc(recordLabel(x.r))+'</span><span class="action-meta">'+gbp(f[F.ask])+'</span></span>'+
-          '<span class="stuck-why'+(hard?' hard':'')+'">'+esc(STAGE_NAME[x.k])+'</span>'+
-          '<span class="stuck-days">'+x.d+' days</span>'+
-        '</span></button>';
-    }).join('')||'<div class="empty">Nothing has stalled. Every record in the chain has moved inside its window.</div>')+'</div>'+
-    '<p class="command-note">Patience windows: agent 5 days \u00b7 unread report 3 \u00b7 read but no viewing 7 \u00b7 viewed but no offer 10 \u00b7 offer out 14.</p></section>'+
-  '</div>'+
-
-  '<div class="command-columns">'+
+  /* v3.13.0 (12/10/2026), Stu: the Today sections other than the chain counts and "Home Reports waiting to be read" are not up to date and add no value.
+     The Stuck (not moving) panel is removed here; Ready to decide and Home Reports waiting to be read now share one row. */
   '<section class="card pad"><div class="subject-top"><div><div class="eyebrow">Stage 3</div><h2>Home Reports waiting to be read</h2></div><span class="status-pill '+(byStage.reportIn.length?'review':'ready')+'">'+byStage.reportIn.length+'</span></div>'+
     /* v3.5.4 (28/08/2026), Stu: "doesnt do much as the link sometimes doesnt
        work. I need to open it and then read it."
@@ -4835,7 +5146,7 @@ function renderToday(app){
     }).join('')||'<div class="empty">No Home Report is sitting unread. When one lands on a record it appears here with a Report read button.</div>')+'</div>'+
     (byStage.reportIn.length?('<p class="command-note">'+byStage.reportIn.filter(hrOnRecord).length+' of these carry the actual PDF and open inside the Brain. The rest hold only a Gmail thread link, so the report has to be found by hand in the mailbox \u2014 that is a Home Report Loop fix, not a screen fix.</p>'):'')+'</section>'+
 
-  '<section class="card pad"><div class="subject-top"><div><div class="eyebrow">Commercial pipeline</div><h2>Current opportunities</h2></div><button class="btn ghost" type="button" data-command-mode="map">Open map</button></div><div class="action-list">'+(commandRows(opportunities)||'<div class="empty">No current opportunities.</div>')+'</div><p class="command-note">Actual submitted offers cannot be distinguished in the locked status field, so this reports opportunity records, not claimed offers.'+(c.hidden.pursue?(' '+c.hidden.pursue+' hidden as out of box.'):'')+'</p></section>'+
+  /* v3.13.0: the Current opportunities (commercial pipeline) panel is removed, same reason as Stuck above. */
   '</div></div>';
 
   app.querySelectorAll('[data-command-mode]').forEach(b=>b.onclick=()=>setMode(b.dataset.commandMode));
@@ -4906,7 +5217,7 @@ async function geocodeMissing(list){
       const d=await r.json();
       (d.result||[]).forEach(x=>{const p=String(x.query||'').toUpperCase();geoCache[p]=x.result?{lat:x.result.latitude,lng:x.result.longitude,district:x.result.admin_district,region:x.result.region}:null;});
       saveJson(LS.geo,geoCache);
-    }catch(e){window.geoLookupError='Postcode lookup failed ('+(e&&e.message||'network')+'). '+(pcs.length-i)+' postcodes not located this time.';break;}
+    }catch(_){break;}
   }
 }
 function renderMapMarkers(list){
@@ -4933,12 +5244,46 @@ function renderMapMarkers(list){
   const mapped=document.getElementById('mapMapped');if(mapped)mapped.textContent=pts.length;
   const missing=document.getElementById('mapMissing');if(missing)missing.textContent=list.length-pts.length;
 }
+/* v3.13.0 (12/10/2026), Stu (map showed grey tiles). tile.openstreetmap.org answers "403 Access blocked" to a page opened from file://, so the basemap is now CARTO light, which allows it. One helper, used by the Map view and the Book a viewing map. */
+/* v3.13.1 (15/10/2026), Stu (red flag): "Book a viewing > Map shows 'API key required' and OpenStreetMap tiles return 403."
+   This file has no API-key path of its own; that text and the 403 are what a tile server paints into its tiles
+   when it refuses a request. CARTO Positron (no key) stays the basemap, now with linked attribution. If the
+   tiles still fail (most errors and no tile loaded) or the map library cannot load, the panel is replaced by
+   Google Maps search links for each address, so Stu still has a working map route rather than a dead panel. */
+function mapTiles(){ return L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',{subdomains:'abcd',maxZoom:19,attribution:'&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions" target="_blank" rel="noopener">CARTO</a>'}); }
+function gmapsUrl(rec){
+  const label=String(recordLabel(rec)||''), pc=String(postcodeOf(rec)||'').replace(/\s+/g,' ').trim();
+  const q=(pc&&label.toUpperCase().replace(/\s+/g,'').indexOf(pc.replace(/\s+/g,''))<0)?(label+' '+pc):label;
+  return 'https://www.google.com/maps/search/?api=1&query='+encodeURIComponent(q);
+}
+function gmapsFallbackHtml(list,why){
+  const rows=(list||[]).slice(0,40).map(r=>'<a href="'+esc(gmapsUrl(r))+'" target="_blank" rel="noopener">'+esc(recordLabel(r))+'</a>').join('');
+  return '<div class="map-fallback"><b>'+esc(why)+'</b> The list still works. Open each address in Google Maps instead:'+
+    (rows?('<div class="map-gmaps">'+rows+'</div>'):'<div>No addresses to show.</div>')+'</div>';
+}
+/* Watches a tile layer: if at least 6 tiles fail and none has loaded, the map panel is swapped for the
+   Google Maps links. One successful tile cancels it, so a single slow or missing tile never does. */
+function watchTiles(layer,el,list){
+  let ok=0, bad=0, done=false;
+  layer.on('tileload',()=>{ ok++; });
+  layer.on('tileerror',()=>{
+    bad++;
+    if(done||ok>0||bad<6) return;
+    done=true;
+    setTimeout(()=>{
+      if(!el||!el.isConnected) return;
+      try{ if(mapInstance&&mapInstance.getContainer&&mapInstance.getContainer()===el){ mapInstance.remove(); mapInstance=null; mapMarkers=null; } }catch(_){}
+      try{ el.innerHTML=gmapsFallbackHtml(list,'The map tiles could not be loaded.'); }catch(_){}
+    },0);
+  });
+  return layer;
+}
 async function initialiseMap(){
   if(mapLoading)return;mapLoading=true;const status=document.getElementById('mapStatus');
   const list=mapEligibleRecords();if(status)status.textContent='Loading map and locating postcodes…';
   const ok=await loadLeaflet();if(!ok){if(status)status.textContent='Map library could not load. The rest of the dashboard remains available.';mapLoading=false;return;}
-  if(!mapInstance){mapInstance=L.map('dealMap',{scrollWheelZoom:true}).setView([56.3,-4.2],6);L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,attribution:'© OpenStreetMap contributors'}).addTo(mapInstance);}
-  window.geoLookupError='';await geocodeMissing(list);renderMapMarkers(list);if(status)status.textContent=(window.geoLookupError?window.geoLookupError+' ':'')+'Mapped from postcode centroids, fanned out where several share one postcode. Positions are approximate and are cached only in this browser, never written to Airtable.';mapLoading=false;
+  if(!mapInstance){mapInstance=L.map('dealMap',{scrollWheelZoom:true}).setView([56.3,-4.2],6);mapTiles().addTo(mapInstance);}
+  await geocodeMissing(list);renderMapMarkers(list);if(status)status.textContent='Mapped from postcode centroids, fanned out where several share one postcode. Positions are approximate and are cached only in this browser, never written to Airtable.';mapLoading=false;
 }
 function renderMap(app){
   if(mapInstance){try{mapInstance.remove();}catch(_){} mapInstance=null;mapMarkers=null;mapLoading=false;}
@@ -4950,7 +5295,8 @@ function renderMap(app){
 }
 function analysisHash(id){ return '#analysis/'+encodeURIComponent(id); }
 function analysisUrl(id){ return location.href.split('#')[0]+analysisHash(id); }
-function openAnalysis(id,replace){
+function openAnalysis(id,replace,keepSeq){
+  if(!keepSeq) ybSeqStart(id); /* v3.13.0 */
   inspectRecordId=''; analysisRecordId=id; mode='review'; localStorage.setItem(LS.mode,mode); buildQueue(id);
   const i=queue.findIndex(r=>r.id===id); if(i>=0) qi=i;
   if(replace) history.replaceState(null,'',analysisHash(id)); else location.hash=analysisHash(id);
@@ -5018,6 +5364,7 @@ function renderCrashFallback(err){
 function renderUnsafe_(){
   syncModeButtons();
   updateHeaderState();
+  syncSortSelect(); /* v3.13.1: the sort control shows the sort of the screen in front of you */
   const app=document.getElementById('app');
   if(inspectRecordId){ renderInspect(app); wireCommon(app); return; }
   if(mode==='today'){ renderToday(app); wireCommon(app); return; }
@@ -5031,8 +5378,13 @@ function renderUnsafe_(){
     const active=activeFilterCount();
     const title=active?'No records match the current filters.':(mode==='triage'?'Triage queue clear.':'No records are ready for review.');
     const body=active?'Clear one or more filters to restore the queue.':(mode==='triage'?'Every eligible property currently has a decision.':'Records will appear after the comparables routine sets Ready for full analysis.');
-    app.innerHTML='<div class="card empty"><h2>'+title+'</h2><p>'+body+'</p>'+(active?'<button class="btn" id="emptyClear" type="button">Clear filters</button>':'')+'</div>';
+    /* v3.13.1 (red flag 7, "the triaged countdown is not showing"): an empty triage queue used to drop the
+       session bar entirely, taking the count, the done-today number and the hide chips with it. */
+    let sess='';
+    if(mode==='triage'){ try{ sess=triageSessionBar(); }catch(_){ sess=''; } }
+    app.innerHTML=(sess?('<div class="content-wrap"><div class="triage-wrap">'+sess+'</div></div>'):'')+'<div class="card empty"><h2>'+title+'</h2><p>'+body+'</p>'+(active?'<button class="btn" id="emptyClear" type="button">Clear filters</button>':'')+'</div>';
     const b=document.getElementById('emptyClear'); if(b) b.onclick=()=>resetFilters();
+    if(sess) wireTriageHides(app);
     return;
   }
   savePosition();
@@ -5042,7 +5394,12 @@ function renderUnsafe_(){
     /* v3.7.0: strip and session bar sit ABOVE the property, not below the
        buttons. Stu works this screen head-down, one property at a time — a
        health warning under the fold is a health warning nobody reads. */
-    app.innerHTML='<div class="content-wrap"><div class="triage-wrap">'+triageHealthStrip()+triageSessionBar()+triageSubjectCard(rec,n)+
+    /* v3.13.1 (red flag 7): the strip and the countdown are built on their own, so a failure in the
+       health strip can no longer take the countdown down with it through the crash fallback. */
+    let trgStrip='', trgSess='';
+    try{ trgStrip=triageHealthStrip(); }catch(err){ console.error('triage health strip failed',err); }
+    try{ trgSess=triageSessionBar(); }catch(err){ console.error('triage session bar failed',err); trgSess='<div class="trg-sess"><div class="trg-sess-n"><b>'+queue.length+'</b><span>to triage</span></div></div>'; }
+    app.innerHTML='<div class="content-wrap"><div class="triage-wrap">'+trgStrip+trgSess+triageSubjectCard(rec,n)+
       '<div class="card decision-card"><div class="decide four">'+
       '<button class="yes" id="btnYes" type="button">Yes, save and next <kbd>Y</kbd></button>'+
       '<button class="refurb" id="btnYesRefurb" type="button">Yes Refurb <kbd>R</kbd></button>'+
@@ -5069,6 +5426,7 @@ function renderUnsafe_(){
     document.getElementById('btnSold').onclick=()=>markSold(rec);
     document.getElementById('btnUnderOffer').onclick=()=>markUnderOffer(rec);
     document.getElementById('btnUndoMarket').onclick=()=>undoMarketStatus();
+    wireTriageHides(app); /* v3.13.1 */
   } else {
     app.innerHTML='<div class="content-wrap"><div class="review-grid"><div class="left-stack">'+subjectCard(rec,n)+renderDecisionGate(rec,n)+renderUnderwriter(rec,n)+'</div><div class="right-stack">'+renderCompTabs(rec,n)+renderHomeReport(rec)+renderComps(rec,n)+renderPersuasion(rec,n)+'</div></div></div>';
     wireComps(app);
@@ -5566,7 +5924,10 @@ function renderDecisionGate(rec,n){
   return '<div class="card pad" id="decisionGate"><div class="section-head"><div><h3>Acquisition decision brief</h3><p>You selected Yes. The system has assembled the available figures; you control the judgement assumptions.</p></div><span class="local-badge">Local working data</span></div>'+
     '<div class="analysis-status"><h3>'+status+'</h3><p>'+(gaps.length?esc(gaps.slice(0,3).join(' · ')):'Core evidence and assumptions are populated.')+'</p></div>'+
     '<div class="risk-columns"><div class="risk-box"><h4>Useful evidence</h4><ul>'+(strengths.length?strengths.map(x=>'<li>'+esc(x)+'</li>').join(''):'<li>No strong evidence has been parsed yet.</li>')+'</ul></div><div class="risk-box"><h4>Current risks</h4><ul>'+(risks.length?risks.map(x=>'<li>'+esc(x)+'</li>').join(''):'<li>No material evidence gaps flagged.</li>')+'</ul></div></div>'+
-    '<div class="verdict"><button class="yes" id="vYes" type="button">Proceed <kbd>Y</kbd></button><button class="watchbtn" id="vWatch" type="button">Watch <kbd>W</kbd></button><button class="no" id="vNo" type="button">Pass <kbd>N</kbd></button></div><div class="keyhint"><kbd>Y</kbd> proceed — books the viewing &nbsp; <kbd>W</kbd> watch &nbsp; <kbd>N</kbd> pass — reason required &nbsp; <kbd>D</kbd> duplicate &nbsp; <kbd>S</kbd> sold &nbsp; <kbd>U</kbd> under offer</div><div class="intel-actions market-actions"><span class="market-label">Utility</span><button class="smallbtn" id="vDuplicate" type="button">Duplicate <kbd>D</kbd></button><button class="smallbtn" id="vSold" type="button">Sold <kbd>S</kbd></button><button class="smallbtn" id="vUnderOffer" type="button">Under offer <kbd>U</kbd></button><button class="smallbtn" id="vUndoMarket" type="button">Undo <kbd>Z</kbd></button></div></div>';
+    /* v3.13.1: Book a viewing lives here now for a record already at Proceed (Yes board > Review > Book a viewing). */
+    (chainStage(rec)==='proceedWanted'?'<div class="verdict" style="grid-template-columns:1fr"><button class="yes" id="vBookViewing" type="button">Book a viewing: call or email the agent</button></div>':'')+
+    /* v3.13.1: the two one-click passes sit beside the general Pass. */
+    '<div class="verdict"><button class="yes" id="vYes" type="button">Proceed <kbd>Y</kbd></button><button class="watchbtn" id="vWatch" type="button">Watch <kbd>W</kbd></button><button class="no" id="vNo" type="button">Pass <kbd>N</kbd></button><button class="no" id="vPassUO" type="button" title="Records Decision = Pass, Pass reason = Under offer">Pass - Under offer</button><button class="no" id="vPassSold" type="button" title="Records Decision = Pass, Pass reason = Sold / withdrawn">Pass - Sold / withdrawn</button></div><div class="keyhint"><kbd>Y</kbd> proceed — books the viewing &nbsp; <kbd>W</kbd> watch &nbsp; <kbd>N</kbd> pass — reason required &nbsp; <kbd>D</kbd> duplicate &nbsp; <kbd>S</kbd> sold &nbsp; <kbd>U</kbd> under offer</div><div class="intel-actions market-actions"><span class="market-label">Utility</span><button class="smallbtn" id="vDuplicate" type="button">Duplicate <kbd>D</kbd></button><button class="smallbtn" id="vSold" type="button">Sold <kbd>S</kbd></button><button class="smallbtn" id="vUnderOffer" type="button">Under offer <kbd>U</kbd></button><button class="smallbtn" id="vUndoMarket" type="button">Undo <kbd>Z</kbd></button></div></div>';
 }
 function renderUnderwriter(rec,n){
   const m=appraisalFor(rec,n);
@@ -5859,6 +6220,11 @@ function wireDecisionGate(rec,n){
   if(watch) watch.onclick=()=>decide(rec,STATUS.watch);
   if(dup) dup.onclick=()=>markDuplicate(rec);
   if(no) no.onclick=()=>openPassReasonModal(rec);
+  /* v3.13.1 */
+  const puo=document.getElementById('vPassUO'), psold=document.getElementById('vPassSold'), bk=document.getElementById('vBookViewing');
+  if(puo) puo.onclick=()=>quickPass(rec,'uo');
+  if(psold) psold.onclick=()=>quickPass(rec,'sold');
+  if(bk) bk.onclick=()=>ybBookViewing(rec);
   const sold=document.getElementById('vSold'),uo=document.getElementById('vUnderOffer');
   if(sold) sold.onclick=()=>markSold(rec);
   if(uo) uo.onclick=()=>markUnderOffer(rec);
@@ -6034,6 +6400,7 @@ async function patchFields(rec,fields){
     body:JSON.stringify({fields:fields,typecast:true})});
   if(!r.ok){ const e=await r.json().catch(()=>({})); throw new Error('Write failed ('+r.status+'). '+((e.error&&e.error.message)||'')); }
   Object.assign(rec.fields,fields);
+  noteLocalWrite(rec,fields); /* v3.13.1: survives a refresh already in flight */
 }
 
 /* The five stages, read from the record's own dates. Nothing is inferred:
@@ -6246,6 +6613,7 @@ async function requestHomeReport(rec){
     const stamp='HR REQUEST QUEUED '+stampDate+' - requested by Stu from the Brain';
     if(!hrQueued(rec)) await patchFields(rec,{[F.notes]:(notes?notes.replace(/\s*$/,'')+'\n':'')+stamp});
     toast('Queued. Request text is on your clipboard now; the Home Report Loop drafts it in Gmail on its next run.');
+    if(ybSeqAdvance(rec)) return; /* v3.13.0: decide and move on */
     render();
   }catch(e){ alert('Text copied, but the record could not be marked: '+e.message); }
   finally{ saving=false; }
@@ -6508,6 +6876,7 @@ async function markMarketStatus(rec,word,archive){
     }
     lastMarketAction={id:rec.id,word:word,archive:archive,lines:writtenLines,prevStatus:prevStatus,statusChanged:statusMoved};
     toast(word+' recorded'+(archive?' and archived.':' - moved to Watch.')+' Press Z to undo.');
+    if(ybSeqAdvance(rec)) return; /* v3.13.0: decide and move on */
     const oldIndex=qi;
     buildQueue();
     qi=Math.min(oldIndex,Math.max(queue.length-1,0));
@@ -6644,6 +7013,7 @@ async function decide(rec,statusName,extraFields,opts){
        opts.skipHomeReport is now a no-op on every route; kept so the v3.7.0
        No Picture call site still reads correctly. */
     toast(statusName+' saved.'+(statusName===STATUS.yes?' Request the Home Report from the Yes board.':'')+(twins?(' Also applied to '+twins+' duplicate'+(twins===1?'':'s')+'.'):''));
+    if(ybSeqAdvance(rec)) return; /* v3.13.0: decide and move on */
     const oldIndex=qi;
     buildQueue();
     qi=Math.min(oldIndex,Math.max(queue.length-1,0));
@@ -6835,6 +7205,8 @@ function healthLights(){
    of step with a panel that gets renamed — it just falls back to the top. */
 const HB_JUMP={inputs:'Capture',routines:'Scheduled routines',pipeline:'Daily pipeline',data:'Daily pipeline'};
 function openHealthAt(section){
+  /* v3.13.0: the Health screen is no longer reachable (nav button removed, code kept). The lights stay on the Triage strip but no longer navigate. */
+  toast('The Health screen has been removed.'); return;
   setMode('health');
   const want=HB_JUMP[section]||'';
   setTimeout(function(){
@@ -6863,10 +7235,28 @@ function triageSessionBar(){
   /* "filtered" is tested against the base queue, NOT activeFilterCount() —
      dedupe is on by default, so activeFilterCount() is never zero and the word
      would show on every session whether or not anything was actually hidden. */
-  const hidden=(typeof baseQueue!=='undefined'&&baseQueue.length!==left);
-  return '<div class="trg-sess"><div class="trg-sess-n"><b>'+left+'</b><span>to triage'+(hidden?' (filters hiding '+(baseQueue.length-left)+')':'')+'</span></div>'+
+  /* v3.13.1: the filter-bar remainder only; the three feed hides have their own chips below. */
+  const qs=queueStats||{filtered:0,nopic:0,nondwelling:0,dups:0};
+  const hiddenN=qs.filtered||0;
+  const chip=(key,n,hideTxt,showTxt)=>n?('<button type="button" class="trg-hide" data-trg-toggle="'+key+'">'+esc((key==='dedupe'?filters.dedupe===false:filters[key]===true)?showTxt:hideTxt)+'</button>'):'';
+  const chips=chip('trgShowNoPic',qs.nopic,qs.nopic+' hidden: no pictures. Show',qs.nopic+' with no pictures showing. Hide')+
+    chip('trgShowNonDwelling',qs.nondwelling,qs.nondwelling+' hidden: caravans, park homes, houseboats or land. Show',qs.nondwelling+' caravans, park homes, houseboats or land showing. Hide')+
+    chip('dedupe',qs.dups,qs.dups+' duplicates hidden. Show',qs.dups+' duplicates showing. Hide');
+  return '<div class="trg-sess"><div class="trg-sess-n"><b>'+left+'</b><span>to triage'+(hiddenN?' (filters hiding '+hiddenN+')':'')+'</span></div>'+
     '<div class="trg-sess-n done"><b>'+done+'</b><span>done today</span></div>'+
-    '<div class="trg-sess-p">'+(done+left?('<i style="width:'+Math.round(100*done/(done+left))+'%"></i>'):'')+'</div></div>';
+    '<div class="trg-sess-p">'+(done+left?('<i style="width:'+Math.round(100*done/(done+left))+'%"></i>'):'')+'</div></div>'+
+    (chips?('<div class="trg-hides">'+chips+'</div>'):'');
+}
+/* v3.13.1: one handler for the three triage hide chips. The dedupe chip flips the existing filter-bar
+   setting, so the checkbox and the chip can never disagree. */
+function wireTriageHides(app){
+  app.querySelectorAll('[data-trg-toggle]').forEach(b=>b.onclick=(e)=>{
+    e.stopPropagation();
+    const k=b.getAttribute('data-trg-toggle');
+    if(k==='dedupe') filters.dedupe=!filters.dedupe; else filters[k]=!filters[k];
+    saveJson(LS.filters,filters);
+    buildQueue(null,{top:true}); syncFilterUI(); render();
+  });
 }
 function setDecisionDisabled(disabled){ document.querySelectorAll('.decide button,.verdict button,#btnYesAnalyse,.market-actions button').forEach(b=>b.disabled=disabled); }
 function move(d){
@@ -6879,8 +7269,6 @@ function move(d){
 function syncModeButtons(){
   const fs=document.getElementById('filterShell'); if(fs) fs.classList.toggle('hidden',mode==='today');
   document.getElementById('modeToday').classList.toggle('active',!inspectRecordId&&mode==='today');
-  document.getElementById('modeHealth').classList.toggle('active',!inspectRecordId&&mode==='health');
-  document.getElementById('modeMap').classList.toggle('active',!inspectRecordId&&mode==='map');
   document.getElementById('modeTriage').classList.toggle('active',!inspectRecordId&&mode==='triage');
   document.getElementById('modeYesBoard').classList.toggle('active',!inspectRecordId&&mode==='yesboard');
   document.getElementById('modeViewings').classList.toggle('active',!inspectRecordId&&mode==='viewings');
@@ -6909,7 +7297,7 @@ function updateHeaderState(){
   const nav=!inspectRecordId&&!analysisRecordId&&!['watch','today','map','yesboard','health'].includes(mode)&&queue.length>0;
   prev.disabled=!nav; next.disabled=!nav; if(back) back.disabled=!decisionHistory.length;
   if(inspectRecordId) count.textContent='Read-only record';
-  else if(analysisRecordId) count.textContent='Property analysis';
+  else if(analysisRecordId) count.textContent='Property analysis'+((ybSeq&&ybSeq.ids[ybSeq.i]===analysisRecordId)?(' · '+(ybSeq.i+1)+' of '+ybSeq.ids.length):''); /* v3.13.0: N of M */
   else if(mode==='today') count.textContent='Command centre';
   else if(mode==='map') count.textContent='Map intelligence';
   else if(mode==='watch') count.textContent=queue.length+' watch'+(queue.length===1?'':' records');
@@ -6921,7 +7309,7 @@ function updateHeaderState(){
      onward the Triage and Review counts were never written and the header
      kept whatever it last said. Stu reported it twice. The decision chain is
      closed FIRST now and the filter-bar toggle runs after it, on its own. */
-  else if(mode==='triage'&&queue.length){ count.textContent=queue.length+' to triage · '+triageDoneToday()+' done today'; }
+  else if(mode==='triage'){ count.textContent=queue.length+' to triage · '+triageDoneToday()+' done today'; } /* v3.13.1: shown at zero too, not "0 of 0" */
   else if(queue.length){ count.textContent=(qi+1)+' of '+queue.length+(baseQueue.length!==queue.length?' filtered':''); }
   else count.textContent='0 of 0';
   /* v3.6.1: the filter bar filters the RECORD QUEUE. On the Health board there
@@ -6944,7 +7332,7 @@ function syncFilterUI(){
   document.getElementById('filterAgent').value=filters.agent||'';
   document.getElementById('filterMatch').value=filters.match||'';
   document.getElementById('filterIntent').value=filters.intent||'';
-  document.getElementById('filterSort').value=filters.sort||'source';
+  syncSortSelect(); /* v3.13.1: was filters.sort only; the Yes board and Book a viewing have their own */
   document.getElementById('filterArchived').checked=Boolean(filters.archived);
   document.getElementById('filterDedupe').checked=Boolean(filters.dedupe);
   document.getElementById('filterOutOfBox').checked=Boolean(filters.showOutOfBox);
@@ -6954,7 +7342,13 @@ function syncFilterUI(){
   document.getElementById('filterCountMobile').textContent=c;
 }
 function applyFiltersFromUI(){
-  filters={text:document.getElementById('filterText').value.trim(),min:document.getElementById('filterMin').value,max:document.getElementById('filterMax').value,beds:document.getElementById('filterBeds').value,agent:document.getElementById('filterAgent').value.trim(),match:document.getElementById('filterMatch').value,intent:document.getElementById('filterIntent').value,sort:document.getElementById('filterSort').value,archived:document.getElementById('filterArchived').checked,showOutOfBox:document.getElementById('filterOutOfBox').checked,photosOnly:document.getElementById('filterPhotos').checked,dedupe:document.getElementById('filterDedupe').checked};
+  /* v3.13.1: MERGED into the existing filters rather than rebuilt from the bar alone. The rebuild dropped
+     every setting that lives off the bar (Yes board search, Hide passed, and the v3.13.1 toggles), and
+     the sort select now writes the sort of the screen it is shown on. */
+  const sortVal=document.getElementById('filterSort').value;
+  const board=sortKeyForScreen()==='board';
+  filters=Object.assign({},filters,{text:document.getElementById('filterText').value.trim(),min:document.getElementById('filterMin').value,max:document.getElementById('filterMax').value,beds:document.getElementById('filterBeds').value,agent:document.getElementById('filterAgent').value.trim(),match:document.getElementById('filterMatch').value,intent:document.getElementById('filterIntent').value,archived:document.getElementById('filterArchived').checked,showOutOfBox:document.getElementById('filterOutOfBox').checked,photosOnly:document.getElementById('filterPhotos').checked,dedupe:document.getElementById('filterDedupe').checked},
+    board?{ybSort:sortVal}:{sort:sortVal});
   saveJson(LS.filters,filters);
   inspectRecordId=''; buildQueue(null,{top:true}); syncFilterUI(); render();
 }
@@ -7004,8 +7398,8 @@ async function refreshData(options){
   const token=localStorage.getItem('atToken'); if(!token) return;
   const st=document.getElementById('stamp'); if(st) st.textContent='updating…';
   const seq=++refreshSeq;
+  const startedAt=Date.now(); /* v3.13.1: writes after this moment are re-applied over the fetched data */
   try{
-    const cur=currentRecord(); const curId=cur&&cur.id;
     /* v2.7.3 (21/08/2026, Stu: "the brain still jumps forward and back at
        points"). CAUSE: this routine runs on a timer while he is reading, and
        the four scheduled routines write to this base constantly. If the
@@ -7016,18 +7410,32 @@ async function refreshData(options){
        property. An UNREQUESTED refresh now never re-renders a card he is on:
        the data updates underneath, the screen holds, and the next arrow key
        picks up the fresh version. Pressing Refresh still redraws immediately. */
-    const holding=!manual&&!inspectRecordId&&!analysisRecordId&&(mode==='triage'||mode==='review')&&!!curId;
     const fresh=await fetchAll(token);
     if(seq!==refreshSeq) return;
-    records=fresh;
     await loadAgentBranches(token); /* v3.4.0: picks up newly-researched branches without a reload */
     await loadHealthTables(token); /* v3.6.1: Health board inputs */
     if(seq!==refreshSeq) return;
+    /* v3.13.1: the card on screen is read NOW, after the fetch, not before it. */
+    const cur=currentRecord(); const curId=cur&&cur.id;
+    const holding=!manual&&!inspectRecordId&&!analysisRecordId&&(mode==='triage'||mode==='review')&&!!curId;
+    applyLocalWrites(fresh,startedAt);
+    records=fresh;
     normaliseRecords();
     if(inspectRecordId&&!records.some(r=>r.id===inspectRecordId)) inspectRecordId='';
     buildQueue(curId);
     const found=curId?queue.findIndex(r=>r.id===curId):-1;
     if(found>=0&&!inspectRecordId) qi=found;
+    /* v3.13.0: the timer must not rebuild Book a viewing, which would reset the map, pin highlight and popup. Data updates underneath; Refresh or any navigation redraws. */
+    /* v3.13.1: a decision is mid-write. Data updates underneath; the decision's own render follows. */
+    if(!manual&&saving){
+      if(st) st.textContent='updated '+new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
+      return;
+    }
+    if(!manual&&mode==='viewings'&&!inspectRecordId&&!analysisRecordId){
+      checkForNewBuild(token);
+      if(st) st.textContent='updated '+new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
+      return;
+    }
     if(holding){
       checkForNewBuild(token);
       if(st) st.textContent=(found>=0?'updated ':'updated · record changed ')+new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
@@ -7201,8 +7609,6 @@ function wireStaticControls(){
   document.getElementById('prevBtn').onclick=()=>move(-1);
   document.getElementById('nextBtn').onclick=()=>move(1);
   document.getElementById('modeToday').onclick=()=>setMode('today');
-  document.getElementById('modeHealth').onclick=()=>setMode('health');
-  document.getElementById('modeMap').onclick=()=>setMode('map');
   document.getElementById('modeTriage').onclick=()=>setMode('triage');
   document.getElementById('modeYesBoard').onclick=()=>setMode('yesboard');
   document.getElementById('modeViewings').onclick=()=>setMode('viewings');
@@ -7251,7 +7657,12 @@ function wireStaticControls(){
   jump.addEventListener('input',renderJumpResults);
   document.addEventListener('click',e=>{ if(!e.target.closest('.jump')) document.getElementById('jumpResults').classList.add('hidden'); });
   document.addEventListener('keydown',e=>{
-    if(e.key==='Escape'){ closeJump(); closePassModal(); closeIssueModal(); closePassReasonModal(); closeRefModal(); const lb=document.getElementById('lightbox'); lb.style.display='none'; lb.setAttribute('aria-hidden','true'); }
+    if(e.key==='Escape'){
+      /* v3.13.0: with nothing else open, Esc leaves a card opened from a Yes-board column and returns to the board. */
+      const lb0=document.getElementById('lightbox');
+      const busy=document.querySelector('.modal.open')||lb0.style.display==='flex'||(e.target&&e.target.matches&&e.target.matches('input,textarea,select'));
+      if(!busy&&analysisRecordId&&ybSeq&&ybSeq.ids[ybSeq.i]===analysisRecordId) setMode('yesboard');
+      closeJump(); closePassModal(); closeIssueModal(); closePassReasonModal(); closeRefModal(); const lb=document.getElementById('lightbox'); lb.style.display='none'; lb.setAttribute('aria-hidden','true'); }
     // v2.2.0: numeric quick-keys for the pass-reason modal (main row AND numpad both report e.key '1'-'3').
     // Checked BEFORE the input/button early-return, because focus sits on the No button when the modal opens.
     if(document.getElementById('passModal').classList.contains('open')){

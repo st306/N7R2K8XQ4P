@@ -6,7 +6,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Brain">
 <meta name="robots" content="noindex,nofollow">
-<title>Stewart Thomson Property — Property Brain v3.13.3</title>
+<title>Stewart Thomson Property — Property Brain v3.13.4</title>
 <style>
   :root {
     color-scheme: light;
@@ -1104,7 +1104,7 @@
 </head>
 <body>
 <header>
-  <div class="brand"><h1>Property Brain · v3.13.3</h1><div class="sub">Buy better deals faster through superior intelligence · build 2026-10-18.1 · steady screen: the auto-refresh no longer jumps or redraws when nothing changed, and holds while you type</div></div>
+  <div class="brand"><h1>Property Brain · v3.13.4</h1><div class="sub">Buy better deals faster through superior intelligence · build 2026-10-18.2 · cards the Deal Line passed or found sold now leave the Yes board</div></div>
   <div class="modes" aria-label="Dashboard mode">
     <button class="mode" id="modeToday" type="button">Today</button>
     <button class="mode" id="modeTriage" type="button">Triage</button>
@@ -1224,6 +1224,12 @@ const BASE='appjVRP7n8LtgDkKn', TABLE='tblZlJuNnQpSDEInI';
    out of box). Triage capacity (TRIAGE_WEEKLY_CAP_EDINBURGH, a true weekly cap, Mon to Sun) behind the same switch.
    Review fixes (18/10/2026): restore only fields the user changed, signature committed only after a good redraw, per-page signature built in
    fetchAll from Last Modified Time, held stamp kept, forced redraw on a new day and every 10 minutes, <details> keyed by id or summary. */
+/* v3.13.4 (18/10/2026), build 2026-10-18.2. The Deal Line routine passes Yes board cards by setting Stage (fldhWDpaxgargQ07p) to Passed or
+   Closed - lost, and stamps Notes "DEAD dd/mm: <reason>". The Brain read neither, so 37 dead cards stayed on the Yes board. (1) F.stage added;
+   stageClosed() is true for Stage Passed or Closed - lost; ybIsPassed() now includes it, so the Yes board, Book a viewing screen and column
+   advance drop these cards, and Today's chain tiles and the Watch screen and count use the same test. Stage Passed counts as passed whatever
+   Decision says (Stu's rule). (2) offMarketReason() also reads the newest "DEAD dd/mm: reason" Notes line, so Read and decide treats it as
+   off market like the other reasons. Display only; nothing written to Airtable. */
 /* ===== SWITCHES (v3.13.3-dev). Both ship dark. ===== */
 const EDINBURGH_OPEN=false;              /* true only on Stu's approval: Edinburgh & Lothians becomes a normal buying zone (scored like Fife, +18) */
 const TRIAGE_WEEKLY_CAP_EDINBURGH=100;   /* Edinburgh-zone records offered in Triage per week (Mon to Sun); shown about ceil(weekly/5) a day. Only read when EDINBURGH_OPEN is true */
@@ -1236,7 +1242,7 @@ function zonePaused(z){
   return /paused/i.test(z);
 }
 function isEdinburghRec(r){ const f=(r&&r.fields)||{}; return isEdinburghZone((f[F.zone]&&f[F.zone].name)||f[F.zone]||''); }
-const BUILD='3.13.3'; /* v3.13.3-dev changelog above. Previous: v3.13.2 (15/10/2026): v3.13.2 (15/10/2026): red-flag button logs to the Property Sprint Register (tbl5l7bViIJjBvfzz), not the dead capture queue. */
+const BUILD='3.13.4'; /* v3.13.4 changelog above. Previous: v3.13.3 (18/10/2026), rollback commit 2cd1d1d. Before that: v3.13.2 (15/10/2026): v3.13.2 (15/10/2026): red-flag button logs to the Property Sprint Register (tbl5l7bViIJjBvfzz), not the dead capture queue. */
 const CONTROL_TABLE='tblDGKgorkTQkAXBc';
 /* v3.4.0 (28/08/2026), AC-BRAINUX-WINDOW-01 + AC-BRAIN-PROCEEDFLOW-01.
    THE YES BOARD BECOMES THE "WHERE WE ARE" SCREEN. Stu, 27/08, verbatim:
@@ -1314,6 +1320,7 @@ const F={addr:'fldZfUIuFs6XG8e74',url:'fldFGLvDZX9gB2UOp',deal:'fldnkgHwYpYnvaW4
   /* v3.0 (24/08/2026): the three-screen redesign fields. Live in Airtable since
      before this build shipped; wired here so the app can read and write them. */
   decision:'fldZzlfJwcI60KRnQ',passReason:'fldITmDM75nqSz1JY',priceQualifier:'fldkFRXF0CKxpulDS',
+  stage:'fldhWDpaxgargQ07p', /* v3.13.4: Stage, written by the Deal Line routine (Passed / Closed - lost) */
   /* v3.6.2 (28/08/2026), AC-VIEWNUMBERS-01. Stu's mandatory post-viewing rule.
      Created in Airtable this morning with full field descriptions; wired here
      so the flow that fills them actually exists. Numbers run is written ONLY
@@ -1846,6 +1853,9 @@ function offMarketReason(rec){
     let subj=''; try{ subj=String(cachedNotes(rec).subj||''); }catch(_){ subj=''; }
     m=subj.match(OFF_MARKET_RE);
     if(m) return m[0];
+    /* v3.13.4: the Deal Line stamps "DEAD dd/mm: reason". Newest line wins. */
+    const dead=[...String(f[F.notes]||'').matchAll(/^DEAD (\d{2}\/\d{2}):\s*(.+)$/gm)];
+    if(dead.length) return String(dead[dead.length-1][2]).trim();
   }catch(_){}
   return '';
 }
@@ -2563,7 +2573,7 @@ function baseForMode(){
   let out=[];
   if(mode==='triage') out=records.filter(isTriageEligible);
   else if(mode==='review') out=records.filter(isReviewEligible);
-  else if(mode==='watch') out=records.filter(r=>sameStatus(dealOf(r),STATUS.watch));
+  else if(mode==='watch') out=records.filter(r=>sameStatus(dealOf(r),STATUS.watch)&&!stageClosed(r)); /* v3.13.4 */
   else out=records.slice();
   if(!filters.archived) out=out.filter(r=>!isArchived(r));
   return out;
@@ -3071,8 +3081,11 @@ async function ybLinkBranch(recId,branchId){
   }catch(e){ alert(e.message); }
   finally{ saving=false; }
 }
+/* v3.13.4: Stage Passed or Closed - lost (set by the Deal Line routine) means passed, whatever Decision says. */
+function stageClosed(r){ const f=(r&&r.fields)||{}; if(selName(f[F.decision])==='Proceed'||sameStatus(dealOf(r),STATUS.watch)) return false; /* review r3: Stu's own Proceed or Watch wins over a routine's Stage Passed */ return /^(passed|closed\s*-\s*lost)$/i.test(selName(f[F.stage]).trim()); }
 function ybIsPassed(r){
   if(selName((r.fields||{})[F.decision])==='Pass') return true;
+  if(stageClosed(r)) return true;
   const s=dealOf(r);
   return sameStatus(s,STATUS.no)||sameStatus(s,STATUS.doneNo);
 }
@@ -5085,7 +5098,7 @@ function todayCounts(){
   const active=records.filter(r=>!isArchived(r));
   const triage=active.filter(isTriageEligible);
   const reviewAll=active.filter(isReviewEligible);
-  const watchAll=active.filter(r=>sameStatus(dealOf(r),STATUS.watch));
+  const watchAll=active.filter(r=>sameStatus(dealOf(r),STATUS.watch)&&!stageClosed(r)); /* v3.13.4 */
   const pursueAll=active.filter(r=>[STATUS.yes,STATUS.yesLegacy,STATUS.ready,STATUS.doneYes].some(x=>sameStatus(dealOf(r),x)));
   const review=reviewAll.filter(inBox);
   const watch=watchAll.filter(inBox);
@@ -5106,7 +5119,7 @@ function commandRows(list,limit=8,showCeiling){
 function renderToday(app){
   const c=todayCounts();
   const inBox=r=>filters.showOutOfBox||(!outOfBox(r)&&stalenessOf(r).level!=='dead');
-  const active=records.filter(r=>!isArchived(r)&&inBox(r));
+  const active=records.filter(r=>!isArchived(r)&&inBox(r)&&!stageClosed(r)); /* v3.13.4: Deal Line passed cards leave the chain tiles */
   const byStage={};
   /* v3.5.0 REGRESSION FIX (28/08/2026, found same day it was introduced).
      v3.4.0 added 'proceedWanted' as a chain stage this morning and did NOT add

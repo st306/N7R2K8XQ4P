@@ -1100,11 +1100,90 @@
 
 /* v3.13.1 phone fit: the tab bar scrolls sideways instead of widening the page */
 @media (max-width:760px){.modes{overflow-x:auto;flex-wrap:nowrap;-webkit-overflow-scrolling:touch;scrollbar-width:none}.modes::-webkit-scrollbar{display:none}.mode{flex:0 0 auto;white-space:nowrap}html,body{max-width:100%;overflow-x:hidden}}
+
+/* ===== v3.13.5 (18/10/2026): one card per house chip, load progress, phone fit (iPhone 14 Pro Max is 430 x 932). ===== */
+.yb-twins{display:inline-block;margin-left:6px;padding:1px 7px;border-radius:20px;background:var(--blue-soft,#e8edfb);color:var(--navy2,#2c3e7a);font-size:10.5px;font-weight:800;white-space:nowrap;vertical-align:1px}
+.load-line{max-width:760px;margin:16px auto 0;padding:12px 16px;border-radius:12px;background:var(--blue-soft,#e8edfb);color:var(--navy2,#2c3e7a);font-weight:800;font-size:14px;text-align:center}
+.load-line small{display:block;font-weight:600;font-size:11.5px;opacity:.8;margin-top:2px}
+#loadPill{position:fixed;left:50%;top:8px;transform:translateX(-50%);z-index:95;padding:7px 14px;border-radius:20px;background:var(--navy);color:#fff;font-size:12.5px;font-weight:750;box-shadow:0 8px 24px rgba(11,18,49,.3);display:none}
+#loadPill.show{display:block}
+.hdr-more{display:none}
+.yb-tabs{display:none}
+#phoneDecide{display:none}
+@media (max-width:1480px) and (min-width:1181px){
+  header { flex-wrap:wrap; row-gap:8px; }
+  .jump { order:3; max-width:none; }
+  .queue-nav { order:4; }
+}
+@media (max-width:600px){
+  header { flex-wrap:nowrap; padding:6px 8px; gap:6px; align-items:center; }
+  header .brand, header .jump, header .queue-nav { display:none; }
+  header .modes { order:1; flex:1 1 auto; width:auto; min-width:0; }
+  header .mode { min-height:44px; padding:8px 12px; }
+  .hdr-more { display:grid; place-items:center; order:2; flex:none; width:44px; height:44px; border:0; border-radius:10px; background:rgba(255,255,255,.14); color:#fff; font-size:20px; cursor:pointer; }
+  header.hdr-open { flex-wrap:wrap; }
+  header.hdr-open .brand { display:block; order:0; flex:1 1 0; min-width:0; }
+  header.hdr-open .hdr-more { order:1; }
+  header.hdr-open .modes { order:2; flex-basis:100%; }
+  header.hdr-open .jump { display:block; order:3; flex-basis:100%; }
+  header.hdr-open .queue-nav { display:flex; order:4; flex-basis:100%; }
+  .queue-nav .qbtn { width:44px; height:44px; }
+  .filter-shell summary { min-height:44px; }
+  .command-wrap { padding:10px 10px 90px; }
+  .command-head { gap:8px; margin-bottom:8px; }
+  .command-head .eyebrow { display:none; }
+  .yb-head > div:first-child > p:first-of-type { display:none; }
+  .yb-head { align-items:center; }
+  .yb-head .toggle-chip { margin-right:0 !important; }
+  .command-head h2 { font-size:19px; }
+  .command-head input[type=search] { min-width:0 !important; width:100%; min-height:44px; }
+  .toggle-chip { min-height:44px; display:inline-flex !important; align-items:center; }
+  .toggle-chip input { width:22px; height:22px; }
+  .yb-key { display:none; }
+  .yb-start { padding:12px; gap:10px; }
+  .yb-start-go { width:100%; min-height:44px; }
+  .yb-tabs { display:flex; gap:6px; overflow-x:auto; scrollbar-width:none; position:sticky; top:0; z-index:12; margin:10px -10px 0; padding:8px 10px; background:var(--bg,#f3f5f9); border-bottom:1px solid var(--line); }
+  .yb-tabs::-webkit-scrollbar { display:none; }
+  /* r4: fade at a cut-off edge so hidden tabs are discoverable; set by syncScrollCue() */
+  .modes.cue-r, .yb-tabs.cue-r { -webkit-mask-image:linear-gradient(to right,#000 calc(100% - 44px),transparent); mask-image:linear-gradient(to right,#000 calc(100% - 44px),transparent); }
+  .modes.cue-l, .yb-tabs.cue-l { -webkit-mask-image:linear-gradient(to left,#000 calc(100% - 44px),transparent); mask-image:linear-gradient(to left,#000 calc(100% - 44px),transparent); }
+  .modes.cue-l.cue-r, .yb-tabs.cue-l.cue-r { -webkit-mask-image:linear-gradient(to right,transparent,#000 44px,#000 calc(100% - 44px),transparent); mask-image:linear-gradient(to right,transparent,#000 44px,#000 calc(100% - 44px),transparent); }
+  .yb-tab { flex:0 0 auto; min-height:44px; padding:8px 13px; border:1px solid var(--line); border-radius:22px; background:#fff; color:var(--ink); font-size:13.5px; font-weight:750; white-space:nowrap; cursor:pointer; }
+  .yb-tab b { margin-left:4px; padding:1px 8px; border-radius:12px; background:var(--soft); color:var(--muted); font-size:12px; }
+  .yb-tab.on { background:var(--navy); border-color:var(--navy); color:#fff; }
+  .yb-tab.on b { background:rgba(255,255,255,.2); color:#fff; }
+  .yb-cols { display:block; margin-top:10px; }
+  .yb-cols .ybcol, .yb-passcol { display:none; }
+  .yb-cols .ybcol.on, .yb-passcol.on { display:block; }
+  .ybcol { border:0; background:transparent; padding:0; max-width:none !important; }
+  .ybcol-h { display:none; }
+  .ybcol-s { margin:0 2px 8px; }
+  .ybc { display:flex; flex-direction:column; padding:12px 12px 12px 14px; margin-bottom:10px; }
+  .ybc-addr { font-size:15px; }
+  .ybc-meta { font-size:12.5px; }
+  .ybc-act { order:9; min-height:48px; font-size:14px; margin-top:10px; }
+  .ybc-act small { font-size:11px; }
+  .yb-contact { max-width:none; font-size:12.5px; }
+  .yb-contact a { display:inline-flex; align-items:center; min-height:44px; }
+  .ybc-note-add { min-height:44px; font-size:12.5px; }
+  .ybc-note-save, .ybc-note-cancel { min-height:44px; padding:8px 14px; font-size:13px; }
+  .ybc-note-edit input { min-height:44px; font-size:16px; }
+  .ybr { padding:10px 12px; }
+  .ybr-chase { min-height:44px; }
+  .vw-split { margin-top:8px; }
+  #phoneDecide.show { display:grid; grid-template-columns:1fr 1fr 64px; gap:8px; position:fixed; left:0; right:0; bottom:0; z-index:40; padding:8px 10px calc(8px + env(safe-area-inset-bottom)); background:#fff; border-top:1px solid var(--line); box-shadow:0 -8px 24px rgba(24,35,79,.14); }
+  #phoneDecide button { min-height:48px; border:0; border-radius:10px; font-size:15px; font-weight:850; cursor:pointer; }
+  #phoneDecide .pd-yes { background:var(--green,#1d7a4f); color:#fff; }
+  #phoneDecide .pd-no { background:var(--red,#b42318); color:#fff; }
+  #phoneDecide .pd-more { background:var(--soft); color:var(--ink); font-size:13px; }
+  body.has-pdbar #app { padding-bottom:calc(76px + env(safe-area-inset-bottom)); }
+}
 </style>
 </head>
 <body>
 <header>
-  <div class="brand"><h1>Property Brain · v3.13.4</h1><div class="sub">Buy better deals faster through superior intelligence · build 2026-10-18.2 · cards the Deal Line passed or found sold now leave the Yes board</div></div>
+  <div class="brand"><h1>Property Brain · v3.13.5</h1><div class="sub">Buy better deals faster through superior intelligence · build 2026-10-18.3 · phone fit, one card per house</div></div>
+  <button class="hdr-more" id="hdrMore" type="button" aria-expanded="false" aria-label="Search, refresh and tools">☰</button>
   <div class="modes" aria-label="Dashboard mode">
     <button class="mode" id="modeToday" type="button">Today</button>
     <button class="mode" id="modeTriage" type="button">Triage</button>
@@ -1184,7 +1263,7 @@
   </div>
 </div>
 <div class="lightbox" id="lightbox" aria-hidden="true"><img id="lightboxImg" alt="Expanded property photograph"></div>
-<div class="modal" id="passModal"><div class="modal-card"><div class="eyebrow">Property Brain learning</div><h2>Why are you rejecting this property?</h2><p style="color:var(--muted)">Press <b>1</b> to <b>4</b>, or type a reason and press Enter. The property is passed immediately and the reason is saved to Airtable. <b>Esc</b> cancels without passing.</p><div class="reason-grid" id="reasonGrid"></div><input id="passReasonQuick" type="text" autocomplete="off" placeholder="or type a reason, then Enter" style="width:100%;margin-top:10px;padding:10px;border:1px solid var(--line);border-radius:9px;font-family:inherit;font-size:14px"><div class="cap-error" id="passQuickError"></div><div class="modal-actions"><button class="smallbtn" id="cancelPass">Cancel</button></div></div></div><div class="modal" id="issueModal"><div class="modal-card"><div class="eyebrow">Property Brain · Issue capture</div><h2>Log an issue for Claude</h2><p style="color:var(--muted)">Goes straight into the Workstream Register queue for review — no email, no chat needed. One line is enough.</p><textarea class="cap-textarea" id="issueText" placeholder="e.g. GDV comps look wrong on 14 Cecil Street — pulling flats not houses"></textarea><div class="cap-error" id="issueError"></div><div class="modal-actions"><button class="smallbtn" id="cancelIssue" type="button">Cancel</button><button class="btn" id="submitIssue" type="button">Log issue</button></div></div></div><div class="modal" id="passReasonModal"><div class="modal-card"><div class="eyebrow">Property Brain · Screen 3</div><h2>Why pass, with the report in hand?</h2><p style="color:var(--muted)">Required — 464 historic passes carry no reason and taught nothing about the buying box. One line is enough.</p><textarea class="cap-textarea" id="passReasonText" placeholder="e.g. Roof scope in the Home Report is heavier than the refurb budget can absorb"></textarea><div class="cap-error" id="passReasonError"></div><div class="modal-actions"><button class="smallbtn" id="cancelPassReason" type="button">Cancel</button><button class="btn" id="submitPassReason" type="button">Record Pass</button></div></div></div><div class="modal" id="refModal"><div class="modal-card ref-modal-card"><div class="eyebrow">Property Brain · Quick reference</div><h2>Refurb tiers &amp; ADS by price band</h2><p class="ref-note">Interim reference for screening — not a full appraisal. Worst-case figures only, so you can sense-check a deal before the purchase price is fixed. Replace with proper deal appraisal methodology when that work lands.</p><div class="ref-section"><h3>Refurb cost — three levels</h3><div class="ref-tiers"><div class="ref-tier"><div class="t-name">Light</div><div class="t-val">£17,500</div><div class="t-src">Seen: £12,000–£17,500 across sources. Highest shown here (worst case).</div></div><div class="ref-tier"><div class="t-name">Medium</div><div class="t-val">£27,000</div><div class="t-src">Seen: £25,000–£27,000 across sources. Highest shown here (worst case).</div></div><div class="ref-tier"><div class="t-name">Full</div><div class="t-val">£45,000</div><div class="t-src">Seen: £40,000–£45,000 across sources. Highest shown here (worst case).</div></div></div><div class="ref-flag">Source figures for these tiers disagree across the Master Deal Calculator files (AC-CALCSYNC-01, still open — Stu checking which file is authoritative). Figures above are the highest — most conservative — seen in any source, so they hold as worst case whichever file wins. Add your own 15% contingency on top per the deal-appraisal standard if costs look light for the actual scope.</div></div><div class="ref-section"><h3>ADS worst case by purchase price</h3><p class="ref-note" style="margin:0 0 4px">ADS is a flat 8% of the <em>whole</em> price once it's £40,000 or more — a cliff-edge, not banded like LBTT. So the top of each price band is the true worst case for that band.</p><table class="ref-table"><thead><tr><th>Purchase price band</th><th style="text-align:right">Worst-case ADS</th></tr></thead><tbody id="adsBandBody"></tbody></table></div><div class="modal-actions"><button class="smallbtn" id="closeRef" type="button">Close</button></div></div></div><div class="modal" id="ybModal"><div class="modal-card" id="ybModalCard"></div></div><div class="modal" id="numModal"><div class="modal-card num-modal-card" id="numModalCard"></div></div><div class="toast" id="toast" role="status" aria-live="polite"></div>
+<div class="modal" id="passModal"><div class="modal-card"><div class="eyebrow">Property Brain learning</div><h2>Why are you rejecting this property?</h2><p style="color:var(--muted)">Press <b>1</b> to <b>4</b>, or type a reason and press Enter. The property is passed immediately and the reason is saved to Airtable. <b>Esc</b> cancels without passing.</p><div class="reason-grid" id="reasonGrid"></div><input id="passReasonQuick" type="text" autocomplete="off" placeholder="or type a reason, then Enter" style="width:100%;margin-top:10px;padding:10px;border:1px solid var(--line);border-radius:9px;font-family:inherit;font-size:14px"><div class="cap-error" id="passQuickError"></div><div class="modal-actions"><button class="smallbtn" id="cancelPass">Cancel</button></div></div></div><div class="modal" id="issueModal"><div class="modal-card"><div class="eyebrow">Property Brain · Issue capture</div><h2>Log an issue for Claude</h2><p style="color:var(--muted)">Goes straight into the Workstream Register queue for review — no email, no chat needed. One line is enough.</p><textarea class="cap-textarea" id="issueText" placeholder="e.g. GDV comps look wrong on 14 Cecil Street — pulling flats not houses"></textarea><div class="cap-error" id="issueError"></div><div class="modal-actions"><button class="smallbtn" id="cancelIssue" type="button">Cancel</button><button class="btn" id="submitIssue" type="button">Log issue</button></div></div></div><div class="modal" id="passReasonModal"><div class="modal-card"><div class="eyebrow">Property Brain · Screen 3</div><h2>Why pass, with the report in hand?</h2><p style="color:var(--muted)">Required — 464 historic passes carry no reason and taught nothing about the buying box. One line is enough.</p><textarea class="cap-textarea" id="passReasonText" placeholder="e.g. Roof scope in the Home Report is heavier than the refurb budget can absorb"></textarea><div class="cap-error" id="passReasonError"></div><div class="modal-actions"><button class="smallbtn" id="cancelPassReason" type="button">Cancel</button><button class="btn" id="submitPassReason" type="button">Record Pass</button></div></div></div><div class="modal" id="refModal"><div class="modal-card ref-modal-card"><div class="eyebrow">Property Brain · Quick reference</div><h2>Refurb tiers &amp; ADS by price band</h2><p class="ref-note">Interim reference for screening — not a full appraisal. Worst-case figures only, so you can sense-check a deal before the purchase price is fixed. Replace with proper deal appraisal methodology when that work lands.</p><div class="ref-section"><h3>Refurb cost — three levels</h3><div class="ref-tiers"><div class="ref-tier"><div class="t-name">Light</div><div class="t-val">£17,500</div><div class="t-src">Seen: £12,000–£17,500 across sources. Highest shown here (worst case).</div></div><div class="ref-tier"><div class="t-name">Medium</div><div class="t-val">£27,000</div><div class="t-src">Seen: £25,000–£27,000 across sources. Highest shown here (worst case).</div></div><div class="ref-tier"><div class="t-name">Full</div><div class="t-val">£45,000</div><div class="t-src">Seen: £40,000–£45,000 across sources. Highest shown here (worst case).</div></div></div><div class="ref-flag">Source figures for these tiers disagree across the Master Deal Calculator files (AC-CALCSYNC-01, still open — Stu checking which file is authoritative). Figures above are the highest — most conservative — seen in any source, so they hold as worst case whichever file wins. Add your own 15% contingency on top per the deal-appraisal standard if costs look light for the actual scope.</div></div><div class="ref-section"><h3>ADS worst case by purchase price</h3><p class="ref-note" style="margin:0 0 4px">ADS is a flat 8% of the <em>whole</em> price once it's £40,000 or more — a cliff-edge, not banded like LBTT. So the top of each price band is the true worst case for that band.</p><table class="ref-table"><thead><tr><th>Purchase price band</th><th style="text-align:right">Worst-case ADS</th></tr></thead><tbody id="adsBandBody"></tbody></table></div><div class="modal-actions"><button class="smallbtn" id="closeRef" type="button">Close</button></div></div></div><div class="modal" id="ybModal"><div class="modal-card" id="ybModalCard"></div></div><div class="modal" id="numModal"><div class="modal-card num-modal-card" id="numModalCard"></div></div><div class="toast" id="toast" role="status" aria-live="polite"></div><div id="loadPill" role="status" aria-live="polite"></div><div id="phoneDecide" aria-label="Decision"><button class="pd-yes" type="button" data-pd="vYes">Proceed</button><button class="pd-no" type="button" data-pd="vNo">Pass</button><button class="pd-more" type="button" data-pd="more" aria-label="All decision buttons">More</button></div>
 
 <script>
 const BASE='appjVRP7n8LtgDkKn', TABLE='tblZlJuNnQpSDEInI';
@@ -1242,7 +1321,18 @@ function zonePaused(z){
   return /paused/i.test(z);
 }
 function isEdinburghRec(r){ const f=(r&&r.fields)||{}; return isEdinburghZone((f[F.zone]&&f[F.zone].name)||f[F.zone]||''); }
-const BUILD='3.13.4'; /* v3.13.4 changelog above. Previous: v3.13.3 (18/10/2026), rollback commit 2cd1d1d. Before that: v3.13.2 (15/10/2026): v3.13.2 (15/10/2026): red-flag button logs to the Property Sprint Register (tbl5l7bViIJjBvfzz), not the dead capture queue. */
+/* v3.13.5 (18/10/2026), build 2026-10-18.3, Stu: "working but not optimised for Phone screen - iphone 14 pro max. Lots of duplicates showing".
+   (1) One card per house on the Yes board, Book a viewing and Today: houseIndex()/houseCollapse(), see the note above buildQueue.
+   Display only, nothing written. (2) Phone fit at 600px and under: one-line header (modes plus a menu button for search, arrows and tools),
+   Queue filters collapsed, the Yes board shows one column at a time from a tab strip, cards full width with the action button at the
+   bottom, 44px tap targets, and a fixed Proceed / Pass / More bar on any record that carries the decision buttons. Desktop unchanged
+   except the header now wraps the search box to its own row between 1181px and 1480px, which removes the 145px sideways scroll at 1300.
+   (3) Loading: fetchAll reports progress; first load says "Loading N records" over the skeleton, a manual refresh shows a top pill, and a
+   failed refresh keeps the last good data and says so. Review r4 fixes: a closed copy never hides a live one; same-portal different
+   listings, quoted plot names and unnumbered same-street pairs are not merged unless cross-portal at the same price and beds; decision
+   bar padding includes the safe area and re-checks on resize; fades show cut-off tabs. Update banner fires only when App Control is
+   NEWER than BUILD (the phone copy runs ahead of Drive). Rollback: commit 4aecf44 (v3.13.4). */
+const BUILD='3.13.5'; /* v3.13.5 changelog above. Previous: v3.13.4 (18/10/2026), rollback commit 4aecf44. Before that: v3.13.3 (18/10/2026), rollback commit 2cd1d1d. Before that: v3.13.2 (15/10/2026): v3.13.2 (15/10/2026): red-flag button logs to the Property Sprint Register (tbl5l7bViIJjBvfzz), not the dead capture queue. */
 const CONTROL_TABLE='tblDGKgorkTQkAXBc';
 /* v3.4.0 (28/08/2026), AC-BRAINUX-WINDOW-01 + AC-BRAIN-PROCEEDFLOW-01.
    THE YES BOARD BECOMES THE "WHERE WE ARE" SCREEN. Stu, 27/08, verbatim:
@@ -1539,6 +1629,7 @@ let yesBoardCurrentId='';
    The ordered ids of the Yes-board column the open card came from, as rendered,
    and the index of the card now open. null whenever the card was not opened from a column. */
 let ybSeq=null;
+let ybTab='decide'; try{ ybTab=localStorage.getItem('pbYbTab')||'decide'; }catch(_){ ybTab='decide'; } /* v3.13.5: phone Yes board tab */
 /* v3.8.0 (14/09/2026), board pass change 2. Stu: "cards sticking in Read and
    Decide after Yes, No or Watch."
    TWO CAUSES, TWO FIXES, BOTH HERE.
@@ -2786,6 +2877,123 @@ function dupCollapseSet(list){
   });
   return hide;
 }
+/* v3.13.5 (18/10/2026), Stu: "Lots of duplicates showing". ONE CARD PER HOUSE on the Yes board, Book a viewing and Today.
+   The same house reaches the board as two or three records: one per portal (Rightmove, Zoopla, OnTheMarket) and re-captured
+   listings. dupCollapseSet only ran in the triage queue, so every copy that got a Yes reached the board as its own card.
+   A house = same street part of the address (first comma part, with a bare number or flat part joined to the next), outcodes
+   equal where both are known, at least one shared town part, beds equal where both are known, flat names equal where both
+   carry one, asking prices within HOUSE_PRICE_TOLERANCE. Every member must match every other (no chaining).
+   Review r4 guards against false merges: two records from the same portal with different listing ids are never one house;
+   a new-build plot address that starts with a quoted house-type name ("The Elgin") is never grouped; and where either address
+   has no house or flat number, the pair is grouped only across portals at the same price and the same known beds.
+   The card kept is the most advanced LIVE copy (not passed, not watched): Decision Proceed, then chain stage (offer, viewed,
+   viewing wanted, report read, report in, requested, shortlisted), then Home Report on the record, then newest. A house is
+   hidden only when no copy is live; a closed copy never hides a live one, so a Deal Line expiry or DEAD line on a twin leaves
+   the live card on the board (review r4, Sunnyside Crescent and Sanda Place). DISPLAY ONLY: nothing is written. A Proceed,
+   Pass, report-read or viewing date set on the kept card is not copied to its twins (applyToTwins only carries the triage
+   Yes/No/Watch status, on the stricter fingerprint). So a Pass on the kept card lets a still-live twin come back as its own
+   card. "Collapse duplicate copies" (filters.dedupe) switches it off. */
+const HOUSE_PRICE_TOLERANCE=0.02;
+const HOUSE_CHAIN_RANK={offer:8,viewed:7,proceedWanted:6,reportRead:5,reportIn:4,requested:3,shortlisted:2,noPicture:2,screen:1};
+function housePostcodeRe(){ return /\b[a-z]{1,2}\d[a-z\d]?(\s*\d[a-z]{2})?\b/g; }
+function houseListingId(r){ const m=String((r.fields||{})[F.url]||'').match(/(\d{6,})(?!.*\d{6,})/); return m?m[1]:''; }
+function houseParts(r){
+  const f=r.fields||{};
+  const raw=String(f[F.addr]||'').trim();
+  if(/^["“‘']/.test(raw)) return null; /* r4: new-build plot named by house type, e.g. "The Elgin" at ... */
+  const segs=raw.toLowerCase().split(',').map(s=>s.trim()).filter(Boolean);
+  if(!segs.length) return null;
+  let i=0, st=segs[0];
+  /* "1, Castle Street" and "Flat 2/1, 10 X Street": the first part is not a street on its own */
+  if(segs[1]&&(/^(flat|apartment|unit)\b/.test(st)||!/[a-z]{3}/.test(st))){ st=st+' '+segs[1]; i=1; }
+  const stRaw=st;
+  st=st.replace(housePostcodeRe(),' ').replace(/\brd\b/g,'road').replace(/\bst\b/g,'street').replace(/\bave\b/g,'avenue').replace(/\bdr\b/g,'drive').replace(/[^a-z0-9]+/g,'');
+  if(!st) return null;
+  const rest=segs.slice(i+1);
+  const flat=(rest.concat([segs[0]]).join(' ').match(/\bflat\s+([a-z0-9\/]+)|\b(\d+\/\d+)\b/)||[]);
+  const towns=new Set(rest.map(s=>s.replace(housePostcodeRe(),' ').replace(/[^a-z]+/g,'')).filter(s=>s.length>2&&!/^flat/.test(s)));
+  const m=raw.toUpperCase().match(/\b([A-Z]{1,2}\d[A-Z\d]?)(?:\s*\d[A-Z]{2})?\s*$/);
+  const oc=String(f[F.outcode]||(m&&m[1])||'').trim().toUpperCase();
+  const numbered=!!(flat[1]||flat[2])||/\b\d+[a-z]?\b/.test(stRaw.replace(housePostcodeRe(),' '));
+  return {st:st,oc:oc,towns:towns,flat:flat[1]||flat[2]||'',beds:numeric(f[F.beds]),ask:numeric(f[F.ask]),portal:portalOf(r),lid:houseListingId(r),numbered:numbered};
+}
+function houseSame(a,b){
+  if(a.portal===b.portal&&a.portal!=='Another'&&a.lid&&b.lid&&a.lid!==b.lid) return false; /* r4: one portal, two listings = two properties */
+  if(a.oc&&b.oc&&a.oc!==b.oc) return false;
+  if(a.towns.size&&b.towns.size&&![...a.towns].some(t=>b.towns.has(t))) return false;
+  if(a.flat&&b.flat&&a.flat!==b.flat) return false;
+  if(a.beds!=null&&b.beds!=null&&a.beds!==b.beds) return false;
+  if(!(a.ask>0)||!(b.ask>0)) return false;
+  if(!a.numbered||!b.numbered){ /* r4: no house number, so only a cross-portal copy at the same price and beds */
+    return a.portal!==b.portal&&a.ask===b.ask&&a.beds!=null&&a.beds===b.beds;
+  }
+  return Math.abs(a.ask-b.ask)<=HOUSE_PRICE_TOLERANCE*Math.max(a.ask,b.ask);
+}
+function houseOut(r){
+  if(selName((r.fields||{})[F.decision])==='Pass') return true;
+  return stageClosed(r)&&!/\bDUPLICATE\s+(\d{1,2}\/\d{1,2}\b|FLAG)/i.test(String((r.fields||{})[F.notes]||''));
+}
+function houseLive(r){ return !ybIsPassed(r)&&!sameStatus(dealOf(r),STATUS.watch); }
+function houseRank(r){
+  const f=r.fields||{};
+  const tier=houseLive(r)?(selName(f[F.decision])==='Proceed'?0:1):houseOut(r)?2:sameStatus(dealOf(r),STATUS.watch)?3:4;
+  const hr=((Array.isArray(f[F.hrDoc])&&f[F.hrDoc].length)||String(f[F.hrLink]||'').trim())?1:0;
+  return [tier,-(HOUSE_CHAIN_RANK[chainStage(r)]||0),-hr,-(new Date(r.createdTime||0).getTime()||0)];
+}
+function houseCmp(a,b){ const x=houseRank(a), y=houseRank(b); for(let i=0;i<x.length;i++){ if(x[i]!==y[i]) return x[i]-y[i]; } return String(a.id).localeCompare(String(b.id)); }
+/* Built over every non-archived record, once per synchronous pass (render, decision), then dropped. */
+let houseCache=null;
+function houseIndex(){
+  if(houseCache) return houseCache;
+  const byId=new Map(), groups=[], buckets=new Map();
+  for(const r of records){
+    if(isArchived(r)) continue;
+    const p=houseParts(r); if(!p) continue;
+    if(!buckets.has(p.st)) buckets.set(p.st,[]);
+    buckets.get(p.st).push({r:r,p:p});
+  }
+  buckets.forEach(list=>{
+    if(list.length<2) return;
+    list.sort((a,b)=>houseCmp(a.r,b.r));
+    const used=new Set();
+    list.forEach((a,i)=>{
+      if(used.has(i)) return;
+      const cl=[a];
+      for(let j=i+1;j<list.length;j++){ if(!used.has(j)&&cl.every(c=>houseSame(c.p,list[j].p))){ cl.push(list[j]); used.add(j); } }
+      if(cl.length<2) return;
+      const g={rep:cl[0].r,members:cl.map(x=>x.r)};
+      groups.push(g); g.members.forEach(m=>byId.set(m.id,g));
+    });
+  });
+  houseCache={byId:byId,groups:groups};
+  Promise.resolve().then(()=>{ houseCache=null; });
+  return houseCache;
+}
+function houseOf(r){ return (r&&houseIndex().byId.get(r.id))||null; }
+/* One record per house in `list`, order kept. The kept card is the group's own pick when it is in the list. When it is not:
+   if the pick is live (left the list for another reason) the best copy that is in the list shows; if no copy is live
+   (closed, passed or watched house) nothing shows. */
+function houseCollapse(list){
+  if(filters.dedupe===false) return list;
+  const inList=new Set(list.map(r=>r.id)), pick=new Map();
+  return list.filter(r=>{
+    const g=houseOf(r); if(!g) return true;
+    if(!pick.has(g)){
+      let id='';
+      if(inList.has(g.rep.id)) id=g.rep.id;
+      else if(houseLive(g.rep)){ const m=g.members.find(x=>inList.has(x.id)); id=m?m.id:''; }
+      pick.set(g,id);
+    }
+    return pick.get(g)===r.id;
+  });
+}
+/* The "2 listings" chip on a kept card. Lists each copy's portal and price on tap or hover. */
+function houseChip(r){
+  if(filters.dedupe===false) return '';
+  const g=houseOf(r); if(!g) return '';
+  const t=g.members.map(m=>portalOf(m)+' '+gbp((m.fields||{})[F.ask])+(m.id===r.id?' (this card)':'')).join(' · ');
+  return '<span class="yb-twins" title="'+esc('Same house, '+g.members.length+' listings: '+t)+'">'+g.members.length+' listings</span>';
+}
 function buildQueue(preferId,opts){
   /* v2.7.3 (21/08/2026, Stu: "the newest isnt being filtered... the filter
      doesnt seem to do much even after I refresh").
@@ -3039,8 +3247,9 @@ function branchIdOf(r){
 }
 function sameBranchWanting(recId,branchId){
   if(!branchId) return [];
-  return records.filter(r=>r.id!==recId&&!isArchived(r)&&!ybIsPassed(r)
-    &&branchIdOf(r)===branchId&&chainStage(r)==='proceedWanted');
+  const g=houseOf(records.find(x=>x.id===recId)); /* v3.13.5: a twin of this house is not another property */
+  return houseCollapse(records.filter(r=>r.id!==recId&&!isArchived(r)&&!ybIsPassed(r)&&!(g&&g.members.includes(r))
+    &&branchIdOf(r)===branchId&&chainStage(r)==='proceedWanted'));
 }
 function branchMatesHtml(recId,branchId){
   const mates=sameBranchWanting(recId,branchId);
@@ -3090,7 +3299,7 @@ function ybIsPassed(r){
   return sameStatus(s,STATUS.no)||sameStatus(s,STATUS.doneNo);
 }
 function yesBoardRows(){
-  const board=yesBoardAll();
+  const board=houseCollapse(yesBoardAll()); /* v3.13.5: one card per house */
   const q=String(filters.yesBoardSearch||'').trim().toLowerCase();
   return sortQueue(board.filter(r=>{
     if(ybCleared[r.id]) return false; /* v3.8.0 change 2, cause (2) */
@@ -3271,8 +3480,9 @@ function viewingsNearby(rec){
   if(!oc&&!tn) return out;
   const start=new Date(); start.setHours(0,0,0,0);
   const sameOutcode=[],sameTown=[];
-  for(const r of records){
-    if(r.id===rec.id||isArchived(r)||ybIsPassed(r)) continue;
+  const hg=houseOf(rec); /* v3.13.5: a twin of this house is not a nearby property */
+  for(const r of houseCollapse(records.filter(x=>!isArchived(x)))){
+    if(r.id===rec.id||isArchived(r)||ybIsPassed(r)||(hg&&hg.members.includes(r))) continue;
     const rf=r.fields||{};
     const roc=String(rf[F.outcode]||'').trim().toUpperCase();
     const rtn=String(townOf(r)||'').trim().toLowerCase();
@@ -4440,7 +4650,7 @@ function ybCard(r,opts){
   const why=passed?ybPassReason(r):'';
   return '<div id="yb-row-'+esc(r.id)+'" class="ybc ybc-'+v.k+(current?' ybc-current':'')+(nopic?' ybc-nopic':'')+'" data-view-analysis="'+esc(r.id)+'">'+
     '<div class="ybc-addr">'+(refurb?'<span class="yb-refurb-pill refurb">Refurb</span> ':'')+(nopic?'<span class="yb-refurb-pill nopic">No picture</span> ':'')+esc(recordLabel(r))+'</div>'+
-    '<div class="ybc-meta">'+esc(townOf(r)||'—')+' · '+gbp(f[F.ask])+' · '+esc(f[F.beds]||'?')+' bed</div>'+
+    '<div class="ybc-meta">'+esc(townOf(r)||'—')+' · '+gbp(f[F.ask])+' · '+esc(f[F.beds]||'?')+' bed'+houseChip(r)+'</div>'+
     (opts&&opts.rdFlag?ybAgePill(r):'')+
     '<div class="ybc-row">'+stagePill(r)+
       (passed?(why?('<span class="ybc-why">'+esc(why)+'</span>'):'')
@@ -4496,7 +4706,7 @@ function ybRailRow(r){
      rest, which keeps the rail quiet without losing the action. */
   return '<div id="yb-row-'+esc(r.id)+'" class="ybr'+(stalled?' ybr-old':'')+(r.id===yesBoardCurrentId?' ybc-current':'')+'" data-view-analysis="'+esc(r.id)+'">'+
     '<div><div class="ybr-a">'+esc(recordLabel(r))+'</div>'+
-    '<div class="ybr-m">'+esc(townOf(r)||'')+' · '+esc(st==='offer'?'offer':'report')+'</div>'+intentChips(r)+'</div>'+
+    '<div class="ybr-m">'+esc(townOf(r)||'')+' · '+esc(st==='offer'?'offer':'report')+houseChip(r)+'</div>'+intentChips(r)+'</div>'+
     '<div class="ybr-d'+(stalled?' bad':'')+'">'+age+'d</div>'+
     (stalled?('<button type="button" class="ybr-chase" data-yb-act="'+esc(st)+'" data-rid="'+esc(r.id)+'" data-stop-row="1">'+
       esc(st==='offer'?'Ask for a decision':'Chase the agent')+'</button>'):'')+
@@ -4574,7 +4784,7 @@ function ybBookGroups(list){
    column (town, then agency), same cards, same buttons: one source of truth
    for what a viewing row looks like, so the two can never disagree. */
 function viewingsRows(){
-  const board=yesBoardAll().filter(r=>!ybIsPassed(r));
+  const board=houseCollapse(yesBoardAll()).filter(r=>!ybIsPassed(r)); /* v3.13.5: one card per house */
   const want=board.filter(r=>chainStage(r)==='proceedWanted');
   const now=Date.now();
   const booked=board.filter(r=>{
@@ -4705,7 +4915,7 @@ async function initViewingsMap(list){
   setTimeout(()=>{ if(mapInstance) mapInstance.invalidateSize(); },0);
 }
 function renderYesBoard(app){
-  const board=yesBoardAll();
+  const board=houseCollapse(yesBoardAll()); /* v3.13.5: counts are houses, not listings */
   const refurbCount=board.filter(isRefurbFlagged).length;
   const nopicCount=board.filter(isNoPictureFlagged).length; /* v3.7.0 */
   const passedCount=board.filter(ybIsPassed).length;
@@ -4744,13 +4954,20 @@ function renderYesBoard(app){
   const startPick=live.filter(r=>['late','read','decide','call'].includes(ybVerb(r).k)&&!(ybColumnOf(r)==='decide'&&offMarketReason(r))) /* v3.13.1: never start on a sold or under-offer Read and decide card */
     .sort((a,b)=>((ybColumnOf(a)==='decide'&&rdAged(a))-(ybColumnOf(b)==='decide'&&rdAged(b)))||(isStalled(b)-isStalled(a))||(rank[ybVerb(a).k]-rank[ybVerb(b).k])||(stageAgeDays(b)-stageAgeDays(a)))[0]; /* v3.13.1: an over-age Read and decide card is never the first pick */
 
-  const col=(title,note,list,cls,body)=>'<div class="ybcol '+cls+'">'+
+  /* v3.13.5 (18/10/2026), Stu: "not optimised for Phone screen - iphone 14 pro max". At 600px and under the board shows ONE column,
+     picked from a tab strip of column names and counts (default Read and decide). Desktop ignores the strip and the .on class.
+     Returning from a card opens the tab that card sits in, so the scroll back to it still lands. */
+  const tabCols=[['decide','Read and decide',colDecide],['book','Book a viewing',colBook],['bookRefurb','Refurb viewing',colBookRefurb],['agent','With agents',colAgent]].concat(passedRows.length?[['passed','Passed',passedRows]]:[]);
+  if(yesBoardCurrentId){ const cr=records.find(x=>x.id===yesBoardCurrentId); const ck=cr&&(ybIsPassed(cr)?'passed':ybColumnOf(cr)); if(ck&&tabCols.some(t=>t[0]===ck)) ybTab=ck; }
+  if(!tabCols.some(t=>t[0]===ybTab)) ybTab='decide';
+  const tabs='<div class="yb-tabs" role="tablist">'+tabCols.map(t=>'<button type="button" role="tab" class="yb-tab'+(t[0]===ybTab?' on':'')+'" data-yb-tab="'+t[0]+'">'+esc(t[1])+' <b>'+t[2].length+'</b></button>').join('')+'</div>';
+  const col=(title,note,list,cls,body,key)=>'<div class="ybcol '+cls+(key===ybTab?' on':'')+'" data-ybcol="'+(key||'')+'">'+
     '<div class="ybcol-h"><h3>'+esc(title)+'</h3><span class="ybcol-n">'+list.length+'</span></div>'+
     '<div class="ybcol-s">'+esc(note)+'</div>'+
     (list.length?body:'<div class="ybcol-empty">Nothing here. That is a good thing.</div>')+
   '</div>';
 
-  app.innerHTML='<div class="command-wrap"><div class="command-head"><div><div class="eyebrow">Screen 2</div><h2>The Yes board</h2>'+
+  app.innerHTML='<div class="command-wrap"><div class="command-head yb-head"><div><div class="eyebrow">Screen 2</div><h2>The Yes board</h2>'+
     '<p>'+board.length+' in · '+refurbCount+' refurb'+(nopicCount?(' · <b>'+nopicCount+' with no picture</b>'):'')+'. Split by the kind of work it needs. <b>Colour is the job, not the column</b> — so a Decide card is amber even though it sits with the reads.</p>'+
     (onMeCount
       ? ('<p style="margin:6px 0 0;font-weight:800;color:var(--red)">'+onMeCount+' waiting on you. Open a card and each decision moves you to the next one.</p>')
@@ -4774,13 +4991,14 @@ function renderYesBoard(app){
       '<div class="yb-start-w">'+esc(recordLabel(startPick))+'</div>'+
       '<div class="yb-start-s">'+esc(STAGE_WAITING[chainStage(startPick)]||'')+' · '+stageAgeDays(startPick)+' days'+(isStalled(startPick)?', longer than it should sit':'')+'</div></div>'+
       '<button class="yb-start-go ybc-act-'+ybVerb(startPick).k+'" type="button" data-yb-act="'+esc(chainStage(startPick))+'" data-rid="'+esc(startPick.id)+'">'+esc(ybVerb(startPick).label)+' →</button></div>'):'')+
+    tabs+
     '<div class="yb-cols">'+
-      col('Read and decide',readCount+' to read, '+(colDecide.length-readCount)+' to decide. The only work nobody else can start. Anything listed over '+RD_MAX_AGE_DAYS+' days sits at the bottom.',colDecide,'wide',colDecide.map(r=>ybCard(r,{rdFlag:true})).join(''))+
-      col('Book a viewing','You said Proceed and there is still no date. Grouped by branch first, because three properties with one branch is one call, not three jobs.',colBook,'mid',ybBookGroups(colBook))+
-      col('Book a viewing: refurb','Proceed, refurb flagged, no date yet.',colBookRefurb,'mid',ybBookGroups(colBookRefurb))+
-      col('With agents','Not on you. Worth a nudge once one goes old.',colAgent,'rail',colAgent.map(ybRailRow).join(''))+
+      col('Read and decide',readCount+' to read, '+(colDecide.length-readCount)+' to decide. The only work nobody else can start. Anything listed over '+RD_MAX_AGE_DAYS+' days sits at the bottom.',colDecide,'wide',colDecide.map(r=>ybCard(r,{rdFlag:true})).join(''),'decide')+
+      col('Book a viewing','You said Proceed and there is still no date. Grouped by branch first, because three properties with one branch is one call, not three jobs.',colBook,'mid',ybBookGroups(colBook),'book')+
+      col('Book a viewing: refurb','Proceed, refurb flagged, no date yet.',colBookRefurb,'mid',ybBookGroups(colBookRefurb),'bookRefurb')+
+      col('With agents','Not on you. Worth a nudge once one goes old.',colAgent,'rail',colAgent.map(ybRailRow).join(''),'agent')+
     '</div>'+
-    (passedRows.length?('<div class="ybcol" style="margin-top:14px"><div class="ybcol-h"><h3>Passed</h3><span class="ybcol-n">'+passedRows.length+'</span></div>'+
+    (passedRows.length?('<div class="ybcol yb-passcol'+(ybTab==='passed'?' on':'')+'" data-ybcol="passed" style="margin-top:14px"><div class="ybcol-h"><h3>Passed</h3><span class="ybcol-n">'+passedRows.length+'</span></div>'+
       '<div class="ybcol-s">Killed, kept for review. Nothing here needs anything.</div>'+
       '<div class="yb-passed">'+passedRows.map(ybCard).join('')+'</div></div>'):'')+
     (rows.length?'':'<div class="empty">Nothing matches. This board fills from Screen 1.</div>')+
@@ -4794,6 +5012,13 @@ function renderYesBoard(app){
   const om=document.getElementById('ybOffMarket'); /* v3.13.1 */
   if(om){ om.onclick=()=>{ filters.ybShowOffMarket=!filters.ybShowOffMarket; saveJson(LS.filters,filters); render(); }; }
   wireYesBoardRows(app);
+  app.querySelectorAll('[data-yb-tab]').forEach(b=>b.onclick=()=>{ /* v3.13.5: phone tab strip, no redraw */
+    ybTab=b.dataset.ybTab; try{ localStorage.setItem('pbYbTab',ybTab); }catch(_){}
+    app.querySelectorAll('[data-yb-tab]').forEach(x=>x.classList.toggle('on',x===b));
+    app.querySelectorAll('[data-ybcol]').forEach(c=>c.classList.toggle('on',c.dataset.ybcol===ybTab));
+    const t=app.querySelector('.yb-tabs'); if(t&&t.getBoundingClientRect().top<0) t.scrollIntoView({block:'start'});
+    try{ syncScrollCue(); }catch(_){}
+  });
   if(yesBoardCurrentId){
     const el=document.getElementById('yb-row-'+yesBoardCurrentId);
     if(el&&!suppressYbScroll) el.scrollIntoView({block:'center',behavior:'smooth'});
@@ -5119,7 +5344,7 @@ function commandRows(list,limit=8,showCeiling){
 function renderToday(app){
   const c=todayCounts();
   const inBox=r=>filters.showOutOfBox||(!outOfBox(r)&&stalenessOf(r).level!=='dead');
-  const active=records.filter(r=>!isArchived(r)&&inBox(r)&&!stageClosed(r)); /* v3.13.4: Deal Line passed cards leave the chain tiles */
+  const active=houseCollapse(records.filter(r=>!isArchived(r)&&inBox(r)&&!stageClosed(r))); /* v3.13.4: Deal Line passed cards leave the chain tiles. v3.13.5: one per house */
   const byStage={};
   /* v3.5.0 REGRESSION FIX (28/08/2026, found same day it was introduced).
      v3.4.0 added 'proceedWanted' as a chain stage this morning and did NOT add
@@ -5380,6 +5605,27 @@ async function promoteToAnalysis(rec){
    wraps it so ANY record can always be opened to at least a Pass button,
    never a dead click. Root cause per bad record is not chased here — this is
    the belt so a future one-off crash never blocks Stu again either. */
+/* v3.13.5: on a phone the decision buttons sit two or three screens down the record. A fixed bar presses the same buttons
+   (#vYes, #vNo) so every handler, gate and next-card move is the existing one; More scrolls to the full set. */
+function syncPhoneBar(){
+  const bar=document.getElementById('phoneDecide'); if(!bar) return;
+  const yes=document.getElementById('vYes'), no=document.getElementById('vNo');
+  const on=!!(yes&&no&&window.matchMedia&&matchMedia('(max-width:600px)').matches);
+  bar.classList.toggle('show',on); document.body.classList.toggle('has-pdbar',on);
+  if(!bar.dataset.wired){ bar.dataset.wired='1'; bar.addEventListener('click',ev=>{
+    const b=ev.target.closest('[data-pd]'); if(!b) return;
+    if(b.dataset.pd==='more'){ const g=document.getElementById('vYes'); if(g) g.closest('.verdict').scrollIntoView({block:'center',behavior:'smooth'}); return; }
+    const t=document.getElementById(b.dataset.pd); if(t&&!t.disabled) t.click();
+  }); }
+}
+/* r4: fade the cut-off edge of the mode strip and the Yes board tab strip, and keep it right as they scroll. */
+function syncScrollCue(){
+  document.querySelectorAll('header .modes, #app .yb-tabs').forEach(el=>{
+    const set=()=>{ const over=el.scrollWidth>el.clientWidth+2; el.classList.toggle('cue-r',over&&el.scrollLeft+el.clientWidth<el.scrollWidth-2); el.classList.toggle('cue-l',over&&el.scrollLeft>2); };
+    if(!el.dataset.cueWired){ el.dataset.cueWired='1'; el.addEventListener('scroll',set,{passive:true}); }
+    set();
+  });
+}
 function render(){
   try{ renderUnsafe_(); }
   catch(err){
@@ -5387,7 +5633,10 @@ function render(){
     try{ renderCrashFallback(err); }
     catch(err2){ console.error('renderCrashFallback also failed',err2); }
   }
+  try{ syncPhoneBar(); syncScrollCue(); }catch(_){}
 }
+/* r4: re-check the decision bar and the strip fades on resize and on turning the phone. */
+['resize','orientationchange'].forEach(ev=>window.addEventListener(ev,()=>{ try{ syncPhoneBar(); syncScrollCue(); }catch(_){} }));
 function renderCrashFallback(err){
   const app=document.getElementById('app');
   if(!app) return;
@@ -7571,7 +7820,12 @@ async function refreshData(options){
        property. An UNREQUESTED refresh now never re-renders a card he is on:
        the data updates underneath, the screen holds, and the next arrow key
        picks up the fresh version. Pressing Refresh still redraws immediately. */
-    const fresh=await fetchAll(token);
+    const fresh=await fetchAll(token,(n,pages,done)=>{
+      if(seq!==refreshSeq) return;
+      if(st) st.textContent='updating… '+n;
+      if(manual) loadPill(done?'':loadMsg(n,pages));
+    });
+    if(manual) loadPill('');
     if(seq!==refreshSeq) return;
     await loadAgentBranches(token); /* v3.4.0: picks up newly-researched branches without a reload */
     await loadHealthTables(token); /* v3.6.1: Health board inputs */
@@ -7629,7 +7883,9 @@ async function refreshData(options){
   }catch(e){
     lastDataSig=''; /* v3.13.3-dev: a failed refresh or redraw must never make the next refresh look "unchanged" */
     if(st) st.textContent='update failed';
+    loadPill('');
     if(manual) toast('Refresh failed. Existing data remains visible.');
+    else if(window.matchMedia&&matchMedia('(max-width:600px)').matches&&records.length) toast('Refresh failed. Showing the last good data.',2600); /* v3.13.5: the stamp is hidden on a phone */
   }
 }
 function normaliseRecords(){
@@ -7664,6 +7920,12 @@ function scoreOf(r){
   const s=(w.score==null)?null:Math.round(w.score); scoreCache.set(r.id,s); return s;
 }
 function startAutoRefresh(){ if(autoTimer) clearInterval(autoTimer); autoTimer=setInterval(()=>{ if(document.visibilityState==='visible') refreshData({manual:false}); },60000); }
+/* v3.13.5: dotted numeric compare, 3.13.4 < 3.13.5 < 3.13.10. Missing parts count as 0; non-numbers compare as 0. */
+function buildCmp(a,b){
+  const x=String(a||'').trim().split('.'), y=String(b||'').trim().split('.');
+  for(let i=0;i<Math.max(x.length,y.length);i++){ const p=parseInt(x[i],10)||0, q=parseInt(y[i],10)||0; if(p!==q) return p<q?-1:1; }
+  return 0;
+}
 async function checkForNewBuild(token){
   /* Never allowed to break the dashboard: every failure path is silent and the
      app carries on. One extra request per refresh, against a one-row table. */
@@ -7674,7 +7936,9 @@ async function checkForNewBuild(token){
     const row=(d.records||[]).find(x=>String((x.fields||{})[CF.key]||'').trim()==='PROPERTY_BRAIN');
     if(!row) return;
     const latest=String((row.fields||{})[CF.build]||'').trim();
-    if(!latest||latest===BUILD||latest===updateSeen) return;
+    /* v3.13.5, Stu: the phone copy runs ahead of the desktop Drive copy, so App Control can hold an OLDER build than this one.
+       The banner fires only when App Control is NEWER than BUILD, never merely different. */
+    if(!latest||buildCmp(latest,BUILD)<=0||latest===updateSeen) return;
     updateSeen=latest;
     showUpdateBanner(latest,String((row.fields||{})[CF.note]||'').trim());
   }catch(_){}
@@ -7749,7 +8013,14 @@ function branchOf(rec){
   return b?{id:id,name:String(b[AF.branch]||'').trim(),phone:String(b[AF.phone]||'').trim(),
     email:String(b[AF.email]||'').trim(),route:selName(b[AF.route]),detail:String(b[AF.routeDetail]||'').trim()}:null;
 }
-async function fetchAll(token){
+/* v3.13.5: load progress. The table is fetched 100 rows a page, one page after another, so a first load takes a while with
+   nothing to show; Stu read that as "no cards". The count climbs as pages land. */
+function loadPill(text){
+  const el=document.getElementById('loadPill'); if(!el) return;
+  if(text){ el.textContent=text; el.classList.add('show'); } else el.classList.remove('show');
+}
+function loadMsg(n,pages){ return 'Loading '+Number(n).toLocaleString('en-GB')+' records...'+(pages?(' page '+pages):''); }
+async function fetchAll(token,onProgress){
   // 27/07/2026 fix: the table is ~6,800 rows and growing live (intake pipeline
   // writes new records continuously), so pageSize=100 means ~70 sequential
   // requests per refresh. Without an explicit sort, Airtable's page-to-page
@@ -7783,12 +8054,17 @@ async function fetchAll(token){
     for(const rec of (d.records||[])){ if(!seen.has(rec.id)){ seen.add(rec.id); out.push(rec); pageRecs.push(rec); } }
     sigParts.push(pageSignature(pageRecs)); /* v3.13.3-dev: hashed per page as it arrives, so no single long block at the end */
     offset=d.offset||'';
+    if(onProgress){ try{ onProgress(out.length,sigParts.length,!offset); }catch(_){} } /* v3.13.5 */
   }while(offset);
   out.__sig=hashStr(sigParts.join('|'))+'/'+out.length;
   return out;
 }
 
 function wireStaticControls(){
+  /* v3.13.5: phone header is one line; the menu button shows search, arrows, refresh and tools. Filters start folded on a phone. */
+  const hm=document.getElementById('hdrMore');
+  if(hm) hm.onclick=()=>{ const h=document.querySelector('header'); const o=!h.classList.contains('hdr-open'); h.classList.toggle('hdr-open',o); hm.setAttribute('aria-expanded',String(o)); hm.textContent=o?'✕':'☰'; };
+  try{ if(window.matchMedia&&matchMedia('(max-width:600px)').matches){ const fs=document.getElementById('filterShell'); if(fs) fs.open=false; } }catch(_){}
   document.getElementById('backReviewedBtn').onclick=openLastReviewed;
   document.getElementById('prevBtn').onclick=()=>move(-1);
   document.getElementById('nextBtn').onclick=()=>move(1);
@@ -7908,7 +8184,11 @@ async function init(){
     return;
   }
   try{
-    records=await fetchAll(token);
+    /* v3.13.5: say what is happening while the pages load */
+    const ll=document.createElement('div'); ll.className='load-line'; ll.id='loadLine'; ll.innerHTML='Loading records...<small>Fetching from Airtable, 100 at a time</small>';
+    app.insertBefore(ll,app.firstChild);
+    records=await fetchAll(token,(n,pages)=>{ const e=document.getElementById('loadLine'); if(e) e.innerHTML=esc(loadMsg(n,pages))+'<small>Fetching from Airtable, 100 at a time</small>'; });
+    { const e=document.getElementById('loadLine'); if(e) e.innerHTML='Loaded '+records.length.toLocaleString('en-GB')+' records. Building the screen...'; }
     await loadAgentBranches(token); /* v3.4.0: non-fatal by construction — see loadAgentBranches */
     await loadHealthTables(token); /* v3.6.1: Health board inputs, same contract */
     lastDataSig=dataSignature(records); markFullApply(); /* v3.13.3-dev: seed for the refresh diff (signature built in fetchAll) */

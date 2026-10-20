@@ -3670,9 +3670,10 @@ async function logChainDateQuick(rec,key){
    than a weekend deadline nobody was ever going to meet.
    ========================================================================= */
 const NUM_TIERS=[
-  {k:'Light', amount:17500, note:'£12,000–£17,500 seen. Worst case shown.'},
-  {k:'Medium',amount:27000, note:'£25,000–£27,000 seen. Worst case shown.'},
-  {k:'Full',  amount:45000, note:'£40,000–£45,000 seen. Worst case shown.'}
+  /* v3.14.0: Deal Engine tiers (Stu, 9 Oct 2026), same as ENGINE_REFURB_TIERS. 10% contingency is added in dealMetrics. */
+  {k:'Light', amount:13000, note:'Cosmetic, carpets. Your 9 Oct figure.'},
+  {k:'Medium',amount:28000, note:'Kitchen and bathroom. Your 9 Oct figure.'},
+  {k:'Full',  amount:50000, note:'Medium plus windows, doors, roof. Your 9 Oct figure.'}
 ];
 /* The extra-works list. Deliberately the things that get MISSED at a viewing
    and blow a budget later, not a full schedule of works — a long list would
@@ -3900,13 +3901,13 @@ function numRender(){
     '<div class="num-result'+(blocked?' bad':'')+'">'+
       (u?(blocked
         ? ('<b>No defensible price</b><span>'+esc(u.viability==='infeasible'
-            ?'The profit hurdle plus fixed costs exceed the exit value even at a £0 purchase price. That is a policy fail on this stock, not a pricing result.'
+            ?'The profit and return hurdles plus fixed costs cannot be met at any purchase price. That is a policy fail on this stock, not a pricing result.'
             :'The maximum clearing your hurdles is '+gbp(u.recommended)+', below the '+u.floorPct+'% floor of the '+u.anchorSource+'. No open-market seller transacts there outside distress.')+'</span>')
         : ('<b>Max defensible price '+gbp(u.recommended)+'</b>'+
            (u.thinFlag?('<span class="thin-flag">\u26a0 '+esc(u.thinFlag)+'</span>'):'')+
            '<span>Opening '+gbp(u.opening)+' · target '+gbp(u.target)+' · walk away above '+gbp(u.walkAway)+'. '+
            (ask!=null?(ask<=u.recommended?'Asking '+gbp(ask)+' is already inside it.':'Needs '+gbp(ask-u.recommended)+' off the '+gbp(ask)+' asking.'):'')+
-           ' Profit at that price '+gbp(u.atRecommended.profit)+'.</span>'))
+           ' Profit at that price '+gbp(u.atRecommended.profit)+'. Stress, all three together: '+gbp(u.atRecommendedStress.profit)+' ('+u.stressRag+').'+(u.noSoldComps?' End value unproven: no sold comps logged.':'')+'</span>'))
         :'<b>Enter an exit value</b><span>The ceiling cannot be computed without it.</span>')+
     '</div>'+
     step(6,'Your decision','Recorded as intent. Nothing here places, sends or authorises an offer — that stays the Offer submitted date, written when it actually goes in through the solicitor.',decisionBody)+
@@ -5974,6 +5975,8 @@ function appraisalFor(rec,n){
      is worse than the old policy because it is invisible. Overrides of the two
      retired percentage gates are ignored; an override of the cash floor is
      still Stu's judgment and still wins. */
+  /* v3.14.0: a saved tier choice must use today's tier amount, not a per-sqft figure saved under the old grid. */
+  if(merged.refurbLevel&&merged.refurbLevel!=='manual'){ const t0=refurbFromTier(merged.refurbLevel); if(t0) merged.refurb=t0.amount; }
   if(numeric(merged.minProfitPct)>0&&!('minProfitPct_v39' in bandOv)) merged.minProfitPct=0;
   return merged;
 }
@@ -6032,7 +6035,8 @@ function dealMetrics(price,sale,m,stress){
 function basicCostsOf(rec){
   const price=numeric((rec.fields||{})[F.ask]);
   if(price==null) return null;
-  const d=dealMetrics(price,0,DEFAULT_APPRAISAL,{});
+  let asIs=0; try{ asIs=numeric(cachedNotes(rec).avm)||0; }catch(_){}
+  const d=dealMetrics(price,0,Object.assign({},DEFAULT_APPRAISAL,{asIsValue:asIs}),{});
   return {price:price,lbtt:d.lbtt,ads:d.ads,purchaseFixed:d.purchaseFixed,
     costToBuy:price+d.lbtt+d.ads+d.purchaseFixed,
     finance:d.finance,holding:d.holding,months:d.months,
@@ -6216,7 +6220,7 @@ function evidenceAssessment(rec,n,m,intel){
     else if(subjBeds!=null&&Number(n.soldHeaderBeds)!==Number(subjBeds)) warnings.push('Sold comps are '+n.soldHeaderBeds+'-bed against a '+subjBeds+'-bed subject — not the same asset class (CI-COMPS-01).');
   }
   if(isDuplicate(rec)) critical.push('Possible duplicate record is unresolved.');
-  if(!(numeric(m.saleLow)>0&&numeric(m.saleBase)>0&&numeric(m.saleHigh)>0)) critical.push('Low, base and high exit values are incomplete.');
+  if(!(numeric(m.saleBase)>0)) critical.push('Exit value after works (GDV) is missing.');
   if(!(numeric(m.refurb)>0)) warnings.push('Refurbishment allowance is zero.');
   if(!(numeric(m.minProfit)>0||numeric(m.minProfitPct)>0)) critical.push('No minimum profit test is set.');
   if(!(numeric(m.minRoc)>0)) warnings.push('No return-on-cash hurdle is set.');
@@ -6265,7 +6269,7 @@ function renderUnderwriter(rec,n){
         numberField('sqft','Floor area (sqft)',m.sqft)+
         moneyField('refurb','Refurbishment budget',m.refurb)+moneyField('saleLow','Low exit after works',m.saleLow)+moneyField('saleBase','Exit value after works (GDV)',m.saleBase)+moneyField('saleHigh','High exit after works',m.saleHigh)+numberField('months','Holding period (months)',m.months)+numberField('confidence','Evidence confidence',m.confidence,'select', [['low','Low'],['medium','Medium'],['high','High']])+'</div><div class="calc-note" id="refurbNote">'+esc(refurbNoteText(m))+'</div>')+
       modelSection('Fixed transaction costs and return rules',false,
-        '<div class="fixed-costs-note">LBTT, ADS, legals, finance, holding, sales costs and minimum-return rules are already included. Minimum-return rules are GDV-banded (D7, 1 Aug 2026): £90–120k → £15k/18%/18% · £120–200k → £20k/15%/15% · over £200k → £25k/15%/15%. The values shown below are the band for this deal; editing them overrides the band for this deal only. Change them only where this deal genuinely differs.</div><div class="calc-grid three">'+moneyField('purchaseLegal','Purchase legal',m.purchaseLegal)+toggleField('ads','Apply ADS',m.ads)+numberField('adsRate','ADS rate %',m.adsRate)+numberField('ltv','Loan to purchase %',m.ltv)+numberField('interestRate','Annual interest %',m.interestRate)+numberField('arrangementPct','Arrangement fee %',m.arrangementPct)+moneyField('lenderLegal','Lender legal / valuation',m.lenderLegal)+moneyField('monthlyHolding','Monthly holding',m.monthlyHolding)+numberField('agentPct','Agent fee incl. VAT %',m.agentPct)+moneyField('saleLegal','Sale legal',m.saleLegal)+moneyField('marketing','Marketing',m.marketing)+moneyField('staging','Staging',m.staging)+moneyField('minProfit','Minimum net profit',m.minProfit)+numberField('minProfitPct','Minimum profit on GDV %',m.minProfitPct)+numberField('minRoc','Minimum return on cash %',m.minRoc)+numberField('mvFloorPct','Offer floor % of evidenced value',m.mvFloorPct)+'</div>')+
+        '<div class="fixed-costs-note">LBTT, ADS, legals, finance, holding, sales costs and minimum-return rules are already included. Minimum rules come from the Deal Engine: £15,000 profit and 15% return on cash, flat on every deal. The bridge is the lower of 75% of the as-is value or 90% of the price. Editing a value overrides it for this deal only. Change them only where this deal genuinely differs.</div><div class="calc-grid three">'+moneyField('purchaseLegal','Purchase legal',m.purchaseLegal)+toggleField('ads','Apply ADS',m.ads)+numberField('adsRate','ADS rate %',m.adsRate)+numberField('ltv','Loan to purchase %',m.ltv)+numberField('interestRate','Annual interest %',m.interestRate)+numberField('arrangementPct','Arrangement fee %',m.arrangementPct)+moneyField('lenderLegal','Lender legal / valuation',m.lenderLegal)+moneyField('monthlyHolding','Monthly holding',m.monthlyHolding)+numberField('agentPct','Agent fee incl. VAT %',m.agentPct)+moneyField('saleLegal','Sale legal',m.saleLegal)+moneyField('marketing','Marketing',m.marketing)+moneyField('staging','Staging',m.staging)+moneyField('minProfit','Minimum net profit',m.minProfit)+numberField('minProfitPct','Minimum profit on GDV %',m.minProfitPct)+numberField('minRoc','Minimum return on cash %',m.minRoc)+numberField('mvFloorPct','Offer floor % of evidenced value',m.mvFloorPct)+'</div>')+
       modelSection('Advanced stress controls',false,
         '<div class="calc-grid three">'+numberField('contingencyPct','Works contingency %',m.contingencyPct)+moneyField('professional','Professional / statutory',m.professional)+moneyField('survey','Survey / valuation',m.survey)+moneyField('broker','Broker / sourcing',m.broker)+numberField('minInterestMonths','Minimum interest months',m.minInterestMonths)+numberField('exitPct','Exit fee %',m.exitPct)+moneyField('otherFinance','Other finance fees',m.otherFinance)+moneyField('otherSale','Other sale costs',m.otherSale)+numberField('stressSalePct','Further low-case sale reduction %',m.stressSalePct)+numberField('stressWorksPct','Stress works increase %',m.stressWorksPct)+numberField('stressDelayMonths','Stress delay months',m.stressDelayMonths)+numberField('openingBufferPct','Opening-offer buffer %',m.openingBufferPct)+'</div>')+
     '</div><div class="recommendation-box"><strong id="briefRecommendation">Assessment pending</strong><span id="briefRecommendationNote">Adjust the judgement assumptions to test the deal.</span></div><div class="intel-actions"><button class="smallbtn" id="applyExitUplift" type="button">Apply refurbished exit (1.36x)</button><button class="smallbtn" id="saveAppraisalDefaults" type="button">Save assumptions as defaults</button><button class="smallbtn" id="resetAppraisal" type="button">Reset this appraisal</button><button class="smallbtn" id="copyBrief" type="button">Copy decision brief</button><button class="smallbtn" id="copyHomeReport" type="button">Copy HR request text</button></div><div class="source-warning">Screening support only. Confirm tax, legal, valuation, lending and selling assumptions before committing.</div></div>';
@@ -6467,7 +6471,7 @@ function updateUnderwriter(rec,n,m){
     const sigEl=document.getElementById('commercialSignal');
     sigEl.className='commercial-signal reject';
     if(u.viability==='infeasible'){
-      sigEl.textContent='NOT VIABLE AT ANY PRICE — the '+gbp(Math.max(numeric(m.minProfit)||0,(numeric(m.saleBase)||0)*(numeric(m.minProfitPct)||0)/100))+' profit hurdle plus fixed costs exceed the '+gbp(m.saleBase)+' exit value even at a £0 purchase price. That is a policy fail on this class of stock, not a pricing result. Pass, or challenge the exit value / works assumptions.';
+      sigEl.textContent='NOT VIABLE AT ANY PRICE — the '+gbp(Math.max(numeric(m.minProfit)||0,(numeric(m.saleBase)||0)*(numeric(m.minProfitPct)||0)/100))+' profit hurdle and the return hurdle, plus fixed costs, cannot be met against the '+gbp(m.saleBase)+' exit value at any purchase price, even at £0. That is a policy fail on this class of stock, not a pricing result. Pass, or challenge the exit value / works assumptions.';
     } else {
       sigEl.textContent='NOT VIABLE AT DEFENSIBLE PRICING — the maximum price clearing your hurdles is '+gbp(u.recommended)+', which is '+(u.anchorMV>0?Math.round(u.recommended/u.anchorMV*100):0)+'% of the '+u.anchorSource+' ('+gbp(u.anchorMV)+'). Below the '+u.floorPct+'% floor no open-market seller transacts outside distress. * figures are model residuals, NOT offers. Verdict: PASS — unless the evidence (exit value, refurb tier) is wrong, in which case fix that first.';
     }
@@ -6612,7 +6616,7 @@ function copyOfferBrief(rec,n,m){
     if(navigator.clipboard&&navigator.clipboard.writeText) navigator.clipboard.writeText(text).then(()=>toast('Blocked brief copied — not viable.')).catch(()=>fallbackCopy(text)); else fallbackCopy(text);
     return;
   }
-  const lines=[...gateLines,'DEAL OFFER BRIEF',recordLabel(rec),'Asking: '+gbp(f[F.ask]),valuationLabel+': '+(n.avm||'not available')+(n.avmRange?' ('+n.avmRange+')':''),...exitLines,'Opening offer: '+gbp(u.opening),'Target purchase: '+gbp(u.target),'Recommended ceiling: '+gbp(u.recommended),'Absolute walk-away: '+gbp(u.walkAway),'Required reduction: '+gbp(Math.max(0,(u.asking||0)-u.recommended)),'Base profit at recommended: '+gbp(u.atRecommended.profit),'Return on cash at recommended: '+pct(u.atRecommended.roc),'Break-even exit: '+gbp(u.breakEven),'','Bull case: '+(i.bull||'not recorded'),'Bear case: '+(i.bear||'not recorded'),'Must be true: '+(i.mustTrue||'not recorded'),'Deal killers: '+(i.killers||'not recorded'),'Missing evidence: '+(i.missing||'not recorded')];
+  const lines=[...gateLines,'DEAL OFFER BRIEF',recordLabel(rec),'Asking: '+gbp(f[F.ask]),valuationLabel+': '+(n.avm||'not available')+(n.avmRange?' ('+n.avmRange+')':''),...exitLines,'Opening offer: '+gbp(u.opening),'Target purchase: '+gbp(u.target),'Recommended ceiling: '+gbp(u.recommended),'Absolute walk-away: '+gbp(u.walkAway),'Required reduction: '+gbp(Math.max(0,(u.asking||0)-u.recommended)),'Base profit at recommended: '+gbp(u.atRecommended.profit),'Return on cash at recommended: '+pct(u.atRecommended.roc),'Stress, all three together, at recommended: '+gbp(u.atRecommendedStress.profit)+' ('+u.stressRag+')','Evidence: '+(u.noSoldComps?'No sold comps logged, end value unproven':'Sold comps logged'),'Break-even exit: '+gbp(u.breakEven),'','Bull case: '+(i.bull||'not recorded'),'Bear case: '+(i.bear||'not recorded'),'Must be true: '+(i.mustTrue||'not recorded'),'Deal killers: '+(i.killers||'not recorded'),'Missing evidence: '+(i.missing||'not recorded')];
   const text=lines.join('\n');
   if(navigator.clipboard&&navigator.clipboard.writeText) navigator.clipboard.writeText(text).then(()=>toast('Offer brief copied.')).catch(()=>fallbackCopy(text)); else fallbackCopy(text);
 }

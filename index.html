@@ -1568,7 +1568,9 @@ const DEFAULT_FILTERS={text:'',min:'',max:'',beds:'',agent:'',match:'',intent:''
    load time and a const declared further down the file is in its temporal dead
    zone when it does. Full rationale at bandedHurdles(). */
 const FLAT_PROFIT_FLOOR=15000;
-const DEFAULT_APPRAISAL={refurb:30000,contingencyPct:10,professional:4000,purchaseLegal:1650,survey:750,broker:750,ltv:80,interestRate:9.96,months:6,minInterestMonths:3,arrangementPct:1.25,exitPct:0.83,lenderLegal:0,otherFinance:130,monthlyHolding:350,agentPct:1.0,marketing:300,saleLegal:1350,staging:1800,otherSale:500,ads:true,adsRate:8,minProfit:15000,minProfitPct:0,minRoc:0,stressSalePct:5,stressWorksPct:10,stressDelayMonths:3,openingBufferPct:5,mvFloorPct:65,mvFlagPct:80,confidence:'medium'};
+const ENGINE_MIN_ROC=15; /* v3.14.0: Engine 'minimum return on cash left in' (11 Oct approved: the ladder must respect it). */
+/* v3.14.0 (20/10/2026): the Deal Engine's standing numbers are the ONE set of maths. Source: STP_Deal_Engine_LIVE Assumptions tab, confirmed by Stu 9 Oct 2026. Bridge = lower of 75% of as-is value or 90% of price; 0.85% a month = 10.2% a year. Stress = value -10%, works +15%, rates +2% a year. */
+const DEFAULT_APPRAISAL={refurb:28000,contingencyPct:10,professional:0,purchaseLegal:1330,survey:0,broker:500,ltv:90,ltvAsIsPct:75,interestRate:10.2,months:4,minInterestMonths:0,arrangementPct:2,exitPct:0,lenderLegal:0,otherFinance:0,monthlyHolding:350,agentPct:1.4,marketing:0,saleLegal:1250,staging:0,otherSale:660,ads:true,adsRate:8,minProfit:15000,minProfitPct:0,minRoc:15,stressSalePct:10,stressWorksPct:15,stressRatePct:2,stressDelayMonths:0,openingBufferPct:5,mvFloorPct:65,mvFlagPct:80,confidence:'medium'};
 /* v2.5.0: the exit-uplift assumption. STP-001 achieved a GDV of £154,000
    against a Home Report as-is value of £113,000 = 1.36x. ONE completed
    project, so this is offered as a one-click assumption the user applies
@@ -1602,12 +1604,18 @@ let appraisalDefaults=loadJson(LS.appraisalDefaults,DEFAULT_APPRAISAL);
    would have shipped and done nothing on the only screen Stu uses. Policy
    values are FORCED, once, under a stamp; every other saved figure he has
    tuned is left exactly as it is. */
-if(appraisalDefaults&&appraisalDefaults.policy!=='2026-09-07-flat15k'){
+if(appraisalDefaults&&!appraisalDefaults.policy){
   appraisalDefaults.minProfit=FLAT_PROFIT_FLOOR;
   appraisalDefaults.minProfitPct=0;
   appraisalDefaults.minRoc=0;
   if(!(numeric(appraisalDefaults.mvFlagPct)>0)) appraisalDefaults.mvFlagPct=80;
   appraisalDefaults.policy='2026-09-07-flat15k';
+  saveJson(LS.appraisalDefaults,appraisalDefaults);
+}
+/* v3.14.0 MIGRATION (20/10/2026): force the Deal Engine's standing numbers once, under a stamp, so the Review tab and the sheet give one answer. Fields not in DEFAULT_APPRAISAL are left alone. Per-deal edits Stu saved are never touched. */
+if(appraisalDefaults&&appraisalDefaults.policy!=='engine-2026-10-20'){
+  Object.keys(DEFAULT_APPRAISAL).forEach(k=>{ if(k!=='confidence') appraisalDefaults[k]=DEFAULT_APPRAISAL[k]; });
+  appraisalDefaults.policy='engine-2026-10-20';
   saveJson(LS.appraisalDefaults,appraisalDefaults);
 }
 let appraisals=loadJson(LS.appraisals,{});
@@ -5878,10 +5886,11 @@ function guessPropType(rec,n){
   if(t.includes('tenement')||t.includes('flat')||t.includes('maisonette')||t.includes('apartment')) return 'Tenement flat';
   return 'Tenement flat';
 }
-function refurbFromTier(level,propType,sqft){
-  const r=(REFURB_RATES[propType]||{})[level]; const a=numeric(sqft)||0;
-  if(!r||!a) return null;
-  return {amount:Math.round((r[0]+r[1])/2*a/250)*250,low:Math.round(r[0]*a),high:Math.round(r[1]*a)};
+/* v3.14.0: Stu's confirmed Engine tiers (9 Oct 2026), flat, not per sqft. Light = cosmetic; Medium = kitchen and bathroom (default for flips, 11 Oct); Full = Medium plus windows, doors, roof. Contingency of 10% is added in dealMetrics. 'heavy' is the saved key for Full. Size-driven PCN rates are not loaded yet. */
+const ENGINE_REFURB_TIERS={light:13000,medium:28000,heavy:50000};
+function refurbFromTier(level){
+  const a=ENGINE_REFURB_TIERS[level]; if(!a) return null;
+  return {amount:a,low:a,high:a};
 }
 function appraisalSeed(rec,n){
   /* 28/07/2026 AUDIT FIX (build .2): the asking-price fallback is REMOVED.
@@ -5910,7 +5919,7 @@ function appraisalSeed(rec,n){
      typical-size assumption by type (the on-screen note says which). */
   const propType=guessPropType(rec,n);
   const sqft=sqftFromNotes(n)||TYPICAL_SQFT[propType];
-  const tier=refurbFromTier('light',propType,sqft);
+  const tier=refurbFromTier('medium');
   /* v2.5.2 B1 (12/08/2026, Stu approved): when refurbished exit evidence
      exists (GDV EVIDENCE line, or 2+ parsed refurbished comps), the exit
      seeds from THAT instead of the as-is median. The as-is median (n.avm)
@@ -5928,7 +5937,7 @@ function appraisalSeed(rec,n){
   const exitHigh=gdvOk?(rprices.length>=2?Math.max.apply(null,rprices):Math.round(gdvVal*1.05)):high;
   return Object.assign({},appraisalDefaults,{saleLow:exitLow,saleBase:exitBase,saleHigh:exitHigh,
     exitSource:gdvOk?(n.gdvSource==='gdv-line'?'gdv-evidence':'refurb-comps'):(avm>0?'as-is-median':'none'),
-    refurbLevel:'light',propType:propType,sqft:sqft,sqftSource:sqftFromNotes(n)?'listing':'typical',
+    asIsValue:avm,refurbLevel:'medium',propType:propType,sqft:sqft,sqftSource:sqftFromNotes(n)?'listing':'typical',
     refurb:tier?tier.amount:appraisalDefaults.refurb});
 }
 /* v2.5.0: the seeded low and high come from the comp MINIMUM and MAXIMUM, so
@@ -5966,7 +5975,6 @@ function appraisalFor(rec,n){
      retired percentage gates are ignored; an override of the cash floor is
      still Stu's judgment and still wins. */
   if(numeric(merged.minProfitPct)>0&&!('minProfitPct_v39' in bandOv)) merged.minProfitPct=0;
-  if(numeric(merged.minRoc)>0&&!('minRoc_v39' in bandOv)) merged.minRoc=0;
   return merged;
 }
 function intelFor(rec){
@@ -5989,8 +5997,11 @@ function dealMetrics(price,sale,m,stress){
   const lbtt=lbttResidential(price);
   const ads=(m.ads&&price>=40000)?price*(numeric(m.adsRate)||0)/100:0;
   const purchaseFixed=(numeric(m.purchaseLegal)||0)+(numeric(m.survey)||0)+(numeric(m.broker)||0);
-  const loan=price*(numeric(m.ltv)||0)/100;
-  const interest=loan*(numeric(m.interestRate)||0)/100*(months/12);
+  /* v3.14.0 Engine rule: bridge = lower of ltvAsIsPct of the as-is value and ltv of the price (price only when no as-is value is known). */
+  const asIs=numeric(m.asIsValue)||0;
+  const loanByPrice=price*(numeric(m.ltv)||0)/100;
+  const loan=asIs>0?Math.min(loanByPrice,asIs*(numeric(m.ltvAsIsPct)||0)/100):loanByPrice;
+  const interest=loan*((numeric(m.interestRate)||0)+(numeric(stress.ratePct)||0))/100*(months/12);
   const arrangement=loan*(numeric(m.arrangementPct)||0)/100;
   const exit=loan*(numeric(m.exitPct)||0)/100;
   const finance=interest+arrangement+exit+(numeric(m.lenderLegal)||0)+(numeric(m.otherFinance)||0);
@@ -5999,7 +6010,8 @@ function dealMetrics(price,sale,m,stress){
   const works=refurb+contingency+(numeric(m.professional)||0);
   const totalCost=price+lbtt+ads+purchaseFixed+finance+holding+saleCosts+works;
   const profit=sale-totalCost;
-  const cash=Math.max(1,totalCost-loan);
+  /* v3.14.0 Engine rule: cash in excludes selling costs, which come out of the sale proceeds. */
+  const cash=Math.max(1,totalCost-loan-saleCosts);
   const profitPct=sale?profit/sale*100:0;
   const roc=profit/cash*100;
   const requiredProfit=Math.max(numeric(m.minProfit)||0,sale*(numeric(m.minProfitPct)||0)/100);
@@ -6031,7 +6043,7 @@ function solveMao(sale,m,stress){
   if(!dealMetrics(0,sale,m,stress).passes) return 0;
   let lo=0,hi=sale;
   for(let i=0;i<60;i++){ const mid=(lo+hi)/2; if(dealMetrics(mid,sale,m,stress).passes) lo=mid; else hi=mid; }
-  return Math.floor(lo/250)*250;
+  return Math.floor(lo/100)*100;
 }
 function solveBreakEvenSale(price,m,stress){
   let lo=0,hi=Math.max(1000000,(numeric(m.saleHigh)||0)*2,price*3);
@@ -6086,13 +6098,14 @@ const MANUAL_GDV_FLOOR=90000;
 function bandedHurdles(gdv){
   const g=numeric(gdv);
   if(!(g>0)) return null;
-  return {minProfit:FLAT_PROFIT_FLOOR,minProfitPct:0,minRoc:0};
+  return {minProfit:FLAT_PROFIT_FLOOR,minProfitPct:0,minRoc:ENGINE_MIN_ROC};
 }
 function underwriting(rec,n,m){
   const asking=numeric((rec.fields||{})[F.ask]);
   const baseMao=solveMao(m.saleBase,m,{});
-  const stressSale=(numeric(m.saleLow)||0)*(1-(numeric(m.stressSalePct)||0)/100);
-  const stress={worksPct:numeric(m.stressWorksPct)||0,delayMonths:numeric(m.stressDelayMonths)||0};
+  /* v3.14.0 Engine stress: end value down, works up, rates up, all three together, off the base GDV. */
+  const stressSale=(numeric(m.saleBase)||0)*(1-(numeric(m.stressSalePct)||0)/100);
+  const stress={worksPct:numeric(m.stressWorksPct)||0,delayMonths:numeric(m.stressDelayMonths)||0,ratePct:numeric(m.stressRatePct)||0};
   const stressMao=solveMao(stressSale,m,stress);
   const weight={low:.25,medium:.5,high:.75}[m.confidence]||.5;
   /* v3.9.0 (14/09/2026), Stu approved 7 Sep. THE SECOND PERCENTAGE IS GONE TOO.
@@ -6108,7 +6121,7 @@ function underwriting(rec,n,m){
      confidence weight now drives only the negotiating ladder underneath, which
      is where a judgement about evidence quality belongs - what he opens at,
      not what the deal can bear. */
-  let recommended=Math.floor(baseMao/250)*250;
+  let recommended=Math.floor(baseMao/100)*100;
   recommended=Math.max(0,Math.min(recommended,baseMao));
   const stressBlend=Math.max(Math.min(Math.floor((stressMao+(baseMao-stressMao)*weight)/250)*250,baseMao),Math.min(stressMao,baseMao));
   const target=Math.min(stressBlend,stressMao,asking==null?stressMao:asking,recommended);
@@ -6117,6 +6130,10 @@ function underwriting(rec,n,m){
   const atAsk=asking==null?null:dealMetrics(asking,m.saleBase,m,{});
   const atAskStress=asking==null?null:dealMetrics(asking,stressSale,m,stress);
   const atRecommended=dealMetrics(recommended,m.saleBase,m,{});
+  /* v3.14.0 Engine: all three stresses together, at the maximum offer. GREEN at or above the profit floor, AMBER above zero, RED at or below zero (thresholds are my reading of the sheet, unconfirmed). */
+  const atRecommendedStress=dealMetrics(recommended,stressSale,m,stress);
+  const stressRag=atRecommendedStress.profit>=(numeric(m.minProfit)||0)?'GREEN':(atRecommendedStress.profit>0?'AMBER':'RED');
+  const noSoldComps=!((n.sold||[]).length);
   const breakEven=solveBreakEvenSale(recommended,m,{});
   /* v2.4.0 offer-plausibility assessment. asIsMV = the evidenced as-is value
      (PMI AVM or sold-comps median) — the thing the £5k-on-£150k complaint is
@@ -6165,7 +6182,7 @@ function underwriting(rec,n,m){
      value actually exists; with no GDV entered, normal evidence gating runs. */
   if(numeric(m.saleBase)>0&&numeric(m.saleBase)<MANUAL_GDV_FLOOR) viability='manual';
   const credibility=compCredibility(n,asking);
-  return {asking,baseMao,stressMao,recommended,target,opening,walkAway:baseMao,stressSale,stress,atAsk,atAskStress,atRecommended,breakEven,asIsMV,anchorMV,anchorSource,floorPct,floorPrice,flagPct,flagPrice,thinFlag,stressBlend,viability,credibility};
+  return {asking,baseMao,stressMao,recommended,target,opening,walkAway:baseMao,stressSale,stress,atAsk,atAskStress,atRecommended,atRecommendedStress,stressRag,noSoldComps,breakEven,asIsMV,anchorMV,anchorSource,floorPct,floorPrice,flagPct,flagPrice,thinFlag,stressBlend,viability,credibility};
 }
 function evidenceAssessment(rec,n,m,intel){
   const f=rec.fields||{}; let score=0;
@@ -6243,7 +6260,7 @@ function renderUnderwriter(rec,n){
     '<div class="model-sections">'+
       modelSection('Your judgement assumptions',true,
         '<p class="assumption-note">These are the variables for you to decide. Every figure updates immediately.</p><div class="critical-note"><b>Exit after works is not the same number as the as-is value.</b> The comps pipeline supplies AS-IS evidence only, so these three fields seed to the as-is figure and every deal then fails, because a refurbishment project with no uplift cannot clear the margin stack. Set the exit from real refurbished sale evidence, or use the uplift button below and treat it as the assumption it is. The as-is figure stays as the anchor for the offer floor and is not changed by editing these.</div><div class="calc-grid three">'+
-        numberField('refurbLevel','Refurb level',m.refurbLevel,'select',[['light','Light'],['medium','Medium'],['heavy','Heavy'],['manual','Manual £']])+
+        numberField('refurbLevel','Refurb level',m.refurbLevel,'select',[['light','Light'],['medium','Medium'],['heavy','Full'],['manual','Manual £']])+
         numberField('propType','Property type',m.propType,'select',[['Tenement flat','Tenement flat'],['Terraced','Terraced'],['Semi-detached','Semi-detached'],['Detached','Detached'],['Bungalow','Bungalow']])+
         numberField('sqft','Floor area (sqft)',m.sqft)+
         moneyField('refurb','Refurbishment budget',m.refurb)+moneyField('saleLow','Low exit after works',m.saleLow)+moneyField('saleBase','Exit value after works (GDV)',m.saleBase)+moneyField('saleHigh','High exit after works',m.saleHigh)+numberField('months','Holding period (months)',m.months)+numberField('confidence','Evidence confidence',m.confidence,'select', [['low','Low'],['medium','Medium'],['high','High']])+'</div><div class="calc-note" id="refurbNote">'+esc(refurbNoteText(m))+'</div>')+
@@ -6255,11 +6272,10 @@ function renderUnderwriter(rec,n){
 }
 function modelSection(title,open,body){ return '<details class="model-section" '+(open?'open':'')+'><summary>'+title+'</summary><div class="model-body">'+body+'</div></details>'; }
 function refurbNoteText(m){
-  if(m.refurbLevel==='manual') return 'Manual refurb budget — tier rates not applied.';
-  const t=refurbFromTier(m.refurbLevel,m.propType,m.sqft);
-  if(!t) return 'Tier rate unavailable for this combination — enter the refurb budget manually.';
-  const src=m.sqftSource==='listing'?'from listing':m.sqftSource==='user'?'your figure':'typical-size assumption — check';
-  return m.refurbLevel.charAt(0).toUpperCase()+m.refurbLevel.slice(1)+' · '+m.propType+' · '+Math.round(numeric(m.sqft)||0).toLocaleString('en-GB')+' sqft ('+src+') → '+gbp(t.amount)+' used (source range '+gbp(t.low)+'–'+gbp(t.high)+'). Approved 26/07 workbook rates — still UNVERIFIED against real contractor quotes.';
+  if(m.refurbLevel==='manual') return 'Manual refurb budget — tier not applied.';
+  const t=refurbFromTier(m.refurbLevel);
+  if(!t) return 'Tier unavailable — enter the refurb budget manually.';
+  return (m.refurbLevel==='heavy'?'Full':m.refurbLevel.charAt(0).toUpperCase()+m.refurbLevel.slice(1))+' tier → '+gbp(t.amount)+' plus '+(numeric(m.contingencyPct)||0)+'% contingency. Deal Engine tiers, your figures of 9 Oct. PCN line prices not loaded yet.';
 }
 function moneyField(key,label,value){ return '<div class="field"><label for="m_'+key+'">'+label+'</label><div class="money-input"><span>£</span><input id="m_'+key+'" data-model="'+key+'" type="number" step="250" inputmode="decimal" value="'+esc(value)+'"></div></div>'; }
 function numberField(key,label,value,type,options){
@@ -6465,8 +6481,8 @@ function updateUnderwriter(rec,n,m){
   if(!notViable){
   let cls='reject',text='No viable purchase price under the current assumptions.';
   let recText='Pass on the current figures',recNote='The deal does not meet the configured return hurdles.';
-  if(u.recommended>0&&ask!=null&&ask>0&&ask<=u.recommended){ cls='buyable'; text='WORKS AT ASKING on the current assumptions.'; recText='Proceed to verification'; recNote='The asking price is within the current maximum purchase price. Verify exit, works and onward sale risk.'; }
-  else if(u.recommended>0){ cls='negotiate'; text='NEGOTIATE: required reduction '+gbp(Math.max(0,(ask||0)-u.recommended))+' from asking.'; recText='Proceed only below '+gbp(u.recommended); recNote=(u.opening>0?'Start around '+gbp(u.opening):'The stressed case fails at any price — open well below the maximum')+' and do not exceed the current maximum without better evidence.'; }
+  if(u.recommended>0&&ask!=null&&ask>0&&ask<=u.recommended){ cls='buyable'; text='WORKS AT ASKING on the current assumptions.'; recText=u.noSoldComps?'Prove the end value first':'Proceed to verification'; recNote=u.noSoldComps?'No sold comps logged: the end value is unproven, so this is not a proceed. Log sold comps, then reprice.':'The asking price is within the current maximum purchase price. Verify exit, works and onward sale risk.'; }
+  else if(u.recommended>0){ cls='negotiate'; text='NEGOTIATE: required reduction '+gbp(Math.max(0,(ask||0)-u.recommended))+' from asking.'; recText=(u.noSoldComps?'Prove the end value, then proceed only below ':'Proceed only below ')+gbp(u.recommended); recNote=(u.opening>0?'Start around '+gbp(u.opening):'The stressed case fails at any price — open well below the maximum')+' and do not exceed the current maximum without better evidence.'; }
   signal.className='commercial-signal '+cls; signal.textContent=text;
   setText('briefRecommendation',recText); setText('briefRecommendationNote',recNote);
   }
@@ -6492,7 +6508,7 @@ function updateUnderwriter(rec,n,m){
   const lbttAtAsk=ask!=null?lbttResidential(ask):0;
   const compTopValue=compTop?gbp(compTop)+(topIsOutlier?' ⚠ well above median — check comp':''):'—';
   const headroomValue=(compTop&&ask!=null)?gbp(compTop-lbttAtAsk-ask)+(topIsOutlier?' ⚠ uses outlier comp':''):'—';
-  document.getElementById('underwritingMetrics').innerHTML=metric('Profit at asking',baseAsk?gbp(baseAsk.profit):'—')+metric('Stress profit at asking',stressAsk?gbp(stressAsk.profit):'—')+metric('Cash required',gbp(recommendedMetrics.cash))+metric('LBTT + ADS',gbp(recommendedMetrics.lbtt+recommendedMetrics.ads))+metric('Finance + holding',gbp(recommendedMetrics.finance+recommendedMetrics.holding))+metric('Break-even exit',gbp(u.breakEven))+metric('Highest street comp',compTopValue)+metric('Highest comp − LBTT vs asking (excl. ADS/fees)',headroomValue);
+  document.getElementById('underwritingMetrics').innerHTML=metric('Profit at asking',baseAsk?gbp(baseAsk.profit):'—')+metric('Stress profit at asking',stressAsk?gbp(stressAsk.profit):'—')+metric('Stress, all three, at max offer',u.recommended>0?gbp(u.atRecommendedStress.profit)+' ('+u.stressRag+')':'—')+metric('Offer check',u.thinFlag?('UNDER '+u.flagPct+'%: a first-time buyer paying no ADS can beat this'):'OK')+metric('Evidence',u.noSoldComps?'No sold comps logged: end value is unproven':'Sold comps logged')+metric('Cash required',gbp(recommendedMetrics.cash))+metric('LBTT + ADS',gbp(recommendedMetrics.lbtt+recommendedMetrics.ads))+metric('Finance + holding',gbp(recommendedMetrics.finance+recommendedMetrics.holding))+metric('Break-even exit',gbp(u.breakEven))+metric('Highest street comp',compTopValue)+metric('Highest comp − LBTT vs asking (excl. ADS/fees)',headroomValue);
 }
 function metric(label,value){ return '<div class="metric"><div class="eyebrow">'+label+'</div><div class="v">'+value+'</div></div>'; }
 function setText(id,value){ const el=document.getElementById(id); if(el) el.textContent=value; }

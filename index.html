@@ -1332,7 +1332,7 @@ function isEdinburghRec(r){ const f=(r&&r.fields)||{}; return isEdinburghZone((f
    listings, quoted plot names and unnumbered same-street pairs are not merged unless cross-portal at the same price and beds; decision
    bar padding includes the safe area and re-checks on resize; fades show cut-off tabs. Update banner fires only when App Control is
    NEWER than BUILD (the phone copy runs ahead of Drive). Rollback: commit 4aecf44 (v3.13.4). */
-const BUILD='3.14.0'; /* v3.14.0 (20/10/2026): Review tab runs on the Deal Engine maths. Rollback: commit 12ca561 (v3.13.5). */ const BUILD_PREV_NOTE='3.13.5'; /* v3.13.5 changelog above. Previous: v3.13.4 (18/10/2026), rollback commit 4aecf44. Before that: v3.13.3 (18/10/2026), rollback commit 2cd1d1d. Before that: v3.13.2 (15/10/2026): v3.13.2 (15/10/2026): red-flag button logs to the Property Sprint Register (tbl5l7bViIJjBvfzz), not the dead capture queue. */
+const BUILD='3.15.0'; /* v3.15.0 (26/10/2026): reads and writes the STP Deals Sheet once connected (adapter at the foot of the page); unconnected browsers keep v3.14.0 Airtable behaviour. Rollback: commit 7d22d2d. */ const BUILD_3140_NOTE='3.14.0'; /* v3.14.0 (20/10/2026): Review tab runs on the Deal Engine maths. Rollback: commit 12ca561 (v3.13.5). */ const BUILD_PREV_NOTE='3.13.5'; /* v3.13.5 changelog above. Previous: v3.13.4 (18/10/2026), rollback commit 4aecf44. Before that: v3.13.3 (18/10/2026), rollback commit 2cd1d1d. Before that: v3.13.2 (15/10/2026): v3.13.2 (15/10/2026): red-flag button logs to the Property Sprint Register (tbl5l7bViIJjBvfzz), not the dead capture queue. */
 const CONTROL_TABLE='tblDGKgorkTQkAXBc';
 /* v3.4.0 (28/08/2026), AC-BRAINUX-WINDOW-01 + AC-BRAIN-PROCEEDFLOW-01.
    THE YES BOARD BECOMES THE "WHERE WE ARE" SCREEN. Stu, 27/08, verbatim:
@@ -8227,6 +8227,199 @@ async function init(){
     document.getElementById('reTok').onclick=()=>{localStorage.removeItem('atToken');location.reload();};
   }
 }
+/* v3.15.0 (26/10/2026), Stu: "improve what we had, not rebuild". THE SHEET LINK.
+   Airtable is capped and frozen, so the Brain now reads and writes the STP Deals [LIVE] Google Sheet
+   through a small Apps Script web app (BRAIN_SHEET_LINK.gs) bound to that Sheet. Every screen, key and
+   rule below is unchanged: only where records come from and where writes go.
+   - Buy list rows become records (Key is the record id). Column K photo, column I decision Y R P N.
+   - Live deals rows add the Home Report, offer and outcome dates to the same record by Key.
+   - Every other field the Brain writes is kept, by Key, in the Sheet's "Brain fields" tab.
+   The link and its key are kept in this browser only (sheetUrl, sheetKey), never in this code.
+   Rollback: commit before this one (v3.14.0). */
+(function(){
+  const LS_URL='sheetUrl', LS_KEY='sheetKey';
+  /* One-tap connect: #connect=<web app URL>|<key>. Stored, then removed from the address bar. */
+  try{
+    const m=/[#&]connect=([^&]+)/.exec(location.hash||'');
+    if(m){
+      const v=decodeURIComponent(m[1]); const i=v.lastIndexOf('|');
+      if(i>0){ localStorage.setItem(LS_URL,v.slice(0,i).trim()); localStorage.setItem(LS_KEY,v.slice(i+1).trim()); }
+      history.replaceState(null,'',location.pathname);
+    }
+  }catch(_){}
+  const URL0=localStorage.getItem(LS_URL), KEY0=localStorage.getItem(LS_KEY);
+  window.SHEET_MODE=!!(URL0&&KEY0);
+  /* Re-enter token / Replace token also forget the Sheet link, so a wrong link can always be re-entered. */
+  const forget=()=>{ localStorage.removeItem(LS_URL); localStorage.removeItem(LS_KEY); if(localStorage.getItem('atToken')==='sheet') localStorage.removeItem('atToken'); };
+  document.addEventListener('click',e=>{
+    const id=e.target&&e.target.id;
+    if(id==='reTok'){ forget(); }
+    if(id==='tokBtn'&&localStorage.getItem(LS_URL)){
+      e.stopImmediatePropagation(); e.preventDefault();
+      if(confirm('Disconnect this browser from the Buy list link? You will need the link and key again.')){ forget(); location.reload(); }
+    }
+  },true);
+  if(!window.SHEET_MODE){
+    /* Not connected, but an Airtable token is saved: leave the page exactly as it was (v3.14.0 behaviour).
+       Connecting is done by opening the one-tap #connect link. */
+    const tok=localStorage.getItem('atToken');
+    if(tok&&tok!=='sheet') return;
+    if(tok==='sheet') localStorage.removeItem('atToken');
+    /* Nothing saved: show the Sheet setup instead of the old Airtable token screen. */
+    init=async function(){
+      wireStaticControls(); syncFilterUI();
+      document.getElementById('filterShell').classList.add('hidden');
+      ['prevBtn','nextBtn','refreshBtn'].forEach(id=>document.getElementById(id).disabled=true);
+      document.getElementById('app').innerHTML='<div class="card setup pad"><h2>Connect the Brain to the Buy list</h2>'+
+        '<p>Paste the two things from the Property chat. They are saved only in this browser.</p>'+
+        '<label>Web app link<br><input id="shUrl" style="width:100%" placeholder="https://script.google.com/macros/s/.../exec"></label><br><br>'+
+        '<label>Key<br><input id="shKey" style="width:100%"></label><br><br>'+
+        '<button class="btn" id="shSave" type="button">Connect</button></div>';
+      document.getElementById('shSave').onclick=()=>{
+        const u=document.getElementById('shUrl').value.trim(), k=document.getElementById('shKey').value.trim();
+        if(/^https:\/\/script\.google(usercontent)?\.com\//.test(u)&&k){ localStorage.setItem(LS_URL,u); localStorage.setItem(LS_KEY,k); location.reload(); }
+        else alert('That link does not look like an Apps Script web app link.');
+      };
+    };
+    return;
+  }
+  /* Connected: the rest of the page still checks for a token before it loads, so give it a placeholder. */
+  if(!localStorage.getItem('atToken')) localStorage.setItem('atToken','sheet');
+  const OUTCOME_PASSED=/^(lost|withdrawn|pass)$/i;
+  const num=v=>{ if(v===''||v==null) return null; const n=Number(String(v).replace(/[^\d.]/g,'')); return Number.isFinite(n)?n:null; };
+  const iso=v=>{ if(!v) return ''; const s=String(v); if(/^\d{4}-\d{2}-\d{2}/.test(s)) return s.length===10?s+'T00:00:00.000Z':s; const m=/^(\d{2})\/(\d{2})\/(\d{4})/.exec(s); return m?(m[3]+'-'+m[2]+'-'+m[1]+'T00:00:00.000Z'):''; };
+  const ocOf=a=>{ const m=/\b([A-Z]{1,2}\d{1,2}[A-Z]?)(?:\s*\d[A-Z]{2})?\s*$/.exec(String(a||'').trim().replace(/,$/,'')); return m?m[1]:''; };
+  function letterOf(f){
+    const d=String(selName(f[F.deal])||'').trim();
+    if(/^no$|^analysis done - no$/i.test(d)) return 'N';
+    if(/^(yes|yes - me|ready for full analysis|analysis done - yes)$/i.test(d)){
+      const t=Array.isArray(f[F.tags])?f[F.tags].map(selName):[];
+      return t.some(x=>/^brrr$/i.test(x))?'R':'Y';
+    }
+    if(/no picture/i.test(selName(f[F.parked]))) return 'P';
+    return '';
+  }
+  async function sheetGet(){
+    const r=await fetch(URL0+(URL0.indexOf('?')<0?'?':'&')+'k='+encodeURIComponent(KEY0)+'&t='+Date.now());
+    if(!r.ok) throw new Error('The Buy list link says '+r.status+'. Check the web app is deployed with access set to Anyone.');
+    const d=await r.json();
+    if(d.error) throw new Error('The Buy list link refused: '+d.error+'. Re-enter the link and key.');
+    return d;
+  }
+  async function sheetPost(key,fields,decision){
+    const r=await fetch(URL0,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},
+      body:JSON.stringify({k:KEY0,key:key,fields:fields,decision:decision})});
+    const d=await r.json().catch(()=>({error:'no reply'}));
+    if(!r.ok||d.error||!d.ok) throw new Error('Save to the Buy list failed: '+(d.error||r.status)+'. Nothing was changed.');
+    return d;
+  }
+  function toRecords(d){
+    const byKey=new Map();
+    const get=k=>{ let rec=byKey.get(k); if(!rec){ rec={id:k,createdTime:'',fields:{}}; byKey.set(k,rec); } return rec; };
+    for(const r of (d.buy||[])){
+      const key=String(r[0]||'').trim(); if(!key) continue;
+      const rec=get(key), f=rec.fields;
+      rec.__fromBuy=true;
+      rec.createdTime=iso(r[1]);
+      f[F.addr]=String(r[2]||'');
+      const p=num(r[3]); if(p!=null) f[F.ask]=p;
+      const b=num(r[4]); if(b!=null) f[F.beds]=b;
+      const dl=num(r[5]); if(dl!=null) f[F.daysOnMarket]=dl;
+      f[F.url]=String(r[7]||'');
+      const src=String(r[9]||'');
+      f[F.sourceSearch]=src.split(' | ')[0]||'';
+      const q=/(Offers Over|Offers in excess of|Fixed Price|Offers around|Guide Price|Offers in the region of)/i.exec(src); if(q) f[F.priceQualifier]=q[1];
+      if(/Edinburgh, parked/i.test(src)) f[F.zone]='Edinburgh';
+      if(/Over £260k/i.test(src)) f[F.band]='OUT - over £260k';
+      const oc=ocOf(f[F.addr]); if(oc) f[F.outcode]=oc;
+      const ph=String(r[10]||'').trim();
+      if(ph) f[F.subjPhotos]=[{id:'ph-'+key,url:ph,thumbnails:{large:{url:ph},small:{url:ph}}}];
+      if(r[6]) f[F.notes]=(String(r[6])==='Y'?'Price reduced.':('Price reduced, '+String(r[6])+'.'));
+      const dec=String(r[8]||'').trim().toUpperCase();
+      if(dec==='Y') f[F.deal]=STATUS.yes;
+      else if(dec==='R'){ f[F.deal]=STATUS.yes; f[F.tags]=['BRRR']; }
+      else if(dec==='N') f[F.deal]=STATUS.no;
+      else if(dec==='P') f[F.parked]=NOPIC_PARKED_VALUE;
+    }
+    for(const r of (d.live||[])){
+      const key=String(r[0]||'').trim(); if(!key) continue;
+      const rec=get(key), f=rec.fields;
+      if(!f[F.addr]) f[F.addr]=String(r[1]||'');
+      if(f[F.ask]==null){ const p=num(r[2]); if(p!=null) f[F.ask]=p; }
+      if(!f[F.url]){ const m=/^(rightmove|zoopla|onthemarket):(\d+)$/.exec(key); if(m) f[F.url]={rightmove:'https://www.rightmove.co.uk/properties/',zoopla:'https://www.zoopla.co.uk/for-sale/details/',onthemarket:'https://www.onthemarket.com/details/'}[m[1]]+m[2]+(m[1]==='rightmove'?'':'/'); }
+      if(!rec.createdTime) rec.createdTime=iso(r[5]);
+      if(!f[F.deal]) f[F.deal]=STATUS.yes;
+      if(r[3]) f[F.agent]=String(r[3]);
+      if(r[6]) f[F.hrRequested]=iso(r[6]);
+      if(r[8]) f[F.hrLink]=String(r[8]);
+      const mo=num(r[11]); if(mo!=null) f[F.maxDefensible]=mo;
+      const op=num(r[13]); if(op!=null) f[F.offerPrice]=op;
+      if(r[14]) f[F.offerSubmitted]=iso(r[14]);
+      if(OUTCOME_PASSED.test(String(r[15]||'').trim())) f[F.stage]='Passed';
+    }
+    for(const r of (d.brain||[])){
+      const key=String(r[0]||'').trim(); if(!key||!byKey.has(key)) continue;
+      try{
+        const f=byKey.get(key).fields, j=JSON.parse(r[1]||'{}');
+        const deal=f[F.deal], parked=f[F.parked], hadR=Array.isArray(f[F.tags])&&f[F.tags].includes('BRRR');
+        Object.assign(f,j);
+        /* Column I wins when it holds a letter. Blank I (e.g. Watch, which has no letter) keeps the Brain's own value. */
+        if(byKey.get(key).__fromBuy&&(deal!==undefined||parked!==undefined)){
+          if(deal===undefined) delete f[F.deal]; else f[F.deal]=deal;
+          if(parked===undefined) delete f[F.parked]; else f[F.parked]=parked;
+          let t=Array.isArray(f[F.tags])?f[F.tags].filter(x=>!/^brrr$/i.test(selName(x))):[];
+          if(hadR) t=t.concat(['BRRR']);
+          if(t.length) f[F.tags]=t; else delete f[F.tags];
+        }
+      }catch(_){}
+    }
+    const out=Array.from(byKey.values()).filter(x=>x.fields[F.url]||x.fields[F.addr]);
+    out.__sig=hashStr(JSON.stringify(d.buy||[])+'|'+JSON.stringify(d.live||[])+'|'+JSON.stringify(d.brain||[]))+'/'+out.length;
+    return out;
+  }
+  fetchAll=async function(_token,onProgress){
+    const d=await sheetGet();
+    const out=toRecords(d);
+    if(onProgress){ try{ onProgress(out.length,1,true); }catch(_){} }
+    return out;
+  };
+  patchFields=async function(rec,fields){
+    const merged=Object.assign({},rec.fields||{},fields);
+    await sheetPost(rec.id,fields,letterOf(merged));
+    Object.assign(rec.fields,fields);
+    noteLocalWrite(rec,fields);
+  };
+  patchDeal=async function(rec,statusName,extraFields){
+    const stamp=(rec.fields||{})[F.triageDate]?null:new Date().toISOString();
+    const fields=Object.assign({[F.deal]:statusName},stamp?{[F.triageDate]:stamp}:{},extraFields||{});
+    /* A verdict replaces a no-picture park, so the house is not hidden and column I gets the verdict. */
+    if(statusName&&/no picture/i.test(selName((rec.fields||{})[F.parked]))&&!(F.parked in fields)) fields[F.parked]='';
+    await patchFields(rec,fields);
+  };
+  /* The red-flag button: saved in the Sheet's Brain fields tab as an issue row, picked up by Claude. */
+  submitIssue=async function(){
+    const text=document.getElementById('issueText').value.trim();
+    const err=document.getElementById('issueError');
+    err.classList.remove('show'); err.textContent='';
+    if(!text) return;
+    const btn=document.getElementById('submitIssue'); btn.disabled=true; btn.textContent='Logging…';
+    try{
+      const cur=(typeof currentRecord==='function')?currentRecord():null;
+      await sheetPost('issue:'+new Date().toISOString(),{issue:text,record:cur?cur.id:'',screen:mode,at:new Date().toISOString()},undefined);
+      closeIssueModal();
+      toast('Logged in the Sheet (Brain fields) — Claude will pick it up.');
+    }catch(e){ err.textContent=String(e.message||e); err.classList.add('show'); }
+    finally{ btn.disabled=false; btn.textContent='Log issue'; }
+  };
+  /* One writer now (this page), so the copy in memory is current. */
+  freshNotes=async function(rec){ return String((rec.fields||{})[F.notes]||''); };
+  checkForNewBuild=async function(){};
+  loadAgentBranches=async function(){};
+  loadHealthTables=async function(){};
+  /* Refresh every 2 minutes, not every minute: one call reads the whole Sheet. */
+  startAutoRefresh=function(){ if(autoTimer) clearInterval(autoTimer); autoTimer=setInterval(()=>{ if(document.visibilityState==='visible') refreshData({manual:false}); },120000); };
+})();
+
 init();
 </script>
 </body>

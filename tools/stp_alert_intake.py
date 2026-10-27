@@ -2,8 +2,9 @@
 # STP alert intake parser v1 (25 Oct 2026). Rules: REUSE_LIST_INTAKE_25-10-2026 (numbers in brackets).
 # Parse:   python3 -I intake.py --cursor START --sheet FILE --live FILE [--manual FILE] --out FILE THREADFILES...
 # Prepare: python3 -I intake.py --prepare --out FILE --keys FILE      (drop Keys written since the parse, set chunks, record first row)
+# Reader:  python3 -I intake.py --reader-build --out FILE PAGEFILES...   |   --reader-manual --reader FILE --cursor START --manual FILE --out X
 # Check:   python3 -I intake.py --check --out FILE --readback FILE --first ROW [--pmi FILE] [--start START]
-import json, re, html, sys, argparse, datetime
+import json, re, html, sys, argparse, datetime, os
 
 SENDERS = {'property@alert.rightmove.co.uk': 'rightmove', 'propertyalerts@comms-2.zoopla.co.uk': 'zoopla',
            'property-alerts@mail.onthemarket.com': 'onthemarket', 'no-reply@onthemarket-mail.com': 'onthemarket'}
@@ -337,21 +338,74 @@ def check(a):
               cap['found'] += ok
               if not ok:
                   cap['missed'].append(f"{l.get('address')}, {pc}, £{l.get('price')}: {l.get('url')}")
+                  if k not in keys:  # (27 Oct 2026, Stu "1"): put the missed house on the Buy list for Stu to triage
+                      cap.setdefault('rows', []).append([k, datetime.date.today().isoformat(), f"{l.get('address', '')}, {pc}".strip(', '),
+                                                         l.get('price') or '', l.get('bedrooms') or '', '', '', l.get('url') or LINK['rightmove'].format(l['id']),
+                                                         '', 'RM | missed by alerts (PMI check)', l.get('cover_image') or ''])
               if n == 10:
                   break
           cap['checked'] = n
       except Exception as e:
         cap = dict(checked=0, found=0, missed=[], run=False, error=str(e)[:200])
     out = dict(fixes=[] if refuse else fixes, refused_fixes=len(fixes) if refuse else 0, junk_rows=junk, duplicate_keys=dups,
-               capture=cap, price_data=prices)
+               capture=cap, price_data=prices, miss_rows=cap.get('rows', []))
     json.dump(out, open(a.out.replace('.json', '_check.json'), 'w'), ensure_ascii=False)
     print(json.dumps(dict(fixes=0 if refuse else len(fixes), refused_fixes=len(fixes) if refuse else 0, junk=len(junk),
                           duplicates=len(dups), price_cells=len(prices),
                           capture=(f"{cap['found']} of {cap['checked']}" if cap['run'] else 'not run'),
-                          capture_missed=cap['missed'][:5])))
+                          capture_missed=cap['missed'][:5], miss_rows=len(cap.get('rows', [])))))
+
+RM_IMG = 'https://media.rightmove.co.uk/dir/crop/10:9-16:9/property-photo/'
+ZO_IMG = 'https://lid.zoocdn.com/'
+
+
+def reader_build(a):
+    # 05:40 reader: page-text files (STPREADER header + id|price|beds|type|address|photo lines) -> rows for the Reader tab.
+    rows, bad, seen = [], [], set()
+    for f in a.files:
+        lines = [l.strip() for l in open(f).read().splitlines() if l.strip()]
+        head = next((l for l in lines if l.startswith('STPREADER ')), None)
+        if not head:
+            bad.append(f'{f}: no STPREADER header'); continue
+        portal = 'rightmove' if ' RM ' in head + ' ' else 'zoopla'
+        kept = int(re.search(r'kept=(\d+)', head).group(1)); check = int(re.search(r'check=(\d+)', head).group(1))
+        body = [l for l in lines[lines.index(head) + 1:] if l.count('|') == 5]
+        if len(body) != kept or sum(int(l.split('|')[0]) % 100000 for l in body) != check:
+            bad.append(f'{f}: kept {kept} vs {len(body)} lines, or check sum differs (copy error)'); continue
+        for l in body:
+            pid, price, beds, typ, addr, img = l.split('|')
+            if (portal, pid) in seen:
+                continue
+            seen.add((portal, pid))
+            rows.append(dict(portal=portal, id=pid, price=to_int(price), beds=to_int(beds), type=typ.lower(), address=addr,
+                             search='RM reader' if portal == 'rightmove' else 'ZO reader',
+                             photo=((RM_IMG if portal == 'rightmove' else ZO_IMG) + img) if img and not img.startswith('http') else img))
+    json.dump(dict(rows=rows, bad=bad), open(a.out, 'w'), ensure_ascii=False)
+    print(json.dumps(dict(rows=len(rows), rm=sum(r['portal'] == 'rightmove' for r in rows), zo=sum(r['portal'] == 'zoopla' for r in rows), bad=bad)))
+
+
+def reader_manual(a):
+    # 06:10 step 1b: Reader tab read (A1 stamp + one JSON row per cell) -> manual.json entries dated START + 1 s.
+    vals = sheet_values(a.reader)
+    stamp = str(vals[0][0]) if vals and vals[0] else ''
+    today = datetime.datetime.now(datetime.timezone.utc).date().isoformat()
+    ran = stamp.startswith('Reader ran ' + today)
+    out = json.load(open(a.manual)) if a.manual and os.path.exists(a.manual) else []
+    n = 0
+    if ran:
+        d = (utc(a.cursor) + datetime.timedelta(seconds=1)).strftime('%Y-%m-%dT%H:%M:%SZ')
+        for r in vals[1:]:
+            if r and str(r[0]).strip().startswith('{'):
+                x = json.loads(r[0]); x['date'] = d; out.append(x); n += 1
+    json.dump(out, open(a.manual, 'w'), ensure_ascii=False)
+    print(json.dumps(dict(reader_ran=ran, reader_rows=n, stamp=stamp[:80])))
+
 
 def main():
     ap = argparse.ArgumentParser()
+    ap.add_argument('--reader-build', action='store_true')
+    ap.add_argument('--reader-manual', action='store_true')
+    ap.add_argument('--reader')
     ap.add_argument('--cursor')
     ap.add_argument('--sheet')
     ap.add_argument('--live')
@@ -366,6 +420,10 @@ def main():
     ap.add_argument('--first')
     ap.add_argument('files', nargs='*')
     a = ap.parse_args()
+    if a.reader_build:
+        return reader_build(a)
+    if a.reader_manual:
+        return reader_manual(a)
     if a.check:
         return check(a)
     if a.prepare:

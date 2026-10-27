@@ -312,6 +312,7 @@ def check(a):
             prices.append(dict(range=f"'Buy list'!G{rr[0]}", values=[[f"was £{u['was']:,}"]]))
     refuse = len(fixes) > 3
     cap = dict(checked=0, found=0, missed=[], run=bool(a.pmi))
+    live_keys = {str(r[0]).strip() for r in sheet_values(a.live) if r and r[0]} if a.live else set()
     if a.pmi:
       try:
           start = utc(a.start) if a.start else None
@@ -338,10 +339,16 @@ def check(a):
               cap['found'] += ok
               if not ok:
                   cap['missed'].append(f"{l.get('address')}, {pc}, £{l.get('price')}: {l.get('url')}")
-                  if k not in keys:  # (27 Oct 2026, Stu "1"): put the missed house on the Buy list for Stu to triage
-                      cap.setdefault('rows', []).append([k, datetime.date.today().isoformat(), f"{l.get('address', '')}, {pc}".strip(', '),
-                                                         l.get('price') or '', l.get('bedrooms') or '', '', '', l.get('url') or LINK['rightmove'].format(l['id']),
-                                                         '', 'RM | missed by alerts (PMI check)', l.get('cover_image') or ''])
+                  if k not in keys and k not in live_keys and (l.get('price') or 0) <= 260000:  # (27 Oct 2026, Stu "1"): put it on the Buy list for Stu
+                      ad = str(l.get('address', '')); ad = ad if pc and pc.split()[0] in ad.upper() else f"{ad}, {pc}".strip(', ')
+                      fl = ['RM | missed by alerts (PMI check)']
+                      tg = ' '.join(map(str, l.get('tags') or []))
+                      if re.search(r'over_60s|retire|shared|new', tg, re.I):
+                          fl.append('outside alert filters?')
+                      if re.match(r'EH([1-9]|1[0-7])\s', pc):
+                          fl.append('Edinburgh, parked')
+                      cap.setdefault('rows', []).append([k, datetime.date.today().isoformat(), ad[:90], l.get('price') or '', l.get('bedrooms') or '',
+                                                         '', '', LINK['rightmove'].format(l['id']), '', ' | '.join(fl), l.get('cover_image') or ''])
               if n == 10:
                   break
           cap['checked'] = n
@@ -359,46 +366,101 @@ RM_IMG = 'https://media.rightmove.co.uk/dir/crop/10:9-16:9/property-photo/'
 ZO_IMG = 'https://lid.zoocdn.com/'
 
 
+def body_check(lines):  # same as the page script: sum of character codes of the body lines, mod 1e9
+    return sum(ord(ch) for l in lines for ch in l) % 1000000000
+
+
 def reader_build(a):
-    # 05:40 reader: page-text files (STPREADER header + id|price|beds|type|address|photo lines) -> rows for the Reader tab.
-    rows, bad, seen = [], [], set()
+    # 05:00 reader: page-text files (STPREADER header + id|price|beds|type|address|photo|reduced lines) -> rows for the Reader tab.
+    rows, bad, seen, pages = [], [], set(), {'RM': 0, 'ZO': 0}
+    if not a.files:
+        bad.append('no page files')
     for f in a.files:
-        lines = [l.strip() for l in open(f).read().splitlines() if l.strip()]
-        head = next((l for l in lines if l.startswith('STPREADER ')), None)
-        if not head:
-            bad.append(f'{f}: no STPREADER header'); continue
-        portal = 'rightmove' if ' RM ' in head + ' ' else 'zoopla'
-        kept = int(re.search(r'kept=(\d+)', head).group(1)); check = int(re.search(r'check=(\d+)', head).group(1))
-        body = [l for l in lines[lines.index(head) + 1:] if l.count('|') == 5]
-        if len(body) != kept or sum(int(l.split('|')[0]) % 100000 for l in body) != check:
-            bad.append(f'{f}: kept {kept} vs {len(body)} lines, or check sum differs (copy error)'); continue
-        for l in body:
-            pid, price, beds, typ, addr, img = l.split('|')
-            if (portal, pid) in seen:
-                continue
-            seen.add((portal, pid))
-            rows.append(dict(portal=portal, id=pid, price=to_int(price), beds=to_int(beds), type=typ.lower(), address=addr,
-                             search='RM reader' if portal == 'rightmove' else 'ZO reader',
-                             photo=((RM_IMG if portal == 'rightmove' else ZO_IMG) + img) if img and not img.startswith('http') else img))
-    json.dump(dict(rows=rows, bad=bad), open(a.out, 'w'), ensure_ascii=False)
-    print(json.dumps(dict(rows=len(rows), rm=sum(r['portal'] == 'rightmove' for r in rows), zo=sum(r['portal'] == 'zoopla' for r in rows), bad=bad)))
+        try:
+            lines = [l.rstrip() for l in open(f).read().splitlines() if l.strip()]
+            head = next((l for l in lines if l.startswith('STPREADER ')), None)
+            if not head:
+                bad.append(f'{f}: no STPREADER header'); continue
+            portal = 'rightmove' if head.startswith('STPREADER RM') else 'zoopla'
+            km, cm = re.search(r'kept=(\d+)', head), re.search(r'check=(\d+)', head)
+            if not (km and cm):
+                bad.append(f'{f}: header has no kept or check'); continue
+            body = [l for l in lines[lines.index(head) + 1:] if l.count('|') == 6]
+            if len(body) != int(km.group(1)) or body_check(body) != int(cm.group(1)):
+                bad.append(f'{f}: kept {km.group(1)} vs {len(body)} lines, or check differs (copy error)'); continue
+            pages['RM' if portal == 'rightmove' else 'ZO'] += 1
+            for l in body:
+                pid, price, beds, typ, addr, img, red = l.split('|')
+                if not pid.isdigit() or (portal, pid) in seen:
+                    continue
+                seen.add((portal, pid))
+                rows.append(dict(portal=portal, id=pid, price=to_int(price) if price else None, beds=to_int(beds) if beds else None,
+                                 type=typ.lower(), address=addr, search='RM reader' if portal == 'rightmove' else 'ZO reader',
+                                 reduced=red == 'R', src='reader',
+                                 photo=((RM_IMG if portal == 'rightmove' else ZO_IMG) + img) if img and not img.startswith('http') else img))
+        except Exception as e:
+            bad.append(f'{f}: {type(e).__name__} {str(e)[:80]}')
+    idsum = sum(int(r['id']) for r in rows) % 1000000000
+    json.dump(dict(rows=rows, bad=bad, pages=pages, idsum=idsum), open(a.out, 'w'), ensure_ascii=False)
+    print(json.dumps(dict(rows=len(rows), rm=sum(r['portal'] == 'rightmove' for r in rows), zo=sum(r['portal'] == 'zoopla' for r in rows),
+                          pages=pages, idsum=idsum, bad=bad)))
+
+
+def reader_body(a):
+    # Reader tab write bodies, one per call: --part clear | 0,1,2... (50 rows each) | stamp
+    d = json.load(open(a.out)); rows = d['rows'][:500]
+    now = datetime.datetime.now(datetime.timezone.utc).strftime('%Y-%m-%dT%H:%M:%SZ')
+    if a.part == 'clear':
+        data = [dict(range="'Reader'!A1:A501", values=[['Reader writing ' + now]] + [['']] * 500)]
+    elif a.part == 'stamp':
+        st = ', '.join(f"{k.lower()} {v} pages" for k, v in d['pages'].items())
+        flt = '; FAULT ' + ' / '.join(a.faults) if a.faults else ''
+        data = [dict(range="'Reader'!A1", values=[[f"Reader ran {now}, rows {len(rows)}, idsum {sum(int(r['id']) for r in rows) % 1000000000}, {st}{flt}"]])]
+    else:
+        i = int(a.part); chunk = rows[i * 50:(i + 1) * 50]
+        if not chunk:
+            print('NONE'); return
+        data = [dict(range=f"'Reader'!A{2 + i * 50}:A{1 + i * 50 + len(chunk)}", values=[[json.dumps(x, ensure_ascii=False)] for x in chunk])]
+    print(json.dumps(dict(valueInputOption='RAW', data=data), ensure_ascii=False))
 
 
 def reader_manual(a):
-    # 06:10 step 1b: Reader tab read (A1 stamp + one JSON row per cell) -> manual.json entries dated START + 1 s.
-    vals = sheet_values(a.reader)
+    # 06:10 step R1: Reader tab (A1 stamp + one JSON row per cell) -> manual.json entries dated START + 1 s. Never crashes.
+    out = []
+    if a.manual and os.path.exists(a.manual):
+        try:
+            out = json.load(open(a.manual))
+        except Exception:
+            out = []
+    res = dict(reader_ran=False, reader_rows=0, reader_bad=0, stamp='')
+    try:
+        vals = sheet_values(a.reader)
+    except Exception as e:
+        vals = []; res['error'] = str(e)[:120]
     stamp = str(vals[0][0]) if vals and vals[0] else ''
+    res['stamp'] = stamp[:120]
     today = datetime.datetime.now(datetime.timezone.utc).date().isoformat()
-    ran = stamp.startswith('Reader ran ' + today)
-    out = json.load(open(a.manual)) if a.manual and os.path.exists(a.manual) else []
-    n = 0
-    if ran:
+    m = re.match(r'Reader ran (\d{4}-\d\d-\d\d)T\S+, rows (\d+), idsum (\d+)', stamp)
+    if m and m.group(1) == today:
         d = (utc(a.cursor) + datetime.timedelta(seconds=1)).strftime('%Y-%m-%dT%H:%M:%SZ')
+        got = []
         for r in vals[1:]:
-            if r and str(r[0]).strip().startswith('{'):
-                x = json.loads(r[0]); x['date'] = d; out.append(x); n += 1
+            c = str(r[0]).strip() if r else ''
+            if not c:
+                continue
+            try:
+                x = json.loads(c)
+                assert x.get('portal') in ('rightmove', 'zoopla') and str(x.get('id', '')).isdigit()
+                x.update(date=d, src='reader', added=today)
+                got.append(x)
+            except Exception:
+                res['reader_bad'] += 1
+        if len(got) == int(m.group(2)) and sum(int(x['id']) for x in got) % 1000000000 == int(m.group(3)) and not res['reader_bad']:
+            out.extend(got); res.update(reader_ran=True, reader_rows=len(got))
+        else:
+            res['error'] = f"Reader tab check failed: {len(got)} rows read, stamp says {m.group(2)}; bad cells {res['reader_bad']}"
     json.dump(out, open(a.manual, 'w'), ensure_ascii=False)
-    print(json.dumps(dict(reader_ran=ran, reader_rows=n, stamp=stamp[:80])))
+    print(json.dumps(res))
 
 
 def main():
@@ -406,6 +468,9 @@ def main():
     ap.add_argument('--reader-build', action='store_true')
     ap.add_argument('--reader-manual', action='store_true')
     ap.add_argument('--reader')
+    ap.add_argument('--reader-body', action='store_true')
+    ap.add_argument('--part')
+    ap.add_argument('--faults', nargs='*')
     ap.add_argument('--cursor')
     ap.add_argument('--sheet')
     ap.add_argument('--live')
@@ -424,6 +489,8 @@ def main():
         return reader_build(a)
     if a.reader_manual:
         return reader_manual(a)
+    if a.reader_body:
+        return reader_body(a)
     if a.check:
         return check(a)
     if a.prepare:
@@ -445,7 +512,7 @@ def main():
         d = json.load(open(f))
         for m in d.get('messages', []):
             msgs[m['id']] = m
-    manual = json.load(open(a.manual)) if a.manual else []
+    manual = json.load(open(a.manual)) if a.manual and os.path.exists(a.manual) else []
 
     C = dict(emails=0, listings=0, excluded=0, same_run=0, already=0, twins=0, price_changes=0, new=0, flagged_dup=0,
              edinburgh=0, over260=0, england=0, own_enquiry=0, old_messages=0)
@@ -520,7 +587,8 @@ def main():
         C['manual'] = C.get('manual', 0) + 1
         l = dict(id=str(x['id']), portal=x['portal'], key=f"{x['portal']}:{x['id']}", price=x.get('price'), beds=x.get('beds'),
                  address=x.get('address', ''), qual=x.get('qual', ''), search=x.get('search', SHORT[x['portal']]),
-                 date=dt, reduced=False, added_on='', type=x.get('type', ''), newbuild=False, photo=x.get('photo', ''))
+                 date=dt, reduced=bool(x.get('reduced')), added_on='', type=x.get('type', ''), newbuild=False, photo=x.get('photo', ''),
+                 src=x.get('src', ''), added=x.get('added', ''))
         if excluded(l, x['portal']):
             C['excluded'] += 1
             continue
@@ -530,6 +598,21 @@ def main():
     for l in sorted(cands, key=lambda z: z['date']):
         k = l['key']
         if k in seen:  # (14) same run: newest price wins
+            s0 = seen[k]
+            if s0.get('src') == 'reader' and l.get('src') != 'reader':  # an email sighting keeps its own search, qualifier, dates and price
+                for f in ('search', 'qual', 'added_on', 'reduced', 'cut', 'date'):
+                    if l.get(f):
+                        s0[f] = l[f]
+                s0['src'] = ''
+                if l['price']:
+                    s0['price'] = l['price']
+                C['same_run'] += 1
+                continue
+            if l.get('src') == 'reader':  # the reader never changes what an email said, but fills a missing photo
+                if not s0.get('photo') and l.get('photo'):
+                    s0['photo'] = l['photo']
+                C['same_run'] += 1
+                continue
             if l['price'] and seen[k]['price'] != l['price']:
                 seen[k]['was'] = seen[k].get('was') or seen[k]['price']; seen[k]['price'] = l['price']
             if l.get('cut') and not seen[k].get('cut'):
@@ -538,7 +621,7 @@ def main():
             continue
         if k in have or k in live:  # (11)(15)(19)
             h0 = have.get(k)
-            if h0 and l['price'] and h0['price'] and l['price'] != h0['price'] and l['date'] > start:  # only sightings after START change a price
+            if h0 and l['price'] and h0['price'] and l['price'] != h0['price'] and l['date'] > start and l.get('src') != 'reader':  # only sightings after START change a price
                 ex = [u for u in upd if u['key'] == k]
                 if ex:
                     ex[0]['price'] = l['price']
@@ -580,7 +663,7 @@ def main():
         else:
             red = ''
         price = l['price'] if l['price'] is not None else ''
-        out_rows.append([l['key'], l['date'].astimezone(datetime.timezone.utc).strftime('%Y-%m-%d'), addr or '(no address in alert)',
+        out_rows.append([l['key'], l.get('added') or l['date'].astimezone(datetime.timezone.utc).strftime('%Y-%m-%d'), addr or '(no address in alert)',
                          price, l['beds'] if l['beds'] is not None else '', days, red, LINK[l['portal']].format(l['id']), '',
                          ' | '.join(flags), l.get('photo', '')])
     C['new'] = len(out_rows)

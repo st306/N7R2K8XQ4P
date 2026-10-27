@@ -189,6 +189,13 @@ def twin(a, b):  # (16)(17)
     if a['beds'] is not None and b['beds'] is not None and a['beds'] != b['beds']:
         return 'no'
     sa, sb = street_word(a['address']), street_word(b['address'])
+    if (not sa or not sb) and 'reader' in (a.get('src'), b.get('src')):  # v1.4: flag only, never merge
+        oa, ob = outcode(a['address']), outcode(b['address'])
+        if oa and ob and oa != ob:
+            return 'no'
+        if not (a['address'] or '').strip() or not (b['address'] or '').strip():
+            return 'maybe' if a['price'] == b['price'] else 'no'
+        return 'maybe'
     if not sa or sa != sb:
         return 'no'
     ha, hb = house_no(a['address']), house_no(b['address'])
@@ -414,7 +421,10 @@ def reader_body(a):
         data = [dict(range="'Reader'!A1:A501", values=[['Reader writing ' + now]] + [['']] * 500)]
     elif a.part == 'stamp':
         st = ', '.join(f"{k.lower()} {v} pages" for k, v in d['pages'].items())
-        flt = '; FAULT ' + ' / '.join(a.faults) if a.faults else ''
+        fl = list(a.faults or [])
+        if len(d['rows']) > 500:
+            fl.append(f"reader rows {len(d['rows'])} over the 500-row tab, {len(d['rows']) - 500} dropped (zoopla first)")
+        flt = '; FAULT ' + ' / '.join(fl) if fl else ''
         data = [dict(range="'Reader'!A1", values=[[f"Reader ran {now}, rows {len(rows)}, idsum {sum(int(r['id']) for r in rows) % 1000000000}, {st}{flt}"]])]
     else:
         i = int(a.part); chunk = rows[i * 50:(i + 1) * 50]
@@ -438,7 +448,8 @@ def reader_manual(a):
     except Exception as e:
         vals = []; res['error'] = str(e)[:120]
     stamp = str(vals[0][0]) if vals and vals[0] else ''
-    res['stamp'] = stamp[:120]
+    res['stamp'] = stamp[:500]
+    res['faults'] = [f.strip() for f in stamp.split('; FAULT ', 1)[1].split(' / ')] if '; FAULT ' in stamp else []
     today = datetime.datetime.now(datetime.timezone.utc).date().isoformat()
     m = re.match(r'Reader ran (\d{4}-\d\d-\d\d)T\S+, rows (\d+), idsum (\d+)', stamp)
     if m and m.group(1) == today:
@@ -644,10 +655,12 @@ def main():
         flags = [l['search']] + ([l['qual']] if l.get('qual') else [])  # (23)
         if (oc and re.match(r'EH([1-9]|1[0-7])$', oc)) or re.search(r'edinburgh', addr, re.I):
             flags.append('Edinburgh, parked'); C['edinburgh'] += 1  # (24)
-        if re.search(r'berwick|northumberland|cornhill', addr, re.I) or (oc or '').startswith('TD15'):
+        if re.search(r'berwick|northumberland|cornhill', addr, re.I) or (oc or '').startswith('TD15') or re.match(r'(CA|NE|DH)\d', oc or ''):
             flags.append('England'); C['england'] += 1
         if l['price'] and l['price'] > 260000:
             flags.append('Over £260k'); C['over260'] += 1  # (22)
+        if l['price'] and l['price'] < 25000:
+            flags.append('price under £25k, check')
         if l.get('dupflag'):
             flags.append('DUP CHECK INCOMPLETE'); C['flagged_dup'] += 1  # (18)
         days = ''
@@ -663,7 +676,7 @@ def main():
         else:
             red = ''
         price = l['price'] if l['price'] is not None else ''
-        out_rows.append([l['key'], l.get('added') or l['date'].astimezone(datetime.timezone.utc).strftime('%Y-%m-%d'), addr or '(no address in alert)',
+        out_rows.append([l['key'], l.get('added') or l['date'].astimezone(datetime.timezone.utc).strftime('%Y-%m-%d'), addr or ('(no address on card)' if l.get('src') == 'reader' else '(no address in alert)'),
                          price, l['beds'] if l['beds'] is not None else '', days, red, LINK[l['portal']].format(l['id']), '',
                          ' | '.join(flags), l.get('photo', '')])
     C['new'] = len(out_rows)

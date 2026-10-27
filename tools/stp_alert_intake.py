@@ -644,9 +644,8 @@ def main():
             continue
         verdicts = [twin(l, o) for o in list(seen.values()) + list(have.values())]
         if 'yes' in verdicts:
-            C['twins'] += 1
-            continue
-        l['dupflag'] = 'maybe' in verdicts
+            C['twins'] += 1  # v1.5, Stu 27 Oct option B: a likely twin is kept and flagged, never dropped (rule 10)
+        l['dupflag'] = 'maybe' in verdicts or 'yes' in verdicts
         seen[k] = l
     out_rows = []
     for l in sorted(seen.values(), key=lambda z: z['date'], reverse=True):

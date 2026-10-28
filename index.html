@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Brain">
 <meta name="robots" content="noindex,nofollow">
@@ -1177,6 +1177,13 @@
   #phoneDecide .pd-no { background:var(--red,#b42318); color:#fff; }
   #phoneDecide .pd-more { background:var(--soft); color:var(--ink); font-size:13px; }
   body.has-pdbar #app { padding-bottom:calc(76px + env(safe-area-inset-bottom)); }
+}
+/* Phone fit, 28 Oct 2026 (Stu): no zoom on tapping a box, no sideways drift. Rollback: git revert this commit. */
+@media (max-width:760px){
+  input,select,textarea{font-size:16px !important}
+  html,body{overscroll-behavior:none;overflow-x:hidden;max-width:100vw}
+  body{touch-action:pan-y}
+  .modes,.yb-scroll,.yb-tabs,[style*="overflow-x"]{touch-action:pan-x pan-y}
 }
 </style>
 </head>

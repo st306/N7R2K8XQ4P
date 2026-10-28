@@ -1178,6 +1178,28 @@
   #phoneDecide .pd-more { background:var(--soft); color:var(--ink); font-size:13px; }
   body.has-pdbar #app { padding-bottom:calc(76px + env(safe-area-inset-bottom)); }
 }
+/* Phone triage fits one screen, 28 Oct 2026 (Stu): compact top, shorter photo, five-button bar. Rollback: git revert this commit. */
+@media (max-width:600px){
+  #phoneDecide.show.pd-triage{grid-template-columns:1fr 1fr 1fr 1fr 52px;gap:6px}
+  #phoneDecide.pd-triage button{font-size:14px;min-height:50px}
+  #phoneDecide .pd-ref{background:#8a5a00;color:#fff}
+  #phoneDecide .pd-pic{background:#e6ecff;color:#2d417f}
+  .trg-strip{grid-template-columns:repeat(3,1fr);gap:6px;margin:0 0 6px}
+  .trg-light{padding:5px 8px;border-radius:8px}
+  .trg-light small{display:none}
+  .trg-hide{font-size:12px;padding:3px 9px;margin:0 4px 4px 0;display:inline-block;width:auto}
+  .trg-hides{flex-direction:row;flex-wrap:wrap;gap:4px;margin:0 0 6px}
+  .trg-hides .trg-hide{font-size:11.5px;padding:2px 8px;margin:0}
+  .triage-wrap .gallery-main{height:26vh;max-height:220px}
+  .triage-wrap .card.subject>.pad{padding-top:10px;padding-bottom:10px;display:flex;flex-direction:column}
+  .triage-wrap .card.subject>.pad>*{order:3}
+  .triage-wrap .card.subject>.pad>.subject-top{order:1}
+  .triage-wrap .card.subject>.pad>.price-grid{order:2;margin-top:6px;margin-bottom:8px}
+  .triage-wrap .price-box{padding-top:8px;padding-bottom:8px}
+  .triage-wrap .meta-grid{grid-template-columns:repeat(3,1fr);gap:6px}
+  .nophoto{height:120px}
+  html{-webkit-text-size-adjust:100%}
+}
 /* Phone fit, 28 Oct 2026 (Stu): no zoom on tapping a box, no sideways drift. Rollback: git revert this commit. */
 @media (max-width:760px){
   input,select,textarea{font-size:16px !important}
@@ -5624,14 +5646,25 @@ async function promoteToAnalysis(rec){
 /* v3.13.5: on a phone the decision buttons sit two or three screens down the record. A fixed bar presses the same buttons
    (#vYes, #vNo) so every handler, gate and next-card move is the existing one; More scrolls to the full set. */
 function syncPhoneBar(){
+  /* 28 Oct 2026 (Stu): the bar also serves Triage (Yes, Refurb, No pic, No), so the decision is always on screen. */
   const bar=document.getElementById('phoneDecide'); if(!bar) return;
-  const yes=document.getElementById('vYes'), no=document.getElementById('vNo');
-  const on=!!(yes&&no&&window.matchMedia&&matchMedia('(max-width:600px)').matches);
-  bar.classList.toggle('show',on); document.body.classList.toggle('has-pdbar',on);
+  const phone=!!(window.matchMedia&&matchMedia('(max-width:600px)').matches);
+  const $=id=>document.getElementById(id);
+  let mode='';
+  if(phone&&$('btnYes')&&$('btnNo')) mode='triage';
+  else if(phone&&$('vYes')&&$('vNo')) mode='review';
+  if(bar.dataset.mode!==mode){
+    bar.dataset.mode=mode;
+    bar.innerHTML = mode==='triage'
+      ? '<button class="pd-yes" type="button" data-pd="btnYes">Yes</button><button class="pd-ref" type="button" data-pd="btnYesRefurb">Refurb</button><button class="pd-pic" type="button" data-pd="btnNoPicture">No pic</button><button class="pd-no" type="button" data-pd="btnNo">No</button><button class="pd-more" type="button" data-pd="more" aria-label="All decision buttons">More</button>'
+      : '<button class="pd-yes" type="button" data-pd="vYes">Proceed</button><button class="pd-no" type="button" data-pd="vNo">Pass</button><button class="pd-more" type="button" data-pd="more" aria-label="All decision buttons">More</button>';
+  }
+  const on=!!mode;
+  bar.classList.toggle('show',on); bar.classList.toggle('pd-triage',mode==='triage'); document.body.classList.toggle('has-pdbar',on);
   if(!bar.dataset.wired){ bar.dataset.wired='1'; bar.addEventListener('click',ev=>{
     const b=ev.target.closest('[data-pd]'); if(!b) return;
-    if(b.dataset.pd==='more'){ const g=document.getElementById('vYes'); if(g) g.closest('.verdict').scrollIntoView({block:'center',behavior:'smooth'}); return; }
-    const t=document.getElementById(b.dataset.pd); if(t&&!t.disabled) t.click();
+    if(b.dataset.pd==='more'){ const g=$('btnYes')||$('vYes'); if(g) (g.closest('.verdict')||g.parentElement).scrollIntoView({block:'center',behavior:'smooth'}); return; }
+    const t=$(b.dataset.pd); if(t&&!t.disabled) t.click();
   }); }
 }
 /* r4: fade the cut-off edge of the mode strip and the Yes board tab strip, and keep it right as they scroll. */

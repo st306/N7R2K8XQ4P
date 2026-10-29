@@ -1362,7 +1362,7 @@ function isEdinburghRec(r){ const f=(r&&r.fields)||{}; return isEdinburghZone((f
    listings, quoted plot names and unnumbered same-street pairs are not merged unless cross-portal at the same price and beds; decision
    bar padding includes the safe area and re-checks on resize; fades show cut-off tabs. Update banner fires only when App Control is
    NEWER than BUILD (the phone copy runs ahead of Drive). Rollback: commit 4aecf44 (v3.13.4). */
-const BUILD='3.16.0'; /* v3.15.0 (26/10/2026): reads and writes the STP Deals Sheet once connected (adapter at the foot of the page); unconnected browsers keep v3.14.0 Airtable behaviour. Rollback: commit 7d22d2d. */ const BUILD_3140_NOTE='3.14.0'; /* v3.14.0 (20/10/2026): Review tab runs on the Deal Engine maths. Rollback: commit 12ca561 (v3.13.5). */ const BUILD_PREV_NOTE='3.13.5'; /* v3.13.5 changelog above. Previous: v3.13.4 (18/10/2026), rollback commit 4aecf44. Before that: v3.13.3 (18/10/2026), rollback commit 2cd1d1d. Before that: v3.13.2 (15/10/2026): v3.13.2 (15/10/2026): red-flag button logs to the Property Sprint Register (tbl5l7bViIJjBvfzz), not the dead capture queue. */
+const BUILD='3.16.1'; /* v3.15.0 (26/10/2026): reads and writes the STP Deals Sheet once connected (adapter at the foot of the page); unconnected browsers keep v3.14.0 Airtable behaviour. Rollback: commit 7d22d2d. */ const BUILD_3140_NOTE='3.14.0'; /* v3.14.0 (20/10/2026): Review tab runs on the Deal Engine maths. Rollback: commit 12ca561 (v3.13.5). */ const BUILD_PREV_NOTE='3.13.5'; /* v3.13.5 changelog above. Previous: v3.13.4 (18/10/2026), rollback commit 4aecf44. Before that: v3.13.3 (18/10/2026), rollback commit 2cd1d1d. Before that: v3.13.2 (15/10/2026): v3.13.2 (15/10/2026): red-flag button logs to the Property Sprint Register (tbl5l7bViIJjBvfzz), not the dead capture queue. */
 const CONTROL_TABLE='tblDGKgorkTQkAXBc';
 /* v3.4.0 (28/08/2026), AC-BRAINUX-WINDOW-01 + AC-BRAIN-PROCEEDFLOW-01.
    THE YES BOARD BECOMES THE "WHERE WE ARE" SCREEN. Stu, 27/08, verbatim:
@@ -8465,7 +8465,7 @@ async function init(){
       firstLoad=false;
       const c=readCache();
       if(c){
-        const out=toRecords(c.d);
+        const out=sqOverlay(toRecords(c.d));
         setTimeout(()=>{ try{ refreshData({manual:false}); }catch(_){} },50);
         if(onProgress){ try{ onProgress(out.length,1,true); }catch(_){} }
         return out;
@@ -8473,16 +8473,70 @@ async function init(){
     }
     const d=await sheetGet();
     writeCache(d);
-    const out=toRecords(d);
+    const out=sqOverlay(toRecords(d));
     if(onProgress){ try{ onProgress(out.length,1,true); }catch(_){} }
     return out;
   };
+  /* v3.16.1 (29/10/2026, Stu 16:13: "It is still very slow to load card by card"). CAUSE: every decision
+     waited for the Apps Script save (2 to 3 s) before the next card was drawn, and again for each duplicate.
+     NOW: the write is applied on screen at once and put on a save queue kept in this browser (brainSaveQ).
+     The queue posts in the background with the same payload as before, one at a time per house so the
+     latest wins, retries with backoff, and resumes on reload and when the phone comes back online.
+     Nothing is dropped: a save that keeps failing stays on the queue and the pill says so in red.
+     Rollback: git revert this commit. */
+  const LS_Q='brainSaveQ';
+  let sq=[]; try{ const v=JSON.parse(localStorage.getItem(LS_Q)||'[]'); if(Array.isArray(v)) sq=v.filter(x=>x&&x.key&&x.u===URL0); }catch(_){ sq=[]; }
+  const sqSave=()=>{ try{ localStorage.setItem(LS_Q,JSON.stringify(sq)); }catch(_){} };
+  const inFlight=new Set(); let sqTimer=null, sqSeq=Date.now();
+  window.__brainQ=()=>sq.slice();
+  function sqPill(){
+    let el=document.getElementById('saveQ');
+    if(!sq.length){ if(el) el.remove(); return; }
+    if(!el){ el=document.createElement('div'); el.id='saveQ'; el.setAttribute('role','status');
+      el.style.cssText='position:fixed;left:12px;bottom:calc(12px + env(safe-area-inset-bottom));z-index:9999;padding:6px 10px;border-radius:999px;font:600 12px/1.2 system-ui,sans-serif;box-shadow:0 1px 4px rgba(0,0,0,.25);pointer-events:none';
+      document.body.appendChild(el); }
+    const bad=sq.filter(x=>x.tries>0), worst=bad.reduce((m,x)=>Math.max(m,x.tries),0);
+    if(worst>=5){ el.style.background='#b00020'; el.style.color='#fff'; el.textContent=sq.length+' not saved yet. Save failed '+worst+' times, still retrying. Do not clear this browser.'; }
+    else if(bad.length){ el.style.background='#e8a200'; el.style.color='#111'; el.textContent=sq.length+' saving, save failed, retrying'; }
+    else { el.style.background='#333'; el.style.color='#fff'; el.textContent=sq.length+' saving'; }
+  }
+  function sqPump(){
+    if(sqTimer){ clearTimeout(sqTimer); sqTimer=null; }
+    const now=Date.now(), seen=new Set(); let wake=Infinity;
+    for(const it of sq){
+      if(seen.has(it.key)) continue; seen.add(it.key); /* only the oldest item per house may be on the wire */
+      if(inFlight.has(it.id)) continue;
+      if(inFlight.size>=3) break;
+      if((it.next||0)>now){ wake=Math.min(wake,it.next); continue; }
+      inFlight.add(it.id);
+      sheetPost(it.key,it.fields,it.decision).then(()=>{
+        sq=sq.filter(x=>x.id!==it.id); sqSave();
+      },err=>{
+        it.tries=(it.tries||0)+1; it.err=String(err&&err.message||err);
+        it.next=Date.now()+Math.min(60000,2000*Math.pow(2,it.tries-1)); sqSave();
+        if(it.tries===5) toast('A save to the Buy list has failed 5 times. It is kept here and still retrying.',5000);
+      }).finally(()=>{ inFlight.delete(it.id); sqPill(); sqPump(); });
+    }
+    if(wake<Infinity) sqTimer=setTimeout(sqPump,Math.max(50,wake-Date.now()));
+    sqPill();
+  }
+  window.addEventListener('online',()=>{ sq.forEach(x=>{ x.next=0; }); sqPump(); });
+  /* Unsaved writes are laid over every read, so a refresh can never undo a decision still on the queue. */
+  function sqOverlay(list){
+    if(!sq.length) return list;
+    const byId=new Map(list.map(r=>[r.id,r]));
+    for(const it of sq){ const r=byId.get(it.key); if(r) Object.assign(r.fields,it.fields); }
+    return list;
+  }
   patchFields=async function(rec,fields){
     const merged=Object.assign({},rec.fields||{},fields);
-    await sheetPost(rec.id,fields,letterOf(merged));
+    const it={id:'q'+(sqSeq++),u:URL0,key:rec.id,fields:fields,decision:letterOf(merged),tries:0,at:Date.now()};
+    sq.push(it); sqSave();
     Object.assign(rec.fields,fields);
     noteLocalWrite(rec,fields);
+    sqPump();
   };
+  setTimeout(sqPump,0);
   patchDeal=async function(rec,statusName,extraFields){
     const stamp=(rec.fields||{})[F.triageDate]?null:new Date().toISOString();
     const fields=Object.assign({[F.deal]:statusName},stamp?{[F.triageDate]:stamp}:{},extraFields||{});

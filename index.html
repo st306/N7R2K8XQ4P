@@ -3086,6 +3086,13 @@ function buildQueue(preferId,opts){
   const dupHide=dupCollapseSet(queue);
   queueStats.dups=dupHide.size;
   if(filters.dedupe&&dupHide.size) queue=queue.filter(r=>!dupHide.has(r.id));
+  /* v3.13.6 (29/10/2026), Stu: "Lots of duplicates" on Triage. dupCollapseSet needs the address text to match exactly, so the
+     same house listed by two portals in two formats ("Rose Croft, Minnigaff, Newton Stewart, DG8 6SL" and "Rose Croft,
+     Minnigaff, Newton Stewart DG8") showed twice. Triage now also uses the one-card-per-house test the Yes board has used since
+     v3.13.5 (houseCollapse: same street, outcode, town, flat, beds; price within 2%; no-number addresses only across portals at
+     the same price and beds). Display only; the decision reaches the hidden copies through applyToTwins. Off with the same
+     "Collapse duplicate copies" switch. */
+  if(mode==='triage'&&filters.dedupe!==false){ const before=queue.length; queue=houseCollapse(queue); queueStats.dups+=before-queue.length; }
   /* v3.13.3-dev, Triage capacity. DARK unless EDINBURGH_OPEN. Edinburgh-zone records only: the first ceil(weekly/5) in the current sort order,
      less those decided today and never past the weekly cap (Mon to Sun), are offered; the rest are counted as Backlog and shown by a one-tap show-all. Other zones are untouched. */
   if(EDINBURGH_OPEN&&mode==='triage'&&!ediShowAll){
@@ -7279,6 +7286,9 @@ function markUnderOffer(rec){ return markMarketStatus(rec,'Under offer',false); 
 async function applyToTwins(rec,statusName){
   let group=[];
   try{ group=duplicateGroup(rec); }catch(_){ return 0; }
+  /* v3.13.6: plus the other listings of the same house (houseOf) that are still undecided, so a Triage decision on the one
+     card shown also lands on the copies hidden behind it. Never overwrites a copy that already has a decision. */
+  try{ const g=houseOf(rec); if(g){ const ids=new Set(group.map(x=>x.id)); g.members.forEach(m=>{ if(m.id!==rec.id&&!ids.has(m.id)&&!dealOf(m)){ group.push(m); ids.add(m.id); } }); } }catch(_){}
   if(!group.length) return 0;
   const d=new Date(), dd=String(d.getDate()).padStart(2,'0'), mm=String(d.getMonth()+1).padStart(2,'0');
   let n=0;

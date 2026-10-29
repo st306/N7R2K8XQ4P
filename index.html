@@ -1362,7 +1362,7 @@ function isEdinburghRec(r){ const f=(r&&r.fields)||{}; return isEdinburghZone((f
    listings, quoted plot names and unnumbered same-street pairs are not merged unless cross-portal at the same price and beds; decision
    bar padding includes the safe area and re-checks on resize; fades show cut-off tabs. Update banner fires only when App Control is
    NEWER than BUILD (the phone copy runs ahead of Drive). Rollback: commit 4aecf44 (v3.13.4). */
-const BUILD='3.15.0'; /* v3.15.0 (26/10/2026): reads and writes the STP Deals Sheet once connected (adapter at the foot of the page); unconnected browsers keep v3.14.0 Airtable behaviour. Rollback: commit 7d22d2d. */ const BUILD_3140_NOTE='3.14.0'; /* v3.14.0 (20/10/2026): Review tab runs on the Deal Engine maths. Rollback: commit 12ca561 (v3.13.5). */ const BUILD_PREV_NOTE='3.13.5'; /* v3.13.5 changelog above. Previous: v3.13.4 (18/10/2026), rollback commit 4aecf44. Before that: v3.13.3 (18/10/2026), rollback commit 2cd1d1d. Before that: v3.13.2 (15/10/2026): v3.13.2 (15/10/2026): red-flag button logs to the Property Sprint Register (tbl5l7bViIJjBvfzz), not the dead capture queue. */
+const BUILD='3.16.0'; /* v3.15.0 (26/10/2026): reads and writes the STP Deals Sheet once connected (adapter at the foot of the page); unconnected browsers keep v3.14.0 Airtable behaviour. Rollback: commit 7d22d2d. */ const BUILD_3140_NOTE='3.14.0'; /* v3.14.0 (20/10/2026): Review tab runs on the Deal Engine maths. Rollback: commit 12ca561 (v3.13.5). */ const BUILD_PREV_NOTE='3.13.5'; /* v3.13.5 changelog above. Previous: v3.13.4 (18/10/2026), rollback commit 4aecf44. Before that: v3.13.3 (18/10/2026), rollback commit 2cd1d1d. Before that: v3.13.2 (15/10/2026): v3.13.2 (15/10/2026): red-flag button logs to the Property Sprint Register (tbl5l7bViIJjBvfzz), not the dead capture queue. */
 const CONTROL_TABLE='tblDGKgorkTQkAXBc';
 /* v3.4.0 (28/08/2026), AC-BRAINUX-WINDOW-01 + AC-BRAIN-PROCEEDFLOW-01.
    THE YES BOARD BECOMES THE "WHERE WE ARE" SCREEN. Stu, 27/08, verbatim:
@@ -8279,7 +8279,7 @@ async function init(){
   const URL0=localStorage.getItem(LS_URL), KEY0=localStorage.getItem(LS_KEY);
   window.SHEET_MODE=!!(URL0&&KEY0);
   /* Re-enter token / Replace token also forget the Sheet link, so a wrong link can always be re-entered. */
-  const forget=()=>{ localStorage.removeItem(LS_URL); localStorage.removeItem(LS_KEY); if(localStorage.getItem('atToken')==='sheet') localStorage.removeItem('atToken'); };
+  const forget=()=>{ localStorage.removeItem(LS_URL); localStorage.removeItem('brainCache'); localStorage.removeItem(LS_KEY); if(localStorage.getItem('atToken')==='sheet') localStorage.removeItem('atToken'); };
   document.addEventListener('click',e=>{
     const id=e.target&&e.target.id;
     if(id==='reTok'){ forget(); }
@@ -8406,8 +8406,27 @@ async function init(){
     out.__sig=hashStr(JSON.stringify(d.buy||[])+'|'+JSON.stringify(d.live||[])+'|'+JSON.stringify(d.brain||[]))+'/'+out.length;
     return out;
   }
+  /* v3.16.0 (29/10/2026, Stu: "the Brain page is slow"). The wait was the Apps Script read (whole Sheet, every open).
+     The last good read is now kept in this browser (brainCache) and the first screen is drawn from it at once;
+     the live read follows straight away in the background and updates the data underneath, as the 2-minute timer does.
+     Writes still go straight to the Sheet. No cache, or a cache over 12 hours old, waits for the live read as before. */
+  const LS_CACHE='brainCache', CACHE_MAX_MS=12*3600*1000;
+  let firstLoad=true;
+  const readCache=()=>{ try{ const c=JSON.parse(localStorage.getItem(LS_CACHE)||'null'); return (c&&c.d&&c.u===URL0&&Date.now()-c.at<CACHE_MAX_MS)?c:null; }catch(_){ return null; } };
+  const writeCache=d=>{ try{ localStorage.setItem(LS_CACHE,JSON.stringify({u:URL0,at:Date.now(),d})); }catch(_){ try{ localStorage.removeItem(LS_CACHE); }catch(__){} } };
   fetchAll=async function(_token,onProgress){
+    if(firstLoad){
+      firstLoad=false;
+      const c=readCache();
+      if(c){
+        const out=toRecords(c.d);
+        setTimeout(()=>{ try{ refreshData({manual:false}); }catch(_){} },50);
+        if(onProgress){ try{ onProgress(out.length,1,true); }catch(_){} }
+        return out;
+      }
+    }
     const d=await sheetGet();
+    writeCache(d);
     const out=toRecords(d);
     if(onProgress){ try{ onProgress(out.length,1,true); }catch(_){} }
     return out;

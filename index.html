@@ -1212,7 +1212,7 @@
 </head>
 <body>
 <header>
-  <div class="brand"><h1>Property Brain · v3.16.2</h1><div class="sub">Buy better deals faster through superior intelligence · build 2026-10-29 · STP Deals [LIVE]</div></div>
+  <div class="brand"><h1>Property Brain · v3.17.0</h1><div class="sub">Buy better deals faster through superior intelligence · build 2026-10-30 · STP Deals [LIVE]</div></div>
   <button class="hdr-more" id="hdrMore" type="button" aria-expanded="false" aria-label="Search, refresh and tools">☰</button>
   <div class="modes" aria-label="Dashboard mode">
     <button class="mode" id="modeToday" type="button">Today</button>
@@ -1293,7 +1293,7 @@
   </div>
 </div>
 <div class="lightbox" id="lightbox" aria-hidden="true"><img id="lightboxImg" alt="Expanded property photograph"></div>
-<div class="modal" id="passModal"><div class="modal-card"><div class="eyebrow">Property Brain learning</div><h2>Why are you rejecting this property?</h2><p style="color:var(--muted)">Press <b>1</b> to <b>4</b>, or type a reason and press Enter. The property is passed immediately and the reason is saved to the Buy list (STP Deals [LIVE]). <b>Esc</b> cancels without passing.</p><div class="reason-grid" id="reasonGrid"></div><input id="passReasonQuick" type="text" autocomplete="off" placeholder="or type a reason, then Enter" style="width:100%;margin-top:10px;padding:10px;border:1px solid var(--line);border-radius:9px;font-family:inherit;font-size:14px"><div class="cap-error" id="passQuickError"></div><div class="modal-actions"><button class="smallbtn" id="cancelPass">Cancel</button></div></div></div><div class="modal" id="issueModal"><div class="modal-card"><div class="eyebrow">Property Brain · Issue capture</div><h2>Log an issue for Claude</h2><p style="color:var(--muted)">Goes straight into the Workstream Register queue for review — no email, no chat needed. One line is enough.</p><textarea class="cap-textarea" id="issueText" placeholder="e.g. GDV comps look wrong on 14 Cecil Street — pulling flats not houses"></textarea><div class="cap-error" id="issueError"></div><div class="modal-actions"><button class="smallbtn" id="cancelIssue" type="button">Cancel</button><button class="btn" id="submitIssue" type="button">Log issue</button></div></div></div><div class="modal" id="passReasonModal"><div class="modal-card"><div class="eyebrow">Property Brain · Screen 3</div><h2>Why pass, with the report in hand?</h2><p style="color:var(--muted)">Required — 464 historic passes carry no reason and taught nothing about the buying box. One line is enough.</p><textarea class="cap-textarea" id="passReasonText" placeholder="e.g. Roof scope in the Home Report is heavier than the refurb budget can absorb"></textarea><div class="cap-error" id="passReasonError"></div><div class="modal-actions"><button class="smallbtn" id="cancelPassReason" type="button">Cancel</button><button class="btn" id="submitPassReason" type="button">Record Pass</button></div></div></div><div class="modal" id="refModal"><div class="modal-card ref-modal-card"><div class="eyebrow">Property Brain · Quick reference</div><h2>Refurb tiers &amp; ADS by price band</h2><p class="ref-note">Interim reference for screening — not a full appraisal. Worst-case figures only, so you can sense-check a deal before the purchase price is fixed. Replace with proper deal appraisal methodology when that work lands.</p><div class="ref-section"><h3>Refurb cost — three levels</h3><div class="ref-tiers"><div class="ref-tier"><div class="t-name">Light</div><div class="t-val">£17,500</div><div class="t-src">Seen: £12,000–£17,500 across sources. Highest shown here (worst case).</div></div><div class="ref-tier"><div class="t-name">Medium</div><div class="t-val">£27,000</div><div class="t-src">Seen: £25,000–£27,000 across sources. Highest shown here (worst case).</div></div><div class="ref-tier"><div class="t-name">Full</div><div class="t-val">£45,000</div><div class="t-src">Seen: £40,000–£45,000 across sources. Highest shown here (worst case).</div></div></div><div class="ref-flag">Source figures for these tiers disagree across the Master Deal Calculator files (AC-CALCSYNC-01, still open — Stu checking which file is authoritative). Figures above are the highest — most conservative — seen in any source, so they hold as worst case whichever file wins. Add your own 15% contingency on top per the deal-appraisal standard if costs look light for the actual scope.</div></div><div class="ref-section"><h3>ADS worst case by purchase price</h3><p class="ref-note" style="margin:0 0 4px">ADS is a flat 8% of the <em>whole</em> price once it's £40,000 or more — a cliff-edge, not banded like LBTT. So the top of each price band is the true worst case for that band.</p><table class="ref-table"><thead><tr><th>Purchase price band</th><th style="text-align:right">Worst-case ADS</th></tr></thead><tbody id="adsBandBody"></tbody></table></div><div class="modal-actions"><button class="smallbtn" id="closeRef" type="button">Close</button></div></div></div><div class="modal" id="ybModal"><div class="modal-card" id="ybModalCard"></div></div><div class="modal" id="numModal"><div class="modal-card num-modal-card" id="numModalCard"></div></div><div class="toast" id="toast" role="status" aria-live="polite"></div><div id="loadPill" role="status" aria-live="polite"></div><div id="phoneDecide" aria-label="Decision"><button class="pd-yes" type="button" data-pd="vYes">Proceed</button><button class="pd-no" type="button" data-pd="vNo">Pass</button><button class="pd-more" type="button" data-pd="more" aria-label="All decision buttons">More</button></div>
+<div class="modal" id="passModal"><div class="modal-card"><div class="eyebrow">Property Brain learning</div><h2>Why are you rejecting this property?</h2><p style="color:var(--muted)">Press <b>1</b> to <b>4</b>, or type a reason and press Enter. The property is passed immediately and the reason is saved to the Buy list (STP Deals [LIVE]). <b>Esc</b> cancels without passing.</p><div class="reason-grid" id="reasonGrid"></div><input id="passReasonQuick" type="text" autocomplete="off" placeholder="or type a reason, then Enter" style="width:100%;margin-top:10px;padding:10px;border:1px solid var(--line);border-radius:9px;font-family:inherit;font-size:14px"><div class="cap-error" id="passQuickError"></div><div class="modal-actions"><button class="smallbtn" id="cancelPass">Cancel</button></div></div></div><div class="modal" id="issueModal"><div class="modal-card"><div class="eyebrow">Property Brain · Issue capture</div><h2>Log an issue for Claude</h2><p style="color:var(--muted)">Goes straight into the Workstream Register queue for review — no email, no chat needed. One line is enough.</p><textarea class="cap-textarea" id="issueText" placeholder="e.g. GDV comps look wrong on 14 Cecil Street — pulling flats not houses"></textarea><div class="cap-error" id="issueError"></div><div class="modal-actions"><button class="smallbtn" id="cancelIssue" type="button">Cancel</button><button class="btn" id="submitIssue" type="button">Log issue</button></div></div></div><div class="modal" id="passReasonModal"><div class="modal-card"><div class="eyebrow">Property Brain · Screen 3</div><h2>Why pass?</h2><p style="color:var(--muted)">Tap one. It records the Pass at once. Or type a reason below.</p><div class="reason-grid" id="passReasonGrid"></div><textarea class="cap-textarea" id="passReasonText" placeholder="e.g. Roof scope in the Home Report is heavier than the refurb budget can absorb"></textarea><div class="cap-error" id="passReasonError"></div><div class="modal-actions"><button class="smallbtn" id="cancelPassReason" type="button">Cancel</button><button class="btn" id="submitPassReason" type="button">Record Pass</button></div></div></div><div class="modal" id="refModal"><div class="modal-card ref-modal-card"><div class="eyebrow">Property Brain · Quick reference</div><h2>Refurb tiers &amp; ADS by price band</h2><p class="ref-note">Interim reference for screening — not a full appraisal. Worst-case figures only, so you can sense-check a deal before the purchase price is fixed. Replace with proper deal appraisal methodology when that work lands.</p><div class="ref-section"><h3>Refurb cost — three levels</h3><div class="ref-tiers"><div class="ref-tier"><div class="t-name">Light</div><div class="t-val">£17,500</div><div class="t-src">Seen: £12,000–£17,500 across sources. Highest shown here (worst case).</div></div><div class="ref-tier"><div class="t-name">Medium</div><div class="t-val">£27,000</div><div class="t-src">Seen: £25,000–£27,000 across sources. Highest shown here (worst case).</div></div><div class="ref-tier"><div class="t-name">Full</div><div class="t-val">£45,000</div><div class="t-src">Seen: £40,000–£45,000 across sources. Highest shown here (worst case).</div></div></div><div class="ref-flag">Source figures for these tiers disagree across the Master Deal Calculator files (AC-CALCSYNC-01, still open — Stu checking which file is authoritative). Figures above are the highest — most conservative — seen in any source, so they hold as worst case whichever file wins. Add your own 15% contingency on top per the deal-appraisal standard if costs look light for the actual scope.</div></div><div class="ref-section"><h3>ADS worst case by purchase price</h3><p class="ref-note" style="margin:0 0 4px">ADS is a flat 8% of the <em>whole</em> price once it's £40,000 or more — a cliff-edge, not banded like LBTT. So the top of each price band is the true worst case for that band.</p><table class="ref-table"><thead><tr><th>Purchase price band</th><th style="text-align:right">Worst-case ADS</th></tr></thead><tbody id="adsBandBody"></tbody></table></div><div class="modal-actions"><button class="smallbtn" id="closeRef" type="button">Close</button></div></div></div><div class="modal" id="ybModal"><div class="modal-card" id="ybModalCard"></div></div><div class="modal" id="numModal"><div class="modal-card num-modal-card" id="numModalCard"></div></div><div class="toast" id="toast" role="status" aria-live="polite"></div><div id="loadPill" role="status" aria-live="polite"></div><div id="phoneDecide" aria-label="Decision"><button class="pd-yes" type="button" data-pd="vYes">Proceed</button><button class="pd-no" type="button" data-pd="vNo">Pass</button><button class="pd-more" type="button" data-pd="more" aria-label="All decision buttons">More</button></div>
 
 <script>
 const BASE='appjVRP7n8LtgDkKn', TABLE='tblZlJuNnQpSDEInI';
@@ -1362,7 +1362,7 @@ function isEdinburghRec(r){ const f=(r&&r.fields)||{}; return isEdinburghZone((f
    listings, quoted plot names and unnumbered same-street pairs are not merged unless cross-portal at the same price and beds; decision
    bar padding includes the safe area and re-checks on resize; fades show cut-off tabs. Update banner fires only when App Control is
    NEWER than BUILD (the phone copy runs ahead of Drive). Rollback: commit 4aecf44 (v3.13.4). */
-const BUILD='3.16.2'; /* v3.15.0 (26/10/2026): reads and writes the STP Deals Sheet once connected (adapter at the foot of the page); unconnected browsers keep v3.14.0 Airtable behaviour. Rollback: commit 7d22d2d. */ const BUILD_3140_NOTE='3.14.0'; /* v3.14.0 (20/10/2026): Review tab runs on the Deal Engine maths. Rollback: commit 12ca561 (v3.13.5). */ const BUILD_PREV_NOTE='3.13.5'; /* v3.13.5 changelog above. Previous: v3.13.4 (18/10/2026), rollback commit 4aecf44. Before that: v3.13.3 (18/10/2026), rollback commit 2cd1d1d. Before that: v3.13.2 (15/10/2026): v3.13.2 (15/10/2026): red-flag button logs to the Property Sprint Register (tbl5l7bViIJjBvfzz), not the dead capture queue. */
+const BUILD='3.17.0'; /* v3.17.0 (30/10/2026): HR in date counts as report in; six Pass reasons; 1 h cache keyed on build. Rollback: git revert, previous 72b734a. */ /* v3.15.0 (26/10/2026): reads and writes the STP Deals Sheet once connected (adapter at the foot of the page); unconnected browsers keep v3.14.0 Airtable behaviour. Rollback: commit 7d22d2d. */ const BUILD_3140_NOTE='3.14.0'; /* v3.14.0 (20/10/2026): Review tab runs on the Deal Engine maths. Rollback: commit 12ca561 (v3.13.5). */ const BUILD_PREV_NOTE='3.13.5'; /* v3.13.5 changelog above. Previous: v3.13.4 (18/10/2026), rollback commit 4aecf44. Before that: v3.13.3 (18/10/2026), rollback commit 2cd1d1d. Before that: v3.13.2 (15/10/2026): v3.13.2 (15/10/2026): red-flag button logs to the Property Sprint Register (tbl5l7bViIJjBvfzz), not the dead capture queue. */
 const CONTROL_TABLE='tblDGKgorkTQkAXBc';
 /* v3.4.0 (28/08/2026), AC-BRAINUX-WINDOW-01 + AC-BRAIN-PROCEEDFLOW-01.
    THE YES BOARD BECOMES THE "WHERE WE ARE" SCREEN. Stu, 27/08, verbatim:
@@ -2381,6 +2381,17 @@ function afterReviewDecision(rec){
    Same write as the general Pass (submitPassReason): Decision = Pass and Pass reason = the reason text, on one
    patch. Pass reason is free text (the general Pass writes whatever is typed), so no select choice is needed. */
 const QUICK_PASS={uo:'Under offer',sold:'Sold / withdrawn'};
+async function quickPassReason(rec,text){
+  if(!rec||!text||saving) return;
+  saving=true; setDecisionDisabled(true);
+  try{
+    await patchFields(rec,{[F.decision]:'Pass',[F.passReason]:text});
+    toast('Recorded '+text+'.');
+    if(/Under Offer/.test(text)&&typeof underOfferDraft==='function') underOfferDraft(rec);
+    afterReviewDecision(rec);
+  }catch(e){ alert(e.message); }
+  finally{ saving=false; setDecisionDisabled(false); }
+}
 async function quickPass(rec,key){
   const text=QUICK_PASS[key];
   if(!rec||!text||saving) return;
@@ -2393,9 +2404,14 @@ async function quickPass(rec,key){
   finally{ saving=false; setDecisionDisabled(false); }
 }
 let pendingPassReasonRecord=null;
+/* v3.17.0 (30/10/2026), Stu: Pass becomes six reasons. Under Offer will also draft the agent email (Apps Script, Sat 31 Oct). */
+const PASS_REASONS=['Pass - Turnkey','Pass - Area','Pass - No Margin','Pass - Under Offer','Pass - Withdrawn/Sold','Pass - Duplicate'];
 function openPassReasonModal(rec){
   if(!rec) return;
   pendingPassReasonRecord=rec;
+  const g=document.getElementById('passReasonGrid');
+  if(g){ g.innerHTML=PASS_REASONS.map((x,i)=>'<button class="reason-btn" type="button" data-passreason="'+esc(x)+'"><kbd>'+(i+1)+'</kbd> &nbsp;'+esc(x)+'</button>').join('');
+    g.querySelectorAll('[data-passreason]').forEach(b=>b.onclick=()=>{ const r=pendingPassReasonRecord; if(!r||saving) return; closePassReasonModal(); quickPassReason(r,b.dataset.passreason); }); }
   const err=document.getElementById('passReasonError'); err.classList.remove('show'); err.textContent='';
   document.getElementById('passReasonText').value='';
   document.getElementById('passReasonModal').classList.add('open');
@@ -3199,7 +3215,7 @@ function hrOnRecord(r){
   const f=r.fields||{};
   if(Array.isArray(f[F.hrDoc])&&f[F.hrDoc].length) return true;
   const l=String(f[F.hrLink]||'').trim();
-  return !!l&&!/mail\.google\.com|\/\/mail\./i.test(l);
+  return !!l&&!/mail\.google\.com|\/\/mail\./i.test(l)&&l.indexOf('hr-in:')!==0;
 }
 /* ------------------------------------------------------------------------
    v3.5.5 (28/08/2026). FINDING THE BRANCH WHERE NONE IS LINKED.
@@ -5833,6 +5849,10 @@ function renderHomeReport(rec){
       '<a class="btn" href="'+esc(url)+'" target="_blank" rel="noopener noreferrer">Open full size</a></div>'+
       '<object class="hr-frame" data="'+esc(url)+'" type="application/pdf"><div class="empty" style="margin:10px 0 0">This browser will not preview the PDF inline. Use <b>Open full size</b>.</div></object>'+more+'</div>';
   }
+  if(link&&link.indexOf('hr-in:')===0){
+    return '<div class="card pad hr-card"><div class="eyebrow">Home Report</div><h2>In '+esc(dOnly(link.slice(6)))+', no link on file</h2>'+
+      '<p style="margin:6px 0 0;color:var(--muted)">Live deals says the report came in on that date, but column I has no link. Find it in Gmail or Drive and paste the link into Live deals I.</p></div>';
+  }
   if(link){
     return '<div class="card pad hr-card"><div class="eyebrow">Home Report</div><h2>Held outside the CRM</h2>'+
       '<p style="margin:6px 0 0;color:var(--muted)">The report has come back but sits on the agent\u2019s portal or in the email thread rather than on the record.</p>'+
@@ -6295,7 +6315,7 @@ function renderDecisionGate(rec,n){
     /* v3.13.1: Book a viewing lives here now for a record already at Proceed (Yes board > Review > Book a viewing). */
     (chainStage(rec)==='proceedWanted'?'<div class="verdict" style="grid-template-columns:1fr"><button class="yes" id="vBookViewing" type="button">Book a viewing: call or email the agent</button></div>':'')+
     /* v3.13.1: the two one-click passes sit beside the general Pass. */
-    '<div class="verdict"><button class="yes" id="vYes" type="button">Proceed <kbd>Y</kbd></button><button class="watchbtn" id="vWatch" type="button">Watch <kbd>W</kbd></button><button class="no" id="vNo" type="button">Pass <kbd>N</kbd></button><button class="no" id="vPassUO" type="button" title="Records Decision = Pass, Pass reason = Under offer">Pass - Under offer</button><button class="no" id="vPassSold" type="button" title="Records Decision = Pass, Pass reason = Sold / withdrawn">Pass - Sold / withdrawn</button></div><div class="keyhint"><kbd>Y</kbd> proceed — books the viewing &nbsp; <kbd>W</kbd> watch &nbsp; <kbd>N</kbd> pass — reason required &nbsp; <kbd>D</kbd> duplicate &nbsp; <kbd>S</kbd> sold &nbsp; <kbd>U</kbd> under offer</div><div class="intel-actions market-actions"><span class="market-label">Utility</span><button class="smallbtn" id="vDuplicate" type="button">Duplicate <kbd>D</kbd></button><button class="smallbtn" id="vSold" type="button">Sold <kbd>S</kbd></button><button class="smallbtn" id="vUnderOffer" type="button">Under offer <kbd>U</kbd></button><button class="smallbtn" id="vUndoMarket" type="button">Undo <kbd>Z</kbd></button></div></div>';
+    '<div class="verdict"><button class="yes" id="vYes" type="button">Proceed <kbd>Y</kbd></button><button class="watchbtn" id="vWatch" type="button">Watch <kbd>W</kbd></button><button class="no" id="vNo" type="button">Pass <kbd>N</kbd></button></div><div class="keyhint"><kbd>Y</kbd> proceed — books the viewing &nbsp; <kbd>W</kbd> watch &nbsp; <kbd>N</kbd> pass — reason required &nbsp; <kbd>D</kbd> duplicate &nbsp; <kbd>S</kbd> sold &nbsp; <kbd>U</kbd> under offer</div><div class="intel-actions market-actions"><span class="market-label">Utility</span><button class="smallbtn" id="vDuplicate" type="button">Duplicate <kbd>D</kbd></button><button class="smallbtn" id="vSold" type="button">Sold <kbd>S</kbd></button><button class="smallbtn" id="vUnderOffer" type="button">Under offer <kbd>U</kbd></button><button class="smallbtn" id="vUndoMarket" type="button">Undo <kbd>Z</kbd></button></div></div>';
 }
 function renderUnderwriter(rec,n){
   const m=appraisalFor(rec,n);
@@ -8231,7 +8251,11 @@ function wireStaticControls(){
       }
       return;
     }
-    if(document.getElementById('passReasonModal').classList.contains('open')) return;
+    if(document.getElementById('passReasonModal').classList.contains('open')){
+      const typing=document.activeElement&&document.activeElement.id==='passReasonText';
+      if(!typing&&['1','2','3','4','5','6'].includes(e.key)){ e.preventDefault(); const b=[...document.querySelectorAll('#passReasonGrid [data-passreason]')][Number(e.key)-1]; if(b) b.click(); }
+      return;
+    }
     const target=e.target;
     if(target&&(target.matches('input,select,textarea,button')||target.isContentEditable)) return;
     /* v2.7.5: Z works on any screen - after a Sold the record has already
@@ -8362,6 +8386,7 @@ async function init(){
   const iso=v=>{ if(!v) return ''; const s=String(v); if(/^\d{4}-\d{2}-\d{2}/.test(s)) return s.length===10?s+'T00:00:00.000Z':s; const m=/^(\d{2})\/(\d{2})\/(\d{4})/.exec(s); return m?(m[3]+'-'+m[2]+'-'+m[1]+'T00:00:00.000Z'):''; };
   const ocOf=a=>{ const m=/\b([A-Z]{1,2}\d{1,2}[A-Z]?)(?:\s*\d[A-Z]{2})?\s*$/.exec(String(a||'').trim().replace(/,$/,'')); return m?m[1]:''; };
   function letterOf(f){
+    if(String(selName(f[F.decision])||'').trim()==='Pass') return 'N'; /* v3.17.0: a Review Pass is Stu's No, so column I reads N and the house leaves every board. */
     const d=String(selName(f[F.deal])||'').trim();
     if(/^no$|^analysis done - no$/i.test(d)) return 'N';
     if(/^(yes|yes - me|ready for full analysis|analysis done - yes)$/i.test(d)){
@@ -8424,6 +8449,7 @@ async function init(){
       if(r[3]) f[F.agent]=String(r[3]);
       if(r[6]) f[F.hrRequested]=iso(r[6]);
       if(r[8]) f[F.hrLink]=String(r[8]);
+      else if(r[7]) f[F.hrLink]='hr-in:'+iso(r[7]); /* v3.17.0 (30/10/2026): Live deals H (HR in date) with no link in I still means the report is in; the sheet's Stage reads H. 32 houses sat under With agents on 30 Oct for this. */
       const mo=num(r[11]); if(mo!=null) f[F.maxDefensible]=mo;
       f.__engine={hasRow:true,max:mo,profit:num(r[18]),stressProfit:num(r[19]),rag:String(r[20]==null?'':r[20]),status:String(r[21]==null?'':r[21])};
       const op=num(r[13]); if(op!=null) f[F.offerPrice]=op;
@@ -8456,10 +8482,10 @@ async function init(){
      The last good read is now kept in this browser (brainCache) and the first screen is drawn from it at once;
      the live read follows straight away in the background and updates the data underneath, as the 2-minute timer does.
      Writes still go straight to the Sheet. No cache, or a cache over 12 hours old, waits for the live read as before. */
-  const LS_CACHE='brainCache', CACHE_MAX_MS=12*3600*1000;
+  const LS_CACHE='brainCache', CACHE_MAX_MS=1*3600*1000; /* v3.17.0: was 12 h; the desktop showed yesterday's counts (301 vs 0 on the phone, 30 Oct). */
   let firstLoad=true;
-  const readCache=()=>{ try{ const c=JSON.parse(localStorage.getItem(LS_CACHE)||'null'); return (c&&c.d&&c.u===URL0&&Date.now()-c.at<CACHE_MAX_MS)?c:null; }catch(_){ return null; } };
-  const writeCache=d=>{ try{ localStorage.setItem(LS_CACHE,JSON.stringify({u:URL0,at:Date.now(),d})); }catch(_){ try{ localStorage.removeItem(LS_CACHE); }catch(__){} } };
+  const readCache=()=>{ try{ const c=JSON.parse(localStorage.getItem(LS_CACHE)||'null'); return (c&&c.d&&c.u===URL0&&c.b===BUILD&&Date.now()-c.at<CACHE_MAX_MS)?c:null; }catch(_){ return null; } };
+  const writeCache=d=>{ try{ localStorage.setItem(LS_CACHE,JSON.stringify({u:URL0,b:BUILD,at:Date.now(),d})); }catch(_){ try{ localStorage.removeItem(LS_CACHE); }catch(__){} } };
   fetchAll=async function(_token,onProgress){
     if(firstLoad){
       firstLoad=false;

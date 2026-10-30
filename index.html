@@ -1212,7 +1212,7 @@
 </head>
 <body>
 <header>
-  <div class="brand"><h1>Property Brain · v3.17.0</h1><div class="sub">Buy better deals faster through superior intelligence · build 2026-10-30 · STP Deals [LIVE]</div></div>
+  <div class="brand"><h1>Property Brain · v3.17.1</h1><div class="sub">Buy better deals faster through superior intelligence · build 2026-10-30 · STP Deals [LIVE]</div></div>
   <button class="hdr-more" id="hdrMore" type="button" aria-expanded="false" aria-label="Search, refresh and tools">☰</button>
   <div class="modes" aria-label="Dashboard mode">
     <button class="mode" id="modeToday" type="button">Today</button>
@@ -1362,7 +1362,7 @@ function isEdinburghRec(r){ const f=(r&&r.fields)||{}; return isEdinburghZone((f
    listings, quoted plot names and unnumbered same-street pairs are not merged unless cross-portal at the same price and beds; decision
    bar padding includes the safe area and re-checks on resize; fades show cut-off tabs. Update banner fires only when App Control is
    NEWER than BUILD (the phone copy runs ahead of Drive). Rollback: commit 4aecf44 (v3.13.4). */
-const BUILD='3.17.0'; /* v3.17.0 (30/10/2026): HR in date counts as report in; six Pass reasons; 1 h cache keyed on build. Rollback: git revert, previous 72b734a. */ /* v3.15.0 (26/10/2026): reads and writes the STP Deals Sheet once connected (adapter at the foot of the page); unconnected browsers keep v3.14.0 Airtable behaviour. Rollback: commit 7d22d2d. */ const BUILD_3140_NOTE='3.14.0'; /* v3.14.0 (20/10/2026): Review tab runs on the Deal Engine maths. Rollback: commit 12ca561 (v3.13.5). */ const BUILD_PREV_NOTE='3.13.5'; /* v3.13.5 changelog above. Previous: v3.13.4 (18/10/2026), rollback commit 4aecf44. Before that: v3.13.3 (18/10/2026), rollback commit 2cd1d1d. Before that: v3.13.2 (15/10/2026): v3.13.2 (15/10/2026): red-flag button logs to the Property Sprint Register (tbl5l7bViIJjBvfzz), not the dead capture queue. */
+const BUILD='3.17.1'; /* v3.17.0 (30/10/2026): HR in date counts as report in; six Pass reasons; 1 h cache keyed on build. Rollback: git revert, previous 72b734a. */ /* v3.15.0 (26/10/2026): reads and writes the STP Deals Sheet once connected (adapter at the foot of the page); unconnected browsers keep v3.14.0 Airtable behaviour. Rollback: commit 7d22d2d. */ const BUILD_3140_NOTE='3.14.0'; /* v3.14.0 (20/10/2026): Review tab runs on the Deal Engine maths. Rollback: commit 12ca561 (v3.13.5). */ const BUILD_PREV_NOTE='3.13.5'; /* v3.13.5 changelog above. Previous: v3.13.4 (18/10/2026), rollback commit 4aecf44. Before that: v3.13.3 (18/10/2026), rollback commit 2cd1d1d. Before that: v3.13.2 (15/10/2026): v3.13.2 (15/10/2026): red-flag button logs to the Property Sprint Register (tbl5l7bViIJjBvfzz), not the dead capture queue. */
 const CONTROL_TABLE='tblDGKgorkTQkAXBc';
 /* v3.4.0 (28/08/2026), AC-BRAINUX-WINDOW-01 + AC-BRAIN-PROCEEDFLOW-01.
    THE YES BOARD BECOMES THE "WHERE WE ARE" SCREEN. Stu, 27/08, verbatim:
@@ -2415,7 +2415,7 @@ function openPassReasonModal(rec){
   const err=document.getElementById('passReasonError'); err.classList.remove('show'); err.textContent='';
   document.getElementById('passReasonText').value='';
   document.getElementById('passReasonModal').classList.add('open');
-  setTimeout(()=>document.getElementById('passReasonText').focus(),0);
+  /* v3.17.1: no auto-focus, so keys 1 to 6 fire the six reasons; tap the box to type instead. */
 }
 function closePassReasonModal(){ document.getElementById('passReasonModal').classList.remove('open'); pendingPassReasonRecord=null; }
 async function submitPassReason(){
@@ -5486,7 +5486,7 @@ function renderToday(app){
       return '<div class="action-row static"><span><span class="action-title">'+esc(recordLabel(r))+'</span>'+
         '<span class="action-meta">'+(onRec
           ? '<b style="color:var(--green)">PDF on the record</b> \u00b7 opens in the Brain'
-          : '<b style="color:var(--amber)">Email thread only</b> \u00b7 no document attached yet')+
+          : (String((r.fields||{})[F.hrLink]||'').indexOf('hr-in:')===0?'<b style="color:var(--amber)">Date only</b> \u00b7 no link on file':'<b style="color:var(--amber)">Email thread only</b> \u00b7 no document attached yet'))+
         ' \u00b7 '+esc(agentOf(r)||'agent not captured')+'</span></span>'+
         '<span class="rowbtns"><button class="smallbtn" type="button" data-open-record="'+esc(r.id)+'">'+(onRec?'Open &amp; read':'Open')+'</button><button class="smallbtn" type="button" data-read-report="'+esc(r.id)+'">Report read</button></span></div>';
     }).join('')||'<div class="empty">No Home Report is sitting unread. When one lands on a record it appears here with a Report read button.</div>')+'</div>'+
@@ -8449,7 +8449,7 @@ async function init(){
       if(r[3]) f[F.agent]=String(r[3]);
       if(r[6]) f[F.hrRequested]=iso(r[6]);
       if(r[8]) f[F.hrLink]=String(r[8]);
-      else if(r[7]) f[F.hrLink]='hr-in:'+iso(r[7]); /* v3.17.0 (30/10/2026): Live deals H (HR in date) with no link in I still means the report is in; the sheet's Stage reads H. 32 houses sat under With agents on 30 Oct for this. */
+      else if(r[7]) f[F.hrLink]='hr-in:'+(iso(r[7])||String(r[7])); /* v3.17.0 (30/10/2026): Live deals H (HR in date) with no link in I still means the report is in; the sheet's Stage reads H. 32 houses sat under With agents on 30 Oct for this. */
       const mo=num(r[11]); if(mo!=null) f[F.maxDefensible]=mo;
       f.__engine={hasRow:true,max:mo,profit:num(r[18]),stressProfit:num(r[19]),rag:String(r[20]==null?'':r[20]),status:String(r[21]==null?'':r[21])};
       const op=num(r[13]); if(op!=null) f[F.offerPrice]=op;

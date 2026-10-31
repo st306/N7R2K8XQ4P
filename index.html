@@ -1208,11 +1208,25 @@
   body{touch-action:pan-y}
   .modes,.yb-scroll,.yb-tabs,[style*="overflow-x"]{touch-action:pan-x pan-y}
 }
+/* v3.18.0: house card Live deals panel. */
+.deal-panel{margin:12px 0;padding:10px 12px;border:1px solid var(--line);border-radius:12px;background:var(--soft);min-width:0}
+.dp-head{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:6px}
+.dp-off{font-size:12px;color:var(--muted)}
+.dp-grid{display:grid;grid-template-columns:auto minmax(0,1fr);gap:5px 12px;margin:0;font-size:13px}
+.dp-grid dt{color:var(--muted);font-weight:600}
+.dp-grid dd{margin:0;min-width:0;overflow-wrap:anywhere;font-weight:650}
+.dp-gap{color:var(--red);font-weight:800}
+.dp-prov{display:inline-block;padding:1px 6px;border-radius:999px;background:var(--amber-soft);color:var(--amber);font-size:11px;font-weight:800}
+.dp-sub{color:var(--muted);font-weight:500;font-size:12px}
+.dp-actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+.dp-actions .smallbtn{flex:1 1 140px}
+.dp-note{margin-top:6px;font-size:12px;color:var(--amber)}
+.dp-note:empty{display:none}
 </style>
 </head>
 <body>
 <header>
-  <div class="brand"><h1>Property Brain · v3.17.1</h1><div class="sub">Buy better deals faster through superior intelligence · build 2026-10-30 · STP Deals [LIVE]</div></div>
+  <div class="brand"><h1>Property Brain · v3.18.0</h1><div class="sub">Buy better deals faster through superior intelligence · build 2026-10-31 · STP Deals [LIVE]</div></div>
   <button class="hdr-more" id="hdrMore" type="button" aria-expanded="false" aria-label="Search, refresh and tools">☰</button>
   <div class="modes" aria-label="Dashboard mode">
     <button class="mode" id="modeToday" type="button">Today</button>
@@ -1362,7 +1376,7 @@ function isEdinburghRec(r){ const f=(r&&r.fields)||{}; return isEdinburghZone((f
    listings, quoted plot names and unnumbered same-street pairs are not merged unless cross-portal at the same price and beds; decision
    bar padding includes the safe area and re-checks on resize; fades show cut-off tabs. Update banner fires only when App Control is
    NEWER than BUILD (the phone copy runs ahead of Drive). Rollback: commit 4aecf44 (v3.13.4). */
-const BUILD='3.17.1'; /* v3.17.0 (30/10/2026): HR in date counts as report in; six Pass reasons; 1 h cache keyed on build. Rollback: git revert, previous 72b734a. */ /* v3.15.0 (26/10/2026): reads and writes the STP Deals Sheet once connected (adapter at the foot of the page); unconnected browsers keep v3.14.0 Airtable behaviour. Rollback: commit 7d22d2d. */ const BUILD_3140_NOTE='3.14.0'; /* v3.14.0 (20/10/2026): Review tab runs on the Deal Engine maths. Rollback: commit 12ca561 (v3.13.5). */ const BUILD_PREV_NOTE='3.13.5'; /* v3.13.5 changelog above. Previous: v3.13.4 (18/10/2026), rollback commit 4aecf44. Before that: v3.13.3 (18/10/2026), rollback commit 2cd1d1d. Before that: v3.13.2 (15/10/2026): v3.13.2 (15/10/2026): red-flag button logs to the Property Sprint Register (tbl5l7bViIJjBvfzz), not the dead capture queue. */
+const BUILD='3.18.0'; /* v3.18.0 (31/10/2026): house card Live deals panel (HR in, HR link, HR value, agent, email, thread W, Max offer + PROVISIONAL, viewing X; blank = GAP), Request Home Report and Draft decline open Gmail compose (nothing sent), Book a viewing sorted by agent then town. Rollback: git revert, previous e4b74ec. */ /* v3.17.0 (30/10/2026): HR in date counts as report in; six Pass reasons; 1 h cache keyed on build. Rollback: git revert, previous 72b734a. */ /* v3.15.0 (26/10/2026): reads and writes the STP Deals Sheet once connected (adapter at the foot of the page); unconnected browsers keep v3.14.0 Airtable behaviour. Rollback: commit 7d22d2d. */ const BUILD_3140_NOTE='3.14.0'; /* v3.14.0 (20/10/2026): Review tab runs on the Deal Engine maths. Rollback: commit 12ca561 (v3.13.5). */ const BUILD_PREV_NOTE='3.13.5'; /* v3.13.5 changelog above. Previous: v3.13.4 (18/10/2026), rollback commit 4aecf44. Before that: v3.13.3 (18/10/2026), rollback commit 2cd1d1d. Before that: v3.13.2 (15/10/2026): v3.13.2 (15/10/2026): red-flag button logs to the Property Sprint Register (tbl5l7bViIJjBvfzz), not the dead capture queue. */
 const CONTROL_TABLE='tblDGKgorkTQkAXBc';
 /* v3.4.0 (28/08/2026), AC-BRAINUX-WINDOW-01 + AC-BRAIN-PROCEEDFLOW-01.
    THE YES BOARD BECOMES THE "WHERE WE ARE" SCREEN. Stu, 27/08, verbatim:
@@ -4905,6 +4919,38 @@ function wireYesBoardRows(app){
     if(rec) ybFindBranch(rec);
   });
 }
+/* v3.18.0 (31/10/2026), stage 4: the Book a viewing screen sorts by agent, then town (A to Z; no agent last, no town
+   last). Town = text after the last comma before any postcode; with no comma, the postcode district. The Yes board's
+   Book a viewing column still uses ybBookGroups (town, then agency). Rollback: git revert this commit. */
+function vwTownOf(rec){
+  const raw=String((rec.fields||{})[F.addr]||'').trim(); if(!raw) return '';
+  const pc=/,?\s*([A-Z]{1,2}\d{1,2}[A-Z]?)(?:\s*\d[A-Z]{2})?\s*$/i.exec(raw);
+  const stripped=pc?raw.slice(0,pc.index).trim():raw;
+  if(stripped.indexOf(',')>=0){ const parts=stripped.split(',').map(x=>x.trim()).filter(Boolean); if(parts.length) return parts[parts.length-1]; }
+  return pc?pc[1].toUpperCase():'';
+}
+function vwAgentOf(r){ return String(ybBranchName(r)||agentOf(r)||'').trim(); }
+function vwAgentGroups(list){
+  if(!list.length) return '';
+  list=sortQueue(list,ybSortKey());
+  const cmp=(a,b)=>(a?0:1)-(b?0:1)||a.toLowerCase().localeCompare(b.toLowerCase());
+  const agents={};
+  list.forEach(r=>{
+    const ag=vwAgentOf(r), tw=vwTownOf(r);
+    const a=agents[ag.toLowerCase()]=agents[ag.toLowerCase()]||{label:ag,towns:{},n:0};
+    a.n++;
+    const t=a.towns[tw.toLowerCase()]=a.towns[tw.toLowerCase()]||{label:tw,rows:[]};
+    t.rows.push(r);
+  });
+  return Object.values(agents).sort((x,y)=>cmp(x.label,y.label)).map(a=>{
+    return '<div class="ybg ybg-'+(a.label?'town':'none')+'">'+
+      '<div class="ybg-h"><b>'+esc(a.label||'No agent captured')+'</b><span class="ybg-n">'+a.n+'</span>'+(a.label&&a.n>1?('<i>one call clears '+a.n+'</i>'):'')+'</div>'+
+      Object.values(a.towns).sort((x,y)=>cmp(x.label,y.label)).map(t=>
+        '<div class="ybg-sub"><div class="ybg-sub-h"><b>'+esc(t.label||'No town on the address')+'</b><span class="ybg-n">'+t.rows.length+'</span></div>'+
+        t.rows.map(r=>ybCard(r,{note:true})).join('')+'</div>').join('')+
+    '</div>';
+  }).join('');
+}
 function renderViewings(app){
   /* v3.13.0: tear down the previous map before the DOM it lives in is replaced (no "Map container is already initialized"). */
   if(mapInstance){try{mapInstance.remove();}catch(_){} mapInstance=null;mapMarkers=null;mapLoading=false;}
@@ -4913,12 +4959,12 @@ function renderViewings(app){
   app.innerHTML='<div class="command-wrap"><div class="command-head"><div><div class="eyebrow">Screen 2b</div><h2>Book a viewing</h2>'+
     '<p>'+want.length+' propert'+(want.length===1?'y':'ies')+' you have said Proceed on with no date yet'+
       (towns.size?(', across '+towns.size+' town'+(towns.size===1?'':'s')):'')+
-      '. Grouped by town, then by the agency you have to ring, because that is the order the day runs in.</p>'+
+      '. Sorted by agent, then town.</p>'+
     (want.length
       ? '<p style="margin:6px 0 0;font-weight:800;color:var(--red)">Every one of these is waiting on you to pick up the phone.</p>'
       : '<p style="margin:6px 0 0;font-weight:800;color:var(--green)">Nothing is waiting to be booked.</p>')+
     '</div></div>'+
-    (want.length?('<div class="vw-split"><div class="vw-left"><div class="ybcol wide" style="max-width:none">'+ybBookGroups(want)+'</div></div>'+
+    (want.length?('<div class="vw-split"><div class="vw-left"><div class="ybcol wide" style="max-width:none">'+vwAgentGroups(want)+'</div></div>'+
         '<div class="vw-right"><div id="viewMap"><div class="map-fallback">Loading the map.</div></div><div class="vw-off" id="viewNotOnMap"></div></div></div>')
       :('<div class="ybcol"><div class="ybcol-empty">Nothing here. That is a good thing.</div></div>'))+
     (booked.length?('<div class="ybcol" style="margin-top:14px"><div class="ybcol-h"><h3>Already booked</h3><span class="ybcol-n">'+booked.length+'</span></div>'+
@@ -5124,6 +5170,68 @@ function triageSubjectCard(rec,n,extraHtml){
     '<div class="price-grid"><div class="price-box"><div class="eyebrow">'+esc(priceQualifierLabel(f))+'</div><div class="price-big">'+gbp(f[F.ask])+'</div></div></div>'+
     (extraHtml||'')+'</div></div>';
 }
+/* v3.18.0 (31/10/2026), stage 4 of the approved plan (Stu, 30 Oct). The house card (Review, and any house opened
+   from the Jump search) shows the Live deals facts: Home Report in date, HR link, HR value, agent and email, thread
+   link (W), Max offer with PROVISIONAL from V, viewing date (X). A blank figure reads GAP, never 0.
+   Request Home Report and Draft decline open a Gmail compose window in a new tab. The page sends nothing: Stu
+   presses send. Neither button writes anything; Buy list column I is never touched.
+   The HR sent date (Live deals G) is not written: the Sheet link has no hrsent action that this page can see
+   (Version 4 of the script is unverified), so when G is blank a note says so. Rollback: git revert this commit. */
+const DP_MAIL='https://mail.google.com/mail/?authuser=st@stewartthomsonproperty.com&view=cm&fs=1';
+function dpLive(rec){ return ((rec&&rec.fields)||{}).__live||null; }
+function dpDate(v){
+  const s=String(v||'').trim(); if(!s) return '';
+  const m=/^(\d{4})-(\d{2})-(\d{2})/.exec(s); return m?(m[3]+'/'+m[2]+'/'+m[1]):s;
+}
+function dpUrl(v){ const s=String(v||'').trim(); return /^https?:\/\//i.test(s)?s:''; }
+function dpGap(){ return '<span class="dp-gap">GAP</span>'; }
+function dpComposeUrl(email,subject,body){
+  return DP_MAIL+(email?'&to='+encodeURIComponent(email):'')+'&su='+encodeURIComponent(subject)+'&body='+encodeURIComponent(body);
+}
+function dpDraft(rec,kind){
+  const L=dpLive(rec)||{}, addr=String((rec.fields||{})[F.addr]||'').trim()||'this property';
+  const email=String(L.email||'').trim();
+  if(kind==='hr') return dpComposeUrl(email,'Home Report request, '+addr,'Hi, can you email over the latest Home Report for '+addr+', please?\n\nStewart');
+  return dpComposeUrl(email,addr,'Hi, thanks for sending '+addr+' over. It\'s not one for us this time, but please keep me in mind for similar.\n\nStewart');
+}
+function dealPanel(rec){
+  const f=rec.fields||{}, L=dpLive(rec);
+  const has=!!L, l=L||{};
+  const agent=l.agent||agentOf(rec)||'';
+  const hrUrl=dpUrl(l.hrLink), thUrl=dpUrl(l.thread);
+  const prov=/provisional/i.test(l.status||'');
+  const row=(k,v)=>'<dt>'+esc(k)+'</dt><dd>'+v+'</dd>';
+  const txt=v=>v?esc(v):dpGap();
+  return '<div class="deal-panel" data-dp-rec="'+esc(rec.id)+'">'+
+    '<div class="dp-head"><span class="eyebrow">Live deals</span>'+(has?'':'<span class="dp-off">Not on Live deals yet</span>')+'</div>'+
+    '<dl class="dp-grid">'+
+      row('Home Report in',txt(dpDate(l.hrIn)))+
+      row('HR link',hrUrl?'<a href="'+esc(hrUrl)+'" target="_blank" rel="noopener noreferrer">Open Home Report</a>':(l.hrLink?esc(l.hrLink):dpGap()))+
+      row('HR value',l.hrValue!=null&&l.hrValue>0?esc(gbp(l.hrValue))+(l.hrValueDate?' <span class="dp-sub">'+esc(dpDate(l.hrValueDate))+'</span>':''):dpGap())+
+      row('Agent',txt(agent))+
+      row('Agent email',l.email?'<a href="mailto:'+esc(l.email)+'">'+esc(l.email)+'</a>':dpGap())+
+      row('Thread',thUrl?'<a href="'+esc(thUrl)+'" target="_blank" rel="noopener noreferrer">Open thread</a>':(l.thread?esc(l.thread):dpGap()))+
+      row('Max offer',l.max!=null&&l.max>0?esc(gbp(l.max))+(prov?' <span class="dp-prov">PROVISIONAL</span>':''):dpGap()+(prov?' <span class="dp-prov">PROVISIONAL</span>':''))+
+      row('Viewing date',txt(dpDate(l.viewing)))+
+    '</dl>'+
+    '<div class="dp-actions"><button class="smallbtn" type="button" data-dp-act="hr" data-rid="'+esc(rec.id)+'">Request Home Report</button>'+
+    '<button class="smallbtn" type="button" data-dp-act="decline" data-rid="'+esc(rec.id)+'">Draft decline</button></div>'+
+    '<div class="dp-note" role="status"></div>'+
+  '</div>';
+}
+document.addEventListener('click',e=>{
+  const b=e.target&&e.target.closest&&e.target.closest('[data-dp-act]'); if(!b) return;
+  e.preventDefault(); e.stopPropagation();
+  const rec=records.find(r=>r.id===b.dataset.rid); if(!rec) return;
+  const kind=b.dataset.dpAct;
+  window.open(dpDraft(rec,kind),'_blank','noopener');
+  const note=b.closest('.deal-panel')&&b.closest('.deal-panel').querySelector('.dp-note');
+  const L=dpLive(rec)||{};
+  const msgs=[];
+  if(!L.email) msgs.push('No agent email on Live deals, so the To line is blank.');
+  if(kind==='hr'&&!L.hrSent) msgs.push('HR sent date not saved. Put today in Live deals G.');
+  if(note) note.textContent=msgs.join(' ');
+},true);
 function subjectCard(rec,n,extraHtml){
   const f=rec.fields||{};
   const pics=photosOf(f,F.subjPhotos);
@@ -5157,6 +5265,7 @@ function subjectCard(rec,n,extraHtml){
     })()+
     /* v2.7.0: the appraisal card leads. Everything below it is detail for a
        record that has already earned a second look. */
+    dealPanel(rec)+ /* v3.18.0: Live deals facts and the two Gmail drafts */
     appraisalCard(rec,n)+
     '<div class="meta-grid">'+
       '<div class="meta-box"><div class="eyebrow">Beds</div><div class="meta-val">'+esc(f[F.beds]||'—')+'</div></div>'+
@@ -8452,6 +8561,9 @@ async function init(){
       else if(r[7]) f[F.hrLink]='hr-in:'+(iso(r[7])||String(r[7])); /* v3.17.0 (30/10/2026): Live deals H (HR in date) with no link in I still means the report is in; the sheet's Stage reads H. 32 houses sat under With agents on 30 Oct for this. */
       const mo=num(r[11]); if(mo!=null) f[F.maxDefensible]=mo;
       f.__engine={hasRow:true,max:mo,profit:num(r[18]),stressProfit:num(r[19]),rag:String(r[20]==null?'':r[20]),status:String(r[21]==null?'':r[21])};
+      /* v3.18.0 (31/10/2026): the raw Live deals row for the house card (dealPanel). W Thread URL and X Viewing date are read when the web app returns them (cols>23); a shorter row shows GAP. */
+      const s_=v=>String(v==null?'':v).trim();
+      f.__live={agent:s_(r[3]),email:s_(r[4]),hrSent:s_(r[6]),hrIn:s_(r[7]),hrLink:s_(r[8]),hrValue:num(r[9]),hrValueDate:s_(r[10]),max:mo,status:s_(r[21]),thread:s_(r[22]),viewing:s_(r[23]),cols:r.length};
       const op=num(r[13]); if(op!=null) f[F.offerPrice]=op;
       if(r[14]) f[F.offerSubmitted]=iso(r[14]);
       if(OUTCOME_PASSED.test(String(r[15]||'').trim())) f[F.stage]='Passed';

@@ -1226,7 +1226,7 @@
 </head>
 <body>
 <header>
-  <div class="brand"><h1>Property Brain · v3.19.0</h1><div class="sub">Buy better deals faster through superior intelligence · build 2026-11-03 · STP Deals [LIVE]</div></div>
+  <div class="brand"><h1>Property Brain · v3.20.0</h1><div class="sub">Buy better deals faster through superior intelligence · build 2026-11-04 · STP Deals [LIVE]</div></div>
   <button class="hdr-more" id="hdrMore" type="button" aria-expanded="false" aria-label="Search, refresh and tools">☰</button>
   <div class="modes" aria-label="Dashboard mode">
     <button class="mode" id="modeToday" type="button">Today</button>
@@ -1376,7 +1376,7 @@ function isEdinburghRec(r){ const f=(r&&r.fields)||{}; return isEdinburghZone((f
    listings, quoted plot names and unnumbered same-street pairs are not merged unless cross-portal at the same price and beds; decision
    bar padding includes the safe area and re-checks on resize; fades show cut-off tabs. Update banner fires only when App Control is
    NEWER than BUILD (the phone copy runs ahead of Drive). Rollback: commit 4aecf44 (v3.13.4). */
-const BUILD='3.19.0'; /* v3.19.0 (03/11/2026): Pass - Under Offer now calls the Sheet link underOffer action (Gmail draft, never sent). */ /* v3.18.0 (31/10/2026): house card Live deals panel (HR in, HR link, HR value, agent, email, thread W, Max offer + PROVISIONAL, viewing X; blank = GAP), Request Home Report and Draft decline open Gmail compose (nothing sent), Book a viewing sorted by agent then town. Rollback: git revert, previous e4b74ec. */ /* v3.17.0 (30/10/2026): HR in date counts as report in; six Pass reasons; 1 h cache keyed on build. Rollback: git revert, previous 72b734a. */ /* v3.15.0 (26/10/2026): reads and writes the STP Deals Sheet once connected (adapter at the foot of the page); unconnected browsers keep v3.14.0 Airtable behaviour. Rollback: commit 7d22d2d. */ const BUILD_3140_NOTE='3.14.0'; /* v3.14.0 (20/10/2026): Review tab runs on the Deal Engine maths. Rollback: commit 12ca561 (v3.13.5). */ const BUILD_PREV_NOTE='3.13.5'; /* v3.13.5 changelog above. Previous: v3.13.4 (18/10/2026), rollback commit 4aecf44. Before that: v3.13.3 (18/10/2026), rollback commit 2cd1d1d. Before that: v3.13.2 (15/10/2026): v3.13.2 (15/10/2026): red-flag button logs to the Property Sprint Register (tbl5l7bViIJjBvfzz), not the dead capture queue. */
+const BUILD='3.20.0'; /* v3.20.0 (04/11/2026, Stu: "Yes, run the rename"): the five Airtable field IDs kept in Brain fields (Potential deal, Triage date, Decision, Pass reason, Notes) are now potential_deal, triage_date, airtable_decision, pass_reason, notes when the page is connected to the Sheet. Old keys are still read and are renamed on read and on save. Airtable-token mode keeps the old IDs. Rollback: git revert this commit and restore the sheet tab ARCHIVE_Brain fields_20261104 over Brain fields. */ /* v3.19.0 (03/11/2026): Pass - Under Offer now calls the Sheet link underOffer action (Gmail draft, never sent). */ /* v3.18.0 (31/10/2026): house card Live deals panel (HR in, HR link, HR value, agent, email, thread W, Max offer + PROVISIONAL, viewing X; blank = GAP), Request Home Report and Draft decline open Gmail compose (nothing sent), Book a viewing sorted by agent then town. Rollback: git revert, previous e4b74ec. */ /* v3.17.0 (30/10/2026): HR in date counts as report in; six Pass reasons; 1 h cache keyed on build. Rollback: git revert, previous 72b734a. */ /* v3.15.0 (26/10/2026): reads and writes the STP Deals Sheet once connected (adapter at the foot of the page); unconnected browsers keep v3.14.0 Airtable behaviour. Rollback: commit 7d22d2d. */ const BUILD_3140_NOTE='3.14.0'; /* v3.14.0 (20/10/2026): Review tab runs on the Deal Engine maths. Rollback: commit 12ca561 (v3.13.5). */ const BUILD_PREV_NOTE='3.13.5'; /* v3.13.5 changelog above. Previous: v3.13.4 (18/10/2026), rollback commit 4aecf44. Before that: v3.13.3 (18/10/2026), rollback commit 2cd1d1d. Before that: v3.13.2 (15/10/2026): v3.13.2 (15/10/2026): red-flag button logs to the Property Sprint Register (tbl5l7bViIJjBvfzz), not the dead capture queue. */
 const CONTROL_TABLE='tblDGKgorkTQkAXBc';
 /* v3.4.0 (28/08/2026), AC-BRAINUX-WINDOW-01 + AC-BRAIN-PROCEEDFLOW-01.
    THE YES BOARD BECOMES THE "WHERE WE ARE" SCREEN. Stu, 27/08, verbatim:
@@ -1428,7 +1428,8 @@ const AF={branch:'fldxZbYrFaBW94mB7',phone:'fldn0wWVvRJdqTxTG',email:'fldGc95vBj
 let agentBranches={};
 const CF={key:'fldckZ32fngp3wP3m',build:'fldoVAWdGWjKR3DOd',note:'fldSQoM2qpGoyfIN2'};
 let updateSeen='';
-const F={addr:'fldZfUIuFs6XG8e74',url:'fldFGLvDZX9gB2UOp',deal:'fldnkgHwYpYnvaW43',notes:'fldRyYPHM9H7QIiTw',beds:'fldXq6zUhe6QzSgX1',ask:'fldbe1xvzHNGSrExu',
+const SM_=(function(){ try{ return !!(localStorage.getItem('sheetUrl')&&localStorage.getItem('sheetKey'))||/[#&]connect=/.test(location.hash||''); }catch(_){ return false; } })(); /* v3.20.0: connected to the Sheet, so the Brain fields keys are plain words, not Airtable IDs */
+const F={addr:'fldZfUIuFs6XG8e74',url:'fldFGLvDZX9gB2UOp',deal:SM_?'potential_deal':'fldnkgHwYpYnvaW43',notes:SM_?'notes':'fldRyYPHM9H7QIiTw',beds:'fldXq6zUhe6QzSgX1',ask:'fldbe1xvzHNGSrExu',
   om:['flduBmEMD4crTQZpr','fldXFOokDcKFV6sG0','fldWR6pLkHBAn6AxO'],
   sold:['fldpqEr5xRDgzqoKZ','fldFXqffMnPYnNvFt','fldtrkiNuHcZEfrVI'],
   subjPhotos:'fldCK6LAIa4Mdvegi',
@@ -1453,7 +1454,7 @@ const F={addr:'fldZfUIuFs6XG8e74',url:'fldFGLvDZX9gB2UOp',deal:'fldnkgHwYpYnvaW4
   listedDate:'fldhYEfqapdb8dFj7',daysOnMarket:'fldaAeh5ABaJwJHXS',
   /* v3.0 (24/08/2026): the three-screen redesign fields. Live in Airtable since
      before this build shipped; wired here so the app can read and write them. */
-  decision:'fldZzlfJwcI60KRnQ',passReason:'fldITmDM75nqSz1JY',priceQualifier:'fldkFRXF0CKxpulDS',
+  decision:SM_?'airtable_decision':'fldZzlfJwcI60KRnQ',passReason:SM_?'pass_reason':'fldITmDM75nqSz1JY',priceQualifier:'fldkFRXF0CKxpulDS',
   stage:'fldhWDpaxgargQ07p', /* v3.13.4: Stage, written by the Deal Line routine (Passed / Closed - lost) */
   /* v3.6.2 (28/08/2026), AC-VIEWNUMBERS-01. Stu's mandatory post-viewing rule.
      Created in Airtable this morning with full field descriptions; wired here
@@ -1464,7 +1465,7 @@ const F={addr:'fldZfUIuFs6XG8e74',url:'fldFGLvDZX9gB2UOp',deal:'fldnkgHwYpYnvaW4
   /* v3.6.5 (28/08/2026): Triage date closes the oldest measurement gap in the
      system; Booking notes gives Stu somewhere to say WHY a viewing has not been
      booked. Both are written only by this app. */
-  triageDate:'fld0P5chBsFb8DMj9',bookingNotes:'fldMLSloFRkr5gVtg',
+  triageDate:SM_?'triage_date':'fld0P5chBsFb8DMj9',bookingNotes:'fldMLSloFRkr5gVtg',
   numbersDue:'fldiJAMJ0vqHt8sHh',numbersRun:'fldaELa7MgvzL0oMA',
   refurbLevel:'fld4VZVv21eJsq2Ys',refurbEstimate:'fldGkEZZDCIbUE2xC',worksIdentified:'fld63hxNsSYC0FdSn',
   exitUsed:'fldY9buxLrgln6rpT',exitBasis:'fld7OCgil1Dg7S8Oy',maxDefensible:'fldO984OXhAKjM2fg',
@@ -8492,6 +8493,9 @@ async function init(){
   /* Connected: the rest of the page still checks for a token before it loads, so give it a placeholder. */
   if(!localStorage.getItem('atToken')) localStorage.setItem('atToken','sheet');
   const OUTCOME_PASSED=/^(lost|withdrawn|pass)$/i;
+  /* v3.20.0: old Airtable IDs in Brain fields rows (and in saves still queued in a browser) are renamed to the plain keys. A plain key already on the row wins. */
+  const LEGACY_KEYS={fldnkgHwYpYnvaW43:'potential_deal',fld0P5chBsFb8DMj9:'triage_date',fldZzlfJwcI60KRnQ:'airtable_decision',fldITmDM75nqSz1JY:'pass_reason',fldRyYPHM9H7QIiTw:'notes'};
+  const normKeys=o=>{ if(!o||typeof o!=='object') return o; const out={}; for(const k of Object.keys(o)){ const nk=LEGACY_KEYS[k]; if(nk){ if(!(nk in o)) out[nk]=o[k]; } else out[k]=o[k]; } return out; };
   const num=v=>{ if(v===''||v==null) return null; const n=Number(String(v).replace(/[^\d.]/g,'')); return Number.isFinite(n)?n:null; };
   const iso=v=>{ if(!v) return ''; const s=String(v); if(/^\d{4}-\d{2}-\d{2}/.test(s)) return s.length===10?s+'T00:00:00.000Z':s; const m=/^(\d{2})\/(\d{2})\/(\d{4})/.exec(s); return m?(m[3]+'-'+m[2]+'-'+m[1]+'T00:00:00.000Z'):''; };
   const ocOf=a=>{ const m=/\b([A-Z]{1,2}\d{1,2}[A-Z]?)(?:\s*\d[A-Z]{2})?\s*$/.exec(String(a||'').trim().replace(/,$/,'')); return m?m[1]:''; };
@@ -8515,7 +8519,7 @@ async function init(){
   }
   async function sheetPost(key,fields,decision){
     const r=await fetch(URL0,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},
-      body:JSON.stringify({k:KEY0,key:key,fields:fields,decision:decision})});
+      body:JSON.stringify({k:KEY0,key:key,fields:normKeys(fields),decision:decision})});
     const d=await r.json().catch(()=>({error:'no reply'}));
     if(!r.ok||d.error||!d.ok) throw new Error('Save to the Buy list failed: '+(d.error||r.status)+'. Nothing was changed.');
     return d;
@@ -8596,7 +8600,7 @@ async function init(){
     for(const r of (d.brain||[])){
       const key=String(r[0]||'').trim(); if(!key||!byKey.has(key)) continue;
       try{
-        const f=byKey.get(key).fields, j=JSON.parse(r[1]||'{}');
+        const f=byKey.get(key).fields, j=normKeys(JSON.parse(r[1]||'{}'));
         const deal=f[F.deal], parked=f[F.parked], hadR=Array.isArray(f[F.tags])&&f[F.tags].includes('BRRR');
         Object.assign(f,j);
         /* Column I wins when it holds a letter. Blank I (e.g. Watch, which has no letter) keeps the Brain's own value. */
@@ -8688,7 +8692,7 @@ async function init(){
   function sqOverlay(list){
     if(!sq.length) return list;
     const byId=new Map(list.map(r=>[r.id,r]));
-    for(const it of sq){ const r=byId.get(it.key); if(r) Object.assign(r.fields,it.fields); }
+    for(const it of sq){ const r=byId.get(it.key); if(r) Object.assign(r.fields,normKeys(it.fields)); }
     return list;
   }
   patchFields=async function(rec,fields){

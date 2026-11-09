@@ -309,6 +309,7 @@
   .decision-card { margin-top:14px; }
   .decide { display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px; padding:14px; }
   .decide.four { grid-template-columns:1fr 1fr 1fr 1fr; }
+  .decide.two { grid-template-columns:1fr 1fr; }
   .decide button,.verdict button {
     min-height:54px;
     padding:12px;
@@ -1084,7 +1085,7 @@
     .trg-light small{display:none}
     .trg-sess{gap:12px;padding:8px 12px}
   }
-  @media(max-width:700px){.decide.four{grid-template-columns:1fr 1fr}}
+  @media(max-width:700px){.decide.four,.decide.two{grid-template-columns:1fr 1fr}}
 
 .analysis-toolbar{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}.analysis-status{padding:14px 16px;border-radius:14px;background:#eef3ff;border:1px solid #d5def5}.analysis-status h3{margin:0 0 4px}.analysis-status p{margin:0;color:var(--muted)}.brief-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}.brief-card{border:1px solid var(--line);border-radius:14px;padding:14px;background:#fff}.brief-card.primary{background:#172553;color:#fff;border-color:#172553}.brief-card .label{font-size:10px;text-transform:uppercase;letter-spacing:.09em;font-weight:800;opacity:.72}.brief-card .value{font-size:25px;line-height:1.1;font-weight:850;margin-top:6px}.brief-card .note{font-size:11px;opacity:.72;margin-top:5px}.assumption-note{font-size:12px;color:var(--muted);margin:0 0 10px}.risk-columns{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}.risk-box{border:1px solid var(--line);border-radius:12px;padding:12px}.risk-box h4{margin:0 0 8px}.risk-box ul{margin:0;padding-left:18px}.recommendation-box{margin-top:12px;padding:14px;border-radius:14px;border:1px solid #d6ddeb;background:#f7f9fd}.recommendation-box strong{display:block;font-size:20px;margin-bottom:4px}.fixed-costs-note{padding:10px 12px;border-radius:10px;background:#f6f7fb;color:var(--muted);font-size:11px;margin-bottom:10px}@media(max-width:760px){.brief-grid{grid-template-columns:1fr 1fr}.risk-columns{grid-template-columns:1fr}}
 .ref-modal-card{width:min(640px,96vw)}.ref-note{font-size:11.5px;color:var(--muted);margin:0 0 12px}.ref-section h3{margin:16px 0 6px;font-size:13px;text-transform:uppercase;letter-spacing:.03em;color:var(--navy)}.ref-section:first-of-type h3{margin-top:0}
@@ -1181,7 +1182,7 @@
 }
 /* Phone triage fits one screen, 28 Oct 2026 (Stu): compact top, shorter photo, five-button bar. Rollback: git revert this commit. */
 @media (max-width:600px){
-  #phoneDecide.show.pd-triage{grid-template-columns:1fr 1fr 1fr 1fr 52px;gap:6px}
+  #phoneDecide.show.pd-triage{grid-template-columns:1fr 1fr 1fr 52px;gap:6px}
   #phoneDecide.pd-triage button{font-size:14px;min-height:50px}
   #phoneDecide .pd-ref{background:#8a5a00;color:#fff}
   #phoneDecide .pd-pic{background:#e6ecff;color:#2d417f}
@@ -1226,7 +1227,7 @@
 </head>
 <body>
 <header>
-  <div class="brand"><h1>Property Brain · v3.20.0</h1><div class="sub">Buy better deals faster through superior intelligence · build 2026-11-04 · STP Deals [LIVE]</div></div>
+  <div class="brand"><h1>Property Brain · v3.21.0</h1><div class="sub">Buy better deals faster through superior intelligence · build 2026-11-09 · STP Deals [LIVE]</div></div>
   <button class="hdr-more" id="hdrMore" type="button" aria-expanded="false" aria-label="Search, refresh and tools">☰</button>
   <div class="modes" aria-label="Dashboard mode">
     <button class="mode" id="modeToday" type="button">Today</button>
@@ -1376,7 +1377,7 @@ function isEdinburghRec(r){ const f=(r&&r.fields)||{}; return isEdinburghZone((f
    listings, quoted plot names and unnumbered same-street pairs are not merged unless cross-portal at the same price and beds; decision
    bar padding includes the safe area and re-checks on resize; fades show cut-off tabs. Update banner fires only when App Control is
    NEWER than BUILD (the phone copy runs ahead of Drive). Rollback: commit 4aecf44 (v3.13.4). */
-const BUILD='3.20.0'; /* v3.20.0 (04/11/2026, Stu: "Yes, run the rename"): the five Airtable field IDs kept in Brain fields (Potential deal, Triage date, Decision, Pass reason, Notes) are now potential_deal, triage_date, airtable_decision, pass_reason, notes when the page is connected to the Sheet. Old keys are still read and are renamed on read and on save. Airtable-token mode keeps the old IDs. Rollback: git revert this commit and restore the sheet tab ARCHIVE_Brain fields_20261104 over Brain fields. */ /* v3.19.0 (03/11/2026): Pass - Under Offer now calls the Sheet link underOffer action (Gmail draft, never sent). */ /* v3.18.0 (31/10/2026): house card Live deals panel (HR in, HR link, HR value, agent, email, thread W, Max offer + PROVISIONAL, viewing X; blank = GAP), Request Home Report and Draft decline open Gmail compose (nothing sent), Book a viewing sorted by agent then town. Rollback: git revert, previous e4b74ec. */ /* v3.17.0 (30/10/2026): HR in date counts as report in; six Pass reasons; 1 h cache keyed on build. Rollback: git revert, previous 72b734a. */ /* v3.15.0 (26/10/2026): reads and writes the STP Deals Sheet once connected (adapter at the foot of the page); unconnected browsers keep v3.14.0 Airtable behaviour. Rollback: commit 7d22d2d. */ const BUILD_3140_NOTE='3.14.0'; /* v3.14.0 (20/10/2026): Review tab runs on the Deal Engine maths. Rollback: commit 12ca561 (v3.13.5). */ const BUILD_PREV_NOTE='3.13.5'; /* v3.13.5 changelog above. Previous: v3.13.4 (18/10/2026), rollback commit 4aecf44. Before that: v3.13.3 (18/10/2026), rollback commit 2cd1d1d. Before that: v3.13.2 (15/10/2026): v3.13.2 (15/10/2026): red-flag button logs to the Property Sprint Register (tbl5l7bViIJjBvfzz), not the dead capture queue. */
+const BUILD='3.21.0'; /* v3.21.0 (09/11/2026, Stu: "approve stage 2"): triage card is Yes or No, with Yes, needs refurb (writes R) under it; No Picture, Watch and Yes + analysis removed from triage (buttons, phone bar, keys P, W, Shift+Y). Old R, P and Watch data untouched; Watch screen and Review unchanged. Rollback: git revert this commit (previous fe6a6cc). */ /* v3.20.0 (04/11/2026, Stu: "Yes, run the rename"): the five Airtable field IDs kept in Brain fields (Potential deal, Triage date, Decision, Pass reason, Notes) are now potential_deal, triage_date, airtable_decision, pass_reason, notes when the page is connected to the Sheet. Old keys are still read and are renamed on read and on save. Airtable-token mode keeps the old IDs. Rollback: git revert this commit and restore the sheet tab ARCHIVE_Brain fields_20261104 over Brain fields. */ /* v3.19.0 (03/11/2026): Pass - Under Offer now calls the Sheet link underOffer action (Gmail draft, never sent). */ /* v3.18.0 (31/10/2026): house card Live deals panel (HR in, HR link, HR value, agent, email, thread W, Max offer + PROVISIONAL, viewing X; blank = GAP), Request Home Report and Draft decline open Gmail compose (nothing sent), Book a viewing sorted by agent then town. Rollback: git revert, previous e4b74ec. */ /* v3.17.0 (30/10/2026): HR in date counts as report in; six Pass reasons; 1 h cache keyed on build. Rollback: git revert, previous 72b734a. */ /* v3.15.0 (26/10/2026): reads and writes the STP Deals Sheet once connected (adapter at the foot of the page); unconnected browsers keep v3.14.0 Airtable behaviour. Rollback: commit 7d22d2d. */ const BUILD_3140_NOTE='3.14.0'; /* v3.14.0 (20/10/2026): Review tab runs on the Deal Engine maths. Rollback: commit 12ca561 (v3.13.5). */ const BUILD_PREV_NOTE='3.13.5'; /* v3.13.5 changelog above. Previous: v3.13.4 (18/10/2026), rollback commit 4aecf44. Before that: v3.13.3 (18/10/2026), rollback commit 2cd1d1d. Before that: v3.13.2 (15/10/2026): v3.13.2 (15/10/2026): red-flag button logs to the Property Sprint Register (tbl5l7bViIJjBvfzz), not the dead capture queue. */
 const CONTROL_TABLE='tblDGKgorkTQkAXBc';
 /* v3.4.0 (28/08/2026), AC-BRAINUX-WINDOW-01 + AC-BRAIN-PROCEEDFLOW-01.
    THE YES BOARD BECOMES THE "WHERE WE ARE" SCREEN. Stu, 27/08, verbatim:
@@ -5793,7 +5794,7 @@ function syncPhoneBar(){
   if(bar.dataset.mode!==mode){
     bar.dataset.mode=mode;
     bar.innerHTML = mode==='triage'
-      ? '<button class="pd-yes" type="button" data-pd="btnYes">Yes</button><button class="pd-ref" type="button" data-pd="btnYesRefurb">Refurb</button><button class="pd-pic" type="button" data-pd="btnNoPicture">No pic</button><button class="pd-no" type="button" data-pd="btnNo">No</button><button class="pd-more" type="button" data-pd="more" aria-label="All decision buttons">More</button>'
+      ? '<button class="pd-yes" type="button" data-pd="btnYes">Yes</button><button class="pd-no" type="button" data-pd="btnNo">No</button><button class="pd-ref" type="button" data-pd="btnYesRefurb">Refurb</button><button class="pd-more" type="button" data-pd="more" aria-label="All decision buttons">More</button>'
       : '<button class="pd-yes" type="button" data-pd="vYes">Proceed</button><button class="pd-no" type="button" data-pd="vNo">Pass</button><button class="pd-more" type="button" data-pd="more" aria-label="All decision buttons">More</button>';
   }
   const on=!!mode;
@@ -5892,14 +5893,12 @@ function renderUnsafe_(){
     try{ trgStrip=triageHealthStrip(); }catch(err){ console.error('triage health strip failed',err); }
     try{ trgSess=triageSessionBar(); }catch(err){ console.error('triage session bar failed',err); trgSess='<div class="trg-sess"><div class="trg-sess-n"><b>'+queue.length+'</b><span>to triage</span></div></div>'; }
     app.innerHTML='<div class="content-wrap"><div class="triage-wrap">'+trgStrip+trgSess+triageSubjectCard(rec,n)+
-      '<div class="card decision-card"><div class="decide four">'+
-      '<button class="yes" id="btnYes" type="button">Yes, save and next <kbd>Y</kbd></button>'+
-      '<button class="refurb" id="btnYesRefurb" type="button">Yes Refurb <kbd>R</kbd></button>'+
-      '<button class="nopicbtn" id="btnNoPicture" type="button" title="Parks the record until a photograph arrives. No verdict is recorded.">No Picture <kbd>P</kbd></button>'+
+      '<div class="card decision-card"><div class="decide two">'+ /* v3.21.0 (09/11/2026, Stu: "approve stage 2"): triage is Yes or No; refurb is a tag on Yes; No Picture, Watch and Yes + analysis are off this card */
+      '<button class="yes" id="btnYes" type="button">Yes <kbd>Y</kbd></button>'+
       '<button class="no" id="btnNo" type="button">No <kbd>N</kbd></button></div>'+
-      '<div class="keyhint"><kbd>Y</kbd> yes &nbsp; <kbd>R</kbd> yes, needs refurb &nbsp; <kbd>P</kbd> park it, no picture to judge it on &nbsp; <kbd>N</kbd> no &nbsp; <kbd>Shift</kbd>+<kbd>Y</kbd> yes and open the analysis &nbsp; <kbd>W</kbd> watch &nbsp; <kbd>D</kbd> duplicate &nbsp; <kbd>S</kbd> sold &nbsp; <kbd>U</kbd> under offer &nbsp; <kbd>Z</kbd> undo that &nbsp; <kbd>←</kbd> <kbd>→</kbd> navigate</div>'+
-      '<div class="intel-actions"><button class="smallbtn" id="btnYesAnalyse" type="button">Yes + open the analysis <kbd>Shift</kbd>+<kbd>Y</kbd></button></div>'+
-      '<div class="intel-actions market-actions"><span class="market-label">Utility</span><button class="smallbtn" id="btnWatch" type="button">Watch <kbd>W</kbd></button><button class="smallbtn" id="btnDuplicate" type="button">Duplicate <kbd>D</kbd></button><button class="smallbtn" id="btnSold" type="button">Sold <kbd>S</kbd></button><button class="smallbtn" id="btnUnderOffer" type="button">Under offer <kbd>U</kbd></button><button class="smallbtn" id="btnUndoMarket" type="button">Undo <kbd>Z</kbd></button></div></div></div></div>';
+      '<div class="intel-actions"><button class="smallbtn refurb" id="btnYesRefurb" type="button">Yes, needs refurb <kbd>R</kbd></button></div>'+
+      '<div class="keyhint"><kbd>Y</kbd> yes &nbsp; <kbd>N</kbd> no &nbsp; <kbd>R</kbd> yes, needs refurb &nbsp; <kbd>D</kbd> duplicate &nbsp; <kbd>S</kbd> sold &nbsp; <kbd>U</kbd> under offer &nbsp; <kbd>Z</kbd> undo that &nbsp; <kbd>←</kbd> <kbd>→</kbd> navigate</div>'+
+      '<div class="intel-actions market-actions"><span class="market-label">Utility</span><button class="smallbtn" id="btnDuplicate" type="button">Duplicate <kbd>D</kbd></button><button class="smallbtn" id="btnSold" type="button">Sold <kbd>S</kbd></button><button class="smallbtn" id="btnUnderOffer" type="button">Under offer <kbd>U</kbd></button><button class="smallbtn" id="btnUndoMarket" type="button">Undo <kbd>Z</kbd></button></div></div></div></div>';
     document.getElementById('btnYes').onclick=()=>decide(rec,STATUS.yes); /* v2.2.0: Yes saves and advances — analysis is reached later from Review or Today's Yes list */
     document.getElementById('btnYesRefurb').onclick=()=>decideYesRefurb(rec); /* 24/08/2026: Yes, same as above, plus the REFURB stamp so the Yes board can flag it straight away. */
     /* v2.5.0: promoteToAnalysis was written on 28/07 to answer Stu's complaint
@@ -5908,10 +5907,7 @@ function renderUnsafe_(){
        live. Wired here as a SECOND button rather than replacing Y, because with
        a five-thousand-record untriaged queue the fast save-and-advance path is
        the one that has to stay fast. */
-    document.getElementById('btnYesAnalyse').onclick=()=>promoteToAnalysis(rec);
     /* v3.7.0: Yes he could not see. Yes board, flagged, no Home Report. */
-    document.getElementById('btnNoPicture').onclick=()=>decideNoPicture(rec);
-    document.getElementById('btnWatch').onclick=()=>decide(rec,STATUS.watch);
     [...app.querySelectorAll('[data-health]')].forEach(b=>{ b.onclick=(ev)=>{ ev.stopPropagation(); openHealthAt(b.getAttribute('data-health')); }; });
     document.getElementById('btnDuplicate').onclick=()=>markDuplicate(rec);
     document.getElementById('btnNo').onclick=()=>markNo(rec);
@@ -7789,7 +7785,7 @@ function wireTriageHides(app){
     buildQueue(null,{top:true}); syncFilterUI(); render();
   });
 }
-function setDecisionDisabled(disabled){ document.querySelectorAll('.decide button,.verdict button,#btnYesAnalyse,.market-actions button').forEach(b=>b.disabled=disabled); }
+function setDecisionDisabled(disabled){ document.querySelectorAll('.decide button,.verdict button,#btnYesAnalyse,#btnYesRefurb,.market-actions button').forEach(b=>b.disabled=disabled); }
 function move(d){
   if(inspectRecordId||analysisRecordId||mode==='watch'||!queue.length) return;
   qi=(qi+d+queue.length)%queue.length;
@@ -8376,11 +8372,9 @@ function wireStaticControls(){
     if(e.key==='ArrowRight'){ e.preventDefault(); move(1); }
     if(e.key==='l'||e.key==='L'){ e.preventDefault(); openIssueModal(); }
     if(mode==='triage'&&!inspectRecordId&&queue[qi]){
-      if(e.key==='Y'&&e.shiftKey) promoteToAnalysis(queue[qi]); else if(e.key==='y'||e.key==='Y') decide(queue[qi],STATUS.yes);
+      if(e.key==='y'||e.key==='Y') decide(queue[qi],STATUS.yes); /* v3.21.0: Shift+Y, P and W off triage */
       if(e.key==='r'||e.key==='R') decideYesRefurb(queue[qi]);
-      if(e.key==='p'||e.key==='P') decideNoPicture(queue[qi]); /* v3.7.0 */
       if(e.key==='n'||e.key==='N') markNo(queue[qi]);
-      if(e.key==='w'||e.key==='W') decide(queue[qi],STATUS.watch);
       if(e.key==='d'||e.key==='D') markDuplicate(queue[qi]); /* v2.2.0: keyboard shortcut for Duplicate, matches Stream Deck mapping */
       /* v2.7.2: market-status keys, same layout on both screens per the v2.2.0 rule */
       if(e.key==='s'||e.key==='S') markSold(queue[qi]);

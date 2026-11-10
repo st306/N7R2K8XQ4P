@@ -50,6 +50,10 @@ def fields(seg):
     ty = re.search(r'\d+\s*(?:bed|bedroom)s?\s+([a-z\- ]+?)\s+for sale', seg, re.I)
     o['type'] = ty.group(1).strip().lower() if ty else ''
     parts = [x.strip() for x in seg.split(' | ')]
+    if not o['type']:  # card with no bed line, e.g. Rightmove '| Plot |': take the bare type word (10 Nov fix)
+        bare = next((p for p in parts[:15] if EXCL.fullmatch(p)), None)
+        if bare:
+            o['type'] = bare.lower()
     addr = None
     for i, p in enumerate(parts):
         if re.search(r'for sale$', p, re.I) and i + 1 < len(parts):
@@ -62,7 +66,7 @@ def fields(seg):
         addr = None
     o['address'] = addr or ''
     o['title'] = ' '.join(parts[:12])[:400]
-    o['reduced'] = bool(re.search(r'\bReduced\b', seg[:300]))
+    o['reduced'] = bool(re.search(r'\bReduced\b', seg[:max(300, m.start() if m else 0)]))  # label sits before the price (10 Nov fix)
     c = re.search(r'Reduced by\s*£\s?([\d,]{3,})', seg[:300], re.I)
     o['cut'] = int(c.group(1).replace(',', '')) if c else None
     a = re.search(r'Added on (\d{2}/\d{2}/\d{4})', seg)
@@ -490,11 +494,12 @@ def main():
             else:
                 C['already'] += 1
             continue
-        verdicts = [twin(l, o) for o in list(seen.values()) + list(have.values())]
+        others = list(seen.items()) + list(have.items())
+        verdicts = [twin(l, o) for _, o in others]
         if 'yes' in verdicts:
             C['twins'] += 1
-            continue
-        l['dupflag'] = 'maybe' in verdicts
+            l['twinof'] = [k2 for (k2, o), v in zip(others, verdicts) if v == 'yes'][0]
+        l['dupflag'] = 'maybe' in verdicts or 'yes' in verdicts
         seen[k] = l
     out_rows = []
     for l in sorted(seen.values(), key=lambda z: z['date'], reverse=True):
@@ -503,12 +508,14 @@ def main():
         flags = [l['search']] + ([l['qual']] if l.get('qual') else [])  # (23)
         if (oc and re.match(r'EH([1-9]|1[0-7])$', oc)) or re.search(r'edinburgh', addr, re.I):
             flags.append('Edinburgh, parked'); C['edinburgh'] += 1  # (24)
-        if re.search(r'berwick|northumberland|cornhill', addr, re.I) or (oc or '').startswith('TD15'):
+        if re.search(r'(?<!north )berwick(?!shire)|northumberland|cornhill', addr, re.I) or (oc or '').startswith('TD15'):  # not Berwickshire or North Berwick (10 Nov fix)
             flags.append('England'); C['england'] += 1
         if l['price'] and l['price'] > 260000:
             flags.append('Over £260k'); C['over260'] += 1  # (22)
         if l.get('dupflag'):
             flags.append('DUP CHECK INCOMPLETE'); C['flagged_dup'] += 1  # (18)
+        if l.get('twinof'):
+            flags.append('TWIN OF ' + l['twinof'])
         days = ''
         if l.get('added_on'):
             d0 = datetime.datetime.strptime(l['added_on'], '%d/%m/%Y').date()

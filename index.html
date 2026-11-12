@@ -307,6 +307,7 @@
   .btn.ghost:hover { background:var(--blue-soft); filter:none; }
 
   .decision-card { margin-top:14px; }
+  .hr-quick { display:inline-block; margin:10px 0 2px; padding:10px 14px; border-radius:10px; background:var(--navy); color:#fff; font-weight:700; text-decoration:none; } .hr-quick span { font-weight:500; opacity:.8; }
   .decide { display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px; padding:14px; }
   .decide.four { grid-template-columns:1fr 1fr 1fr 1fr; }
   .decide.two { grid-template-columns:1fr 1fr; }
@@ -1229,7 +1230,7 @@
 </head>
 <body>
 <header>
-  <div class="brand"><h1>Property Brain · v3.21.1</h1><div class="sub">Buy better deals faster through superior intelligence · build 2026-11-12 · STP Deals [LIVE]</div></div>
+  <div class="brand"><h1>Property Brain · v3.21.2</h1><div class="sub">Buy better deals faster through superior intelligence · build 2026-11-12 · STP Deals [LIVE]</div></div>
   <button class="hdr-more" id="hdrMore" type="button" aria-expanded="false" aria-label="Search, refresh and tools">☰</button>
   <div class="modes" aria-label="Dashboard mode">
     <button class="mode" id="modeToday" type="button">Today</button>
@@ -1379,7 +1380,7 @@ function isEdinburghRec(r){ const f=(r&&r.fields)||{}; return isEdinburghZone((f
    listings, quoted plot names and unnumbered same-street pairs are not merged unless cross-portal at the same price and beds; decision
    bar padding includes the safe area and re-checks on resize; fades show cut-off tabs. Update banner fires only when App Control is
    NEWER than BUILD (the phone copy runs ahead of Drive). Rollback: commit 4aecf44 (v3.13.4). */
-const BUILD='3.21.1'; /* v3.21.1 (12/11/2026, Stu in-app 11 Nov 01:26: save message covered the bottom buttons): on phones the toast shows at the top and ignores taps. Rollback: git revert this commit (previous cba3206). */ const BUILD_3210_NOTE='3.21.0'; /* v3.21.0 (09/11/2026, Stu: "approve stage 2"): triage card is Yes or No, with Yes, needs refurb (writes R) under it; No Picture, Watch and Yes + analysis removed from triage (buttons, phone bar, keys P, W, Shift+Y). Old R, P and Watch data untouched; Watch screen and Review unchanged. Rollback: git revert this commit (previous fe6a6cc). */ /* v3.20.0 (04/11/2026, Stu: "Yes, run the rename"): the five Airtable field IDs kept in Brain fields (Potential deal, Triage date, Decision, Pass reason, Notes) are now potential_deal, triage_date, airtable_decision, pass_reason, notes when the page is connected to the Sheet. Old keys are still read and are renamed on read and on save. Airtable-token mode keeps the old IDs. Rollback: git revert this commit and restore the sheet tab ARCHIVE_Brain fields_20261104 over Brain fields. */ /* v3.19.0 (03/11/2026): Pass - Under Offer now calls the Sheet link underOffer action (Gmail draft, never sent). */ /* v3.18.0 (31/10/2026): house card Live deals panel (HR in, HR link, HR value, agent, email, thread W, Max offer + PROVISIONAL, viewing X; blank = GAP), Request Home Report and Draft decline open Gmail compose (nothing sent), Book a viewing sorted by agent then town. Rollback: git revert, previous e4b74ec. */ /* v3.17.0 (30/10/2026): HR in date counts as report in; six Pass reasons; 1 h cache keyed on build. Rollback: git revert, previous 72b734a. */ /* v3.15.0 (26/10/2026): reads and writes the STP Deals Sheet once connected (adapter at the foot of the page); unconnected browsers keep v3.14.0 Airtable behaviour. Rollback: commit 7d22d2d. */ const BUILD_3140_NOTE='3.14.0'; /* v3.14.0 (20/10/2026): Review tab runs on the Deal Engine maths. Rollback: commit 12ca561 (v3.13.5). */ const BUILD_PREV_NOTE='3.13.5'; /* v3.13.5 changelog above. Previous: v3.13.4 (18/10/2026), rollback commit 4aecf44. Before that: v3.13.3 (18/10/2026), rollback commit 2cd1d1d. Before that: v3.13.2 (15/10/2026): v3.13.2 (15/10/2026): red-flag button logs to the Property Sprint Register (tbl5l7bViIJjBvfzz), not the dead capture queue. */
+const BUILD='3.21.2'; /* v3.21.2 (12/11/2026, Go Live card test): Open Home Report button under the address on the house card when Live deals has an HR link. Rollback: git revert this commit (previous 274f698). */ const BUILD_3211_NOTE='3.21.1'; /* v3.21.1 (12/11/2026, Stu in-app 11 Nov 01:26: save message covered the bottom buttons): on phones the toast shows at the top and ignores taps. Rollback: git revert this commit (previous cba3206). */ const BUILD_3210_NOTE='3.21.0'; /* v3.21.0 (09/11/2026, Stu: "approve stage 2"): triage card is Yes or No, with Yes, needs refurb (writes R) under it; No Picture, Watch and Yes + analysis removed from triage (buttons, phone bar, keys P, W, Shift+Y). Old R, P and Watch data untouched; Watch screen and Review unchanged. Rollback: git revert this commit (previous fe6a6cc). */ /* v3.20.0 (04/11/2026, Stu: "Yes, run the rename"): the five Airtable field IDs kept in Brain fields (Potential deal, Triage date, Decision, Pass reason, Notes) are now potential_deal, triage_date, airtable_decision, pass_reason, notes when the page is connected to the Sheet. Old keys are still read and are renamed on read and on save. Airtable-token mode keeps the old IDs. Rollback: git revert this commit and restore the sheet tab ARCHIVE_Brain fields_20261104 over Brain fields. */ /* v3.19.0 (03/11/2026): Pass - Under Offer now calls the Sheet link underOffer action (Gmail draft, never sent). */ /* v3.18.0 (31/10/2026): house card Live deals panel (HR in, HR link, HR value, agent, email, thread W, Max offer + PROVISIONAL, viewing X; blank = GAP), Request Home Report and Draft decline open Gmail compose (nothing sent), Book a viewing sorted by agent then town. Rollback: git revert, previous e4b74ec. */ /* v3.17.0 (30/10/2026): HR in date counts as report in; six Pass reasons; 1 h cache keyed on build. Rollback: git revert, previous 72b734a. */ /* v3.15.0 (26/10/2026): reads and writes the STP Deals Sheet once connected (adapter at the foot of the page); unconnected browsers keep v3.14.0 Airtable behaviour. Rollback: commit 7d22d2d. */ const BUILD_3140_NOTE='3.14.0'; /* v3.14.0 (20/10/2026): Review tab runs on the Deal Engine maths. Rollback: commit 12ca561 (v3.13.5). */ const BUILD_PREV_NOTE='3.13.5'; /* v3.13.5 changelog above. Previous: v3.13.4 (18/10/2026), rollback commit 4aecf44. Before that: v3.13.3 (18/10/2026), rollback commit 2cd1d1d. Before that: v3.13.2 (15/10/2026): v3.13.2 (15/10/2026): red-flag button logs to the Property Sprint Register (tbl5l7bViIJjBvfzz), not the dead capture queue. */
 const CONTROL_TABLE='tblDGKgorkTQkAXBc';
 /* v3.4.0 (28/08/2026), AC-BRAINUX-WINDOW-01 + AC-BRAIN-PROCEEDFLOW-01.
    THE YES BOARD BECOMES THE "WHERE WE ARE" SCREEN. Stu, 27/08, verbatim:
@@ -5237,6 +5238,14 @@ document.addEventListener('click',e=>{
   if(kind==='hr'&&!L.hrSent) msgs.push('HR sent date not saved. Put today in Live deals G.');
   if(note) note.textContent=msgs.join(' ');
 },true);
+/* v3.21.2 (12/11/2026, Go Live card test): the Home Report link sat below the fold under the Proceed/Pass bar on a phone.
+   A house with a Live deals HR link (column I) now shows an Open Home Report button under the address. No link, no button
+   (the Live deals panel lower down still shows GAP). Opens in a new tab; writes nothing. Rollback: git revert this commit. */
+function hrQuick(rec){
+  try{ const L=dpLive(rec)||{}; const u=dpUrl(L.hrLink); if(!u) return '';
+    return '<a class="hr-quick" href="'+esc(u)+'" target="_blank" rel="noopener noreferrer">Open Home Report'+(L.hrIn?' <span>('+esc(dpDate(L.hrIn))+')</span>':'')+'</a>';
+  }catch(_){ return ''; }
+}
 function subjectCard(rec,n,extraHtml){
   const f=rec.fields||{};
   const pics=photosOf(f,F.subjPhotos);
@@ -5246,6 +5255,7 @@ function subjectCard(rec,n,extraHtml){
   return '<div class="card subject">'+gallery(pics,'subj')+'<div class="pad">'+
     '<div class="subject-top"><div><div class="eyebrow">Subject property</div><h2>'+esc(f[F.addr]||'(details pending intake)')+'</h2><div class="subject-sub">'+esc(n.subj||((f[F.beds]||'?')+' beds'))+'</div></div>'+
     '<span class="status-pill '+statusClass(rec)+'">'+esc(statusLabel(rec))+'</span></div>'+
+    hrQuick(rec)+ /* v3.21.2: Home Report one tap from the top of the house card */
     intentChips(rec)+ /* v3.10.0: above the banners, because it changes how he reads everything below it */
     (isTurnkey(rec)?'<div class="turnkey-banner">TURNKEY — the listing describes this as walk-in condition. Nothing to add, so the refurb margin is not there. Buy it only if the price alone makes it work.</div>':'')+
     (duplicate?(function(){

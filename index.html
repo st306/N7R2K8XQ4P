@@ -1111,6 +1111,7 @@
 #loadPill{position:fixed;left:50%;top:8px;transform:translateX(-50%);z-index:95;padding:7px 14px;border-radius:20px;background:var(--navy);color:#fff;font-size:12.5px;font-weight:750;box-shadow:0 8px 24px rgba(11,18,49,.3);display:none}
 #loadPill.show{display:block}
 .hdr-more{display:none}
+.hdr-search{display:none} /* v3.22.1: phone only, see the 600px block */
 .yb-tabs{display:none}
 #phoneDecide{display:none}
 @media (max-width:1480px) and (min-width:1181px){
@@ -1123,10 +1124,14 @@
   header .brand, header .jump, header .queue-nav { display:none; }
   header .modes { order:1; flex:1 1 auto; width:auto; min-width:0; }
   header .mode { min-height:44px; padding:8px 12px; }
-  .hdr-more { display:grid; place-items:center; order:2; flex:none; width:44px; height:44px; border:0; border-radius:10px; background:rgba(255,255,255,.14); color:#fff; font-size:20px; cursor:pointer; }
+  .hdr-more { display:grid; place-items:center; order:3; flex:none; width:44px; height:44px; border:0; border-radius:10px; background:rgba(255,255,255,.14); color:#fff; font-size:20px; cursor:pointer; }
+  /* v3.22.1 (13/11/2026, Stu: "There's no searchability on my phone"): search was only behind the menu button. A Search button now sits beside it and opens the box with the cursor in it. */
+  .hdr-search { display:flex; align-items:center; gap:4px; order:2; flex:none; height:44px; padding:0 12px; border:0; border-radius:10px; background:#fff; color:var(--navy); font:inherit; font-size:15px; font-weight:800; cursor:pointer; }
+  .hdr-search span { font-size:18px; line-height:1; }
+  header.hdr-open .hdr-search { order:1; }
   header.hdr-open { flex-wrap:wrap; }
   header.hdr-open .brand { display:block; order:0; flex:1 1 0; min-width:0; }
-  header.hdr-open .hdr-more { order:1; }
+  header.hdr-open .hdr-more { order:1; margin-left:auto; }
   header.hdr-open .modes { order:2; flex-basis:100%; }
   header.hdr-open .jump { display:block; order:3; flex-basis:100%; }
   header.hdr-open .queue-nav { display:flex; order:4; flex-basis:100%; }
@@ -1236,7 +1241,8 @@
 </head>
 <body>
 <header>
-  <div class="brand"><h1>Property Brain · v3.22.0</h1><div class="sub">Buy better deals faster through superior intelligence · build 2026-11-12 · STP Deals [LIVE]</div></div>
+  <div class="brand"><h1>Property Brain · v3.22.1</h1><div class="sub">Buy better deals faster through superior intelligence · build 2026-11-12 · STP Deals [LIVE]</div></div>
+  <button class="hdr-search" id="hdrSearch" type="button" aria-label="Search for a house by street, postcode or agent"><span aria-hidden="true">⌕</span> Search</button>
   <button class="hdr-more" id="hdrMore" type="button" aria-expanded="false" aria-label="Search, refresh and tools">☰</button>
   <div class="modes" aria-label="Dashboard mode">
     <button class="mode" id="modeToday" type="button">Today</button>
@@ -1386,7 +1392,7 @@ function isEdinburghRec(r){ const f=(r&&r.fields)||{}; return isEdinburghZone((f
    listings, quoted plot names and unnumbered same-street pairs are not merged unless cross-portal at the same price and beds; decision
    bar padding includes the safe area and re-checks on resize; fades show cut-off tabs. Update banner fires only when App Control is
    NEWER than BUILD (the phone copy runs ahead of Drive). Rollback: commit 4aecf44 (v3.13.4). */
-const BUILD='3.22.0'; /* v3.22.0 (12/11/2026, Go Live, Stu Yes 23:45): house card boxes for HR value, Viewing date, Viewed, Note of interest and Closing date, saved to Live deals J/K, X, Y, Z, AA through the Sheet link (script Version 13). Rollback: git revert this commit (previous e4551db). */ const BUILD_3212_NOTE='3.21.2'; /* v3.21.2 (12/11/2026, Go Live card test): Open Home Report button under the address on the house card when Live deals has an HR link. Rollback: git revert this commit (previous 274f698). */ const BUILD_3211_NOTE='3.21.1'; /* v3.21.1 (12/11/2026, Stu in-app 11 Nov 01:26: save message covered the bottom buttons): on phones the toast shows at the top and ignores taps. Rollback: git revert this commit (previous cba3206). */ const BUILD_3210_NOTE='3.21.0'; /* v3.21.0 (09/11/2026, Stu: "approve stage 2"): triage card is Yes or No, with Yes, needs refurb (writes R) under it; No Picture, Watch and Yes + analysis removed from triage (buttons, phone bar, keys P, W, Shift+Y). Old R, P and Watch data untouched; Watch screen and Review unchanged. Rollback: git revert this commit (previous fe6a6cc). */ /* v3.20.0 (04/11/2026, Stu: "Yes, run the rename"): the five Airtable field IDs kept in Brain fields (Potential deal, Triage date, Decision, Pass reason, Notes) are now potential_deal, triage_date, airtable_decision, pass_reason, notes when the page is connected to the Sheet. Old keys are still read and are renamed on read and on save. Airtable-token mode keeps the old IDs. Rollback: git revert this commit and restore the sheet tab ARCHIVE_Brain fields_20261104 over Brain fields. */ /* v3.19.0 (03/11/2026): Pass - Under Offer now calls the Sheet link underOffer action (Gmail draft, never sent). */ /* v3.18.0 (31/10/2026): house card Live deals panel (HR in, HR link, HR value, agent, email, thread W, Max offer + PROVISIONAL, viewing X; blank = GAP), Request Home Report and Draft decline open Gmail compose (nothing sent), Book a viewing sorted by agent then town. Rollback: git revert, previous e4b74ec. */ /* v3.17.0 (30/10/2026): HR in date counts as report in; six Pass reasons; 1 h cache keyed on build. Rollback: git revert, previous 72b734a. */ /* v3.15.0 (26/10/2026): reads and writes the STP Deals Sheet once connected (adapter at the foot of the page); unconnected browsers keep v3.14.0 Airtable behaviour. Rollback: commit 7d22d2d. */ const BUILD_3140_NOTE='3.14.0'; /* v3.14.0 (20/10/2026): Review tab runs on the Deal Engine maths. Rollback: commit 12ca561 (v3.13.5). */ const BUILD_PREV_NOTE='3.13.5'; /* v3.13.5 changelog above. Previous: v3.13.4 (18/10/2026), rollback commit 4aecf44. Before that: v3.13.3 (18/10/2026), rollback commit 2cd1d1d. Before that: v3.13.2 (15/10/2026): v3.13.2 (15/10/2026): red-flag button logs to the Property Sprint Register (tbl5l7bViIJjBvfzz), not the dead capture queue. */
+const BUILD='3.22.1'; /* v3.22.1 (13/11/2026, Stu 16:29: no search on the phone): a Search button on the phone header opens the search box with the cursor in it. Rollback: git revert this commit (previous 528c9ba). */ const BUILD_3220_NOTE='3.22.0'; /* v3.22.0 (12/11/2026, Go Live, Stu Yes 23:45): house card boxes for HR value, Viewing date, Viewed, Note of interest and Closing date, saved to Live deals J/K, X, Y, Z, AA through the Sheet link (script Version 13). Rollback: git revert this commit (previous e4551db). */ const BUILD_3212_NOTE='3.21.2'; /* v3.21.2 (12/11/2026, Go Live card test): Open Home Report button under the address on the house card when Live deals has an HR link. Rollback: git revert this commit (previous 274f698). */ const BUILD_3211_NOTE='3.21.1'; /* v3.21.1 (12/11/2026, Stu in-app 11 Nov 01:26: save message covered the bottom buttons): on phones the toast shows at the top and ignores taps. Rollback: git revert this commit (previous cba3206). */ const BUILD_3210_NOTE='3.21.0'; /* v3.21.0 (09/11/2026, Stu: "approve stage 2"): triage card is Yes or No, with Yes, needs refurb (writes R) under it; No Picture, Watch and Yes + analysis removed from triage (buttons, phone bar, keys P, W, Shift+Y). Old R, P and Watch data untouched; Watch screen and Review unchanged. Rollback: git revert this commit (previous fe6a6cc). */ /* v3.20.0 (04/11/2026, Stu: "Yes, run the rename"): the five Airtable field IDs kept in Brain fields (Potential deal, Triage date, Decision, Pass reason, Notes) are now potential_deal, triage_date, airtable_decision, pass_reason, notes when the page is connected to the Sheet. Old keys are still read and are renamed on read and on save. Airtable-token mode keeps the old IDs. Rollback: git revert this commit and restore the sheet tab ARCHIVE_Brain fields_20261104 over Brain fields. */ /* v3.19.0 (03/11/2026): Pass - Under Offer now calls the Sheet link underOffer action (Gmail draft, never sent). */ /* v3.18.0 (31/10/2026): house card Live deals panel (HR in, HR link, HR value, agent, email, thread W, Max offer + PROVISIONAL, viewing X; blank = GAP), Request Home Report and Draft decline open Gmail compose (nothing sent), Book a viewing sorted by agent then town. Rollback: git revert, previous e4b74ec. */ /* v3.17.0 (30/10/2026): HR in date counts as report in; six Pass reasons; 1 h cache keyed on build. Rollback: git revert, previous 72b734a. */ /* v3.15.0 (26/10/2026): reads and writes the STP Deals Sheet once connected (adapter at the foot of the page); unconnected browsers keep v3.14.0 Airtable behaviour. Rollback: commit 7d22d2d. */ const BUILD_3140_NOTE='3.14.0'; /* v3.14.0 (20/10/2026): Review tab runs on the Deal Engine maths. Rollback: commit 12ca561 (v3.13.5). */ const BUILD_PREV_NOTE='3.13.5'; /* v3.13.5 changelog above. Previous: v3.13.4 (18/10/2026), rollback commit 4aecf44. Before that: v3.13.3 (18/10/2026), rollback commit 2cd1d1d. Before that: v3.13.2 (15/10/2026): v3.13.2 (15/10/2026): red-flag button logs to the Property Sprint Register (tbl5l7bViIJjBvfzz), not the dead capture queue. */
 const CONTROL_TABLE='tblDGKgorkTQkAXBc';
 /* v3.4.0 (28/08/2026), AC-BRAINUX-WINDOW-01 + AC-BRAIN-PROCEEDFLOW-01.
    THE YES BOARD BECOMES THE "WHERE WE ARE" SCREEN. Stu, 27/08, verbatim:
@@ -8401,6 +8407,9 @@ function wireStaticControls(){
   /* v3.13.5: phone header is one line; the menu button shows search, arrows, refresh and tools. Filters start folded on a phone. */
   const hm=document.getElementById('hdrMore');
   if(hm) hm.onclick=()=>{ const h=document.querySelector('header'); const o=!h.classList.contains('hdr-open'); h.classList.toggle('hdr-open',o); hm.setAttribute('aria-expanded',String(o)); hm.textContent=o?'✕':'☰'; };
+  /* v3.22.1: phone Search button opens the header and puts the cursor in the search box (focus in the same tap so the iPhone keyboard opens). */
+  const hs=document.getElementById('hdrSearch');
+  if(hs) hs.onclick=(e)=>{ if(e) e.stopPropagation(); /* the page click handler hides results for clicks outside .jump */ const h=document.querySelector('header'); if(!h.classList.contains('hdr-open')&&hm) hm.onclick(); const j=document.getElementById('jumpSearch'); if(j){ j.focus(); try{ j.scrollIntoView({block:'nearest'}); }catch(_){} } };
   try{ if(window.matchMedia&&matchMedia('(max-width:600px)').matches){ const fs=document.getElementById('filterShell'); if(fs) fs.open=false; } }catch(_){}
   document.getElementById('backReviewedBtn').onclick=openLastReviewed;
   document.getElementById('prevBtn').onclick=()=>move(-1);

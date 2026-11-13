@@ -1226,11 +1226,17 @@
 .dp-actions .smallbtn{flex:1 1 140px}
 .dp-note{margin-top:6px;font-size:12px;color:var(--amber)}
 .dp-note:empty{display:none}
+/* v3.22.0: card field boxes. 16px so the iPhone does not zoom in on focus. */
+.dp-in{font:inherit;font-size:16px;font-weight:650;width:100%;max-width:210px;min-width:0;min-height:40px;padding:6px 8px;border:1px solid var(--line);border-radius:8px;background:#fff;color:inherit;box-sizing:border-box}
+.dp-in::placeholder{color:var(--red);font-weight:800;opacity:1}
+.dp-in:disabled{opacity:.55}
+.dp-today{font:inherit;font-size:13px;font-weight:700;min-height:40px;padding:6px 12px;margin-left:6px;border:1px solid var(--line);border-radius:8px;background:#fff;color:var(--navy);cursor:pointer}
+.dp-grid dt{align-self:center}
 </style>
 </head>
 <body>
 <header>
-  <div class="brand"><h1>Property Brain · v3.21.2</h1><div class="sub">Buy better deals faster through superior intelligence · build 2026-11-12 · STP Deals [LIVE]</div></div>
+  <div class="brand"><h1>Property Brain · v3.22.0</h1><div class="sub">Buy better deals faster through superior intelligence · build 2026-11-12 · STP Deals [LIVE]</div></div>
   <button class="hdr-more" id="hdrMore" type="button" aria-expanded="false" aria-label="Search, refresh and tools">☰</button>
   <div class="modes" aria-label="Dashboard mode">
     <button class="mode" id="modeToday" type="button">Today</button>
@@ -1380,7 +1386,7 @@ function isEdinburghRec(r){ const f=(r&&r.fields)||{}; return isEdinburghZone((f
    listings, quoted plot names and unnumbered same-street pairs are not merged unless cross-portal at the same price and beds; decision
    bar padding includes the safe area and re-checks on resize; fades show cut-off tabs. Update banner fires only when App Control is
    NEWER than BUILD (the phone copy runs ahead of Drive). Rollback: commit 4aecf44 (v3.13.4). */
-const BUILD='3.21.2'; /* v3.21.2 (12/11/2026, Go Live card test): Open Home Report button under the address on the house card when Live deals has an HR link. Rollback: git revert this commit (previous 274f698). */ const BUILD_3211_NOTE='3.21.1'; /* v3.21.1 (12/11/2026, Stu in-app 11 Nov 01:26: save message covered the bottom buttons): on phones the toast shows at the top and ignores taps. Rollback: git revert this commit (previous cba3206). */ const BUILD_3210_NOTE='3.21.0'; /* v3.21.0 (09/11/2026, Stu: "approve stage 2"): triage card is Yes or No, with Yes, needs refurb (writes R) under it; No Picture, Watch and Yes + analysis removed from triage (buttons, phone bar, keys P, W, Shift+Y). Old R, P and Watch data untouched; Watch screen and Review unchanged. Rollback: git revert this commit (previous fe6a6cc). */ /* v3.20.0 (04/11/2026, Stu: "Yes, run the rename"): the five Airtable field IDs kept in Brain fields (Potential deal, Triage date, Decision, Pass reason, Notes) are now potential_deal, triage_date, airtable_decision, pass_reason, notes when the page is connected to the Sheet. Old keys are still read and are renamed on read and on save. Airtable-token mode keeps the old IDs. Rollback: git revert this commit and restore the sheet tab ARCHIVE_Brain fields_20261104 over Brain fields. */ /* v3.19.0 (03/11/2026): Pass - Under Offer now calls the Sheet link underOffer action (Gmail draft, never sent). */ /* v3.18.0 (31/10/2026): house card Live deals panel (HR in, HR link, HR value, agent, email, thread W, Max offer + PROVISIONAL, viewing X; blank = GAP), Request Home Report and Draft decline open Gmail compose (nothing sent), Book a viewing sorted by agent then town. Rollback: git revert, previous e4b74ec. */ /* v3.17.0 (30/10/2026): HR in date counts as report in; six Pass reasons; 1 h cache keyed on build. Rollback: git revert, previous 72b734a. */ /* v3.15.0 (26/10/2026): reads and writes the STP Deals Sheet once connected (adapter at the foot of the page); unconnected browsers keep v3.14.0 Airtable behaviour. Rollback: commit 7d22d2d. */ const BUILD_3140_NOTE='3.14.0'; /* v3.14.0 (20/10/2026): Review tab runs on the Deal Engine maths. Rollback: commit 12ca561 (v3.13.5). */ const BUILD_PREV_NOTE='3.13.5'; /* v3.13.5 changelog above. Previous: v3.13.4 (18/10/2026), rollback commit 4aecf44. Before that: v3.13.3 (18/10/2026), rollback commit 2cd1d1d. Before that: v3.13.2 (15/10/2026): v3.13.2 (15/10/2026): red-flag button logs to the Property Sprint Register (tbl5l7bViIJjBvfzz), not the dead capture queue. */
+const BUILD='3.22.0'; /* v3.22.0 (12/11/2026, Go Live, Stu Yes 23:45): house card boxes for HR value, Viewing date, Viewed, Note of interest and Closing date, saved to Live deals J/K, X, Y, Z, AA through the Sheet link (script Version 13). Rollback: git revert this commit (previous e4551db). */ const BUILD_3212_NOTE='3.21.2'; /* v3.21.2 (12/11/2026, Go Live card test): Open Home Report button under the address on the house card when Live deals has an HR link. Rollback: git revert this commit (previous 274f698). */ const BUILD_3211_NOTE='3.21.1'; /* v3.21.1 (12/11/2026, Stu in-app 11 Nov 01:26: save message covered the bottom buttons): on phones the toast shows at the top and ignores taps. Rollback: git revert this commit (previous cba3206). */ const BUILD_3210_NOTE='3.21.0'; /* v3.21.0 (09/11/2026, Stu: "approve stage 2"): triage card is Yes or No, with Yes, needs refurb (writes R) under it; No Picture, Watch and Yes + analysis removed from triage (buttons, phone bar, keys P, W, Shift+Y). Old R, P and Watch data untouched; Watch screen and Review unchanged. Rollback: git revert this commit (previous fe6a6cc). */ /* v3.20.0 (04/11/2026, Stu: "Yes, run the rename"): the five Airtable field IDs kept in Brain fields (Potential deal, Triage date, Decision, Pass reason, Notes) are now potential_deal, triage_date, airtable_decision, pass_reason, notes when the page is connected to the Sheet. Old keys are still read and are renamed on read and on save. Airtable-token mode keeps the old IDs. Rollback: git revert this commit and restore the sheet tab ARCHIVE_Brain fields_20261104 over Brain fields. */ /* v3.19.0 (03/11/2026): Pass - Under Offer now calls the Sheet link underOffer action (Gmail draft, never sent). */ /* v3.18.0 (31/10/2026): house card Live deals panel (HR in, HR link, HR value, agent, email, thread W, Max offer + PROVISIONAL, viewing X; blank = GAP), Request Home Report and Draft decline open Gmail compose (nothing sent), Book a viewing sorted by agent then town. Rollback: git revert, previous e4b74ec. */ /* v3.17.0 (30/10/2026): HR in date counts as report in; six Pass reasons; 1 h cache keyed on build. Rollback: git revert, previous 72b734a. */ /* v3.15.0 (26/10/2026): reads and writes the STP Deals Sheet once connected (adapter at the foot of the page); unconnected browsers keep v3.14.0 Airtable behaviour. Rollback: commit 7d22d2d. */ const BUILD_3140_NOTE='3.14.0'; /* v3.14.0 (20/10/2026): Review tab runs on the Deal Engine maths. Rollback: commit 12ca561 (v3.13.5). */ const BUILD_PREV_NOTE='3.13.5'; /* v3.13.5 changelog above. Previous: v3.13.4 (18/10/2026), rollback commit 4aecf44. Before that: v3.13.3 (18/10/2026), rollback commit 2cd1d1d. Before that: v3.13.2 (15/10/2026): v3.13.2 (15/10/2026): red-flag button logs to the Property Sprint Register (tbl5l7bViIJjBvfzz), not the dead capture queue. */
 const CONTROL_TABLE='tblDGKgorkTQkAXBc';
 /* v3.4.0 (28/08/2026), AC-BRAINUX-WINDOW-01 + AC-BRAIN-PROCEEDFLOW-01.
    THE YES BOARD BECOMES THE "WHERE WE ARE" SCREEN. Stu, 27/08, verbatim:
@@ -5208,17 +5214,27 @@ function dealPanel(rec){
   const prov=/provisional/i.test(l.status||'');
   const row=(k,v)=>'<dt>'+esc(k)+'</dt><dd>'+v+'</dd>';
   const txt=v=>v?esc(v):dpGap();
+  /* v3.22.0: on a house that is on Live deals, with the page connected to the Sheet, these five rows are boxes he can fill. */
+  const ed=has&&!!window.SHEET_MODE&&typeof window.cardSave==='function';
+  const rid=esc(rec.id);
+  const dIn=(act,v,label,gap)=>{ const i=dpIso(v);
+    return '<input class="dp-in" type="date" aria-label="'+esc(label)+'" data-dp-save="'+act+'" data-rid="'+rid+'" data-prev="'+esc(i)+'" value="'+esc(i)+'">'+
+      (v&&!i?' <span class="dp-sub">Sheet says: '+esc(v)+'. Pick a date to replace it.</span>':'')+(!v&&gap?' '+dpGap():''); };
+  const hrVal=l.hrValue!=null&&l.hrValue>0?Math.round(l.hrValue):'';
   return '<div class="deal-panel" data-dp-rec="'+esc(rec.id)+'">'+
     '<div class="dp-head"><span class="eyebrow">Live deals</span>'+(has?'':'<span class="dp-off">Not on Live deals yet</span>')+'</div>'+
     '<dl class="dp-grid">'+
       row('Home Report in',txt(dpDate(l.hrIn)))+
       row('HR link',hrUrl?'<a href="'+esc(hrUrl)+'" target="_blank" rel="noopener noreferrer">Open Home Report</a>':(l.hrLink?esc(l.hrLink):dpGap()))+
-      row('HR value',l.hrValue!=null&&l.hrValue>0?esc(gbp(l.hrValue))+(l.hrValueDate?' <span class="dp-sub">'+esc(dpDate(l.hrValueDate))+'</span>':''):dpGap())+
+      row('HR value',ed?('<input class="dp-in" type="text" inputmode="numeric" autocomplete="off" aria-label="Home Report value in pounds" placeholder="GAP" data-dp-save="hrvalue" data-rid="'+rid+'" data-prev="'+esc(hrVal)+'" value="'+esc(hrVal)+'">'+(hrVal!==''?' <span class="dp-sub">'+esc(gbp(hrVal))+(l.hrValueDate?', saved '+esc(dpDate(l.hrValueDate)):'')+'</span>':'')):(hrVal!==''?esc(gbp(l.hrValue))+(l.hrValueDate?' <span class="dp-sub">'+esc(dpDate(l.hrValueDate))+'</span>':''):dpGap()))+
       row('Agent',txt(agent))+
       row('Agent email',l.email?'<a href="mailto:'+esc(l.email)+'">'+esc(l.email)+'</a>':dpGap())+
       row('Thread',thUrl?'<a href="'+esc(thUrl)+'" target="_blank" rel="noopener noreferrer">Open thread</a>':(l.thread?esc(l.thread):dpGap()))+
       row('Max offer',l.max!=null&&l.max>0?esc(gbp(l.max))+(prov?' <span class="dp-prov">PROVISIONAL</span>':''):dpGap()+(prov?' <span class="dp-prov">PROVISIONAL</span>':''))+
-      row('Viewing date',txt(dpDate(l.viewing)))+
+      row('Viewing date',ed?dIn('viewing',l.viewing,'Viewing date',true):txt(dpDate(l.viewing)))+
+      row('Viewed',ed?(dIn('attended',l.viewed,'Date viewed',false)+(dpIso(l.viewed)?'':' <button class="dp-today" type="button" data-dp-today="attended" data-rid="'+rid+'">Today</button>')):(l.viewed?esc(dpDate(l.viewed)):'<span class="dp-sub">not yet</span>'))+
+      row('Note of interest',ed?dIn('noi',l.noi,'Note of interest date',false):(l.noi?esc(dpDate(l.noi)):'<span class="dp-sub">not yet</span>'))+
+      row('Closing date',ed?dIn('closing',l.closing,'Closing date',false):(l.closing?esc(dpDate(l.closing)):'<span class="dp-sub">none set</span>'))+
     '</dl>'+
     '<div class="dp-actions"><button class="smallbtn" type="button" data-dp-act="hr" data-rid="'+esc(rec.id)+'">Request Home Report</button>'+
     '<button class="smallbtn" type="button" data-dp-act="decline" data-rid="'+esc(rec.id)+'">Draft decline</button></div>'+
@@ -5237,6 +5253,95 @@ document.addEventListener('click',e=>{
   if(!L.email) msgs.push('No agent email on Live deals, so the To line is blank.');
   if(kind==='hr'&&!L.hrSent) msgs.push('HR sent date not saved. Put today in Live deals G.');
   if(note) note.textContent=msgs.join(' ');
+},true);
+/* v3.22.0 (12/11/2026, Go Live, Stu "Yes" 23:45): card fields. On a house that is on Live deals, HR value, Viewing date,
+   Viewed, Note of interest and Closing date are boxes on the house card. A change saves straight to Live deals through the
+   Sheet link (script Version 13): HR value to J with today's date in K; Viewing date to X; Viewed to Y; Note of interest to Z;
+   Closing date to AA. Emptying a box clears the cell. A failed save puts the old value back and says Not saved. Nothing is
+   sent to anyone; Buy list column I is never touched; no Airtable. Rollback: git revert this commit (previous e4551db). */
+function dpIso(v){
+  const s=String(v||'').trim(); let y,mo,d; let m=/^(\d{4})-(\d{2})-(\d{2})/.exec(s);
+  if(m){ y=+m[1]; mo=+m[2]; d=+m[3]; } else { m=/^(\d{2})\/(\d{2})\/(\d{4})/.exec(s); if(!m) return ''; y=+m[3]; mo=+m[2]; d=+m[1]; }
+  const t=new Date(Date.UTC(y,mo-1,d)); /* a real calendar date only: 31/02 or a US-style 11/13 is shown as the Sheet's text, not as a blank box */
+  if(t.getUTCFullYear()!==y||t.getUTCMonth()!==mo-1||t.getUTCDate()!==d) return '';
+  return String(y).padStart(4,'0')+'-'+String(mo).padStart(2,'0')+'-'+String(d).padStart(2,'0');
+}
+/* Card writes made in this browser, kept until a read that began after the save has come back. Without this a slow background
+   read that left before the save would put the old value back on the card for a couple of minutes. */
+const dpWrites={};
+function dpNoteWrite(id,vals){ const w=dpWrites[id]||(dpWrites[id]={}); const at=Date.now(); Object.keys(vals).forEach(k=>{ w[k]={v:vals[k],at}; }); }
+function dpApplyWrites(list,startedAt){
+  const byId={}; list.forEach(r=>{ byId[r.id]=r; });
+  Object.keys(dpWrites).forEach(id=>{
+    const w=dpWrites[id], r=byId[id], L=r&&r.fields&&r.fields.__live;
+    Object.keys(w).forEach(k=>{ if(w[k].at>=startedAt){ if(L) L[k]=w[k].v; } else delete w[k]; });
+    if(!Object.keys(w).length) delete dpWrites[id];
+  });
+}
+const DP_LABEL={hrvalue:'HR value',viewing:'Viewing date',attended:'Viewed',noi:'Note of interest',closing:'Closing date'};
+const DP_FIELD={viewing:'viewing',attended:'viewed',noi:'noi',closing:'closing'};
+async function dpSaveField(el){
+  const act=el.dataset.dpSave, rec=records.find(r=>r.id===el.dataset.rid); if(!rec||!DP_LABEL[act]) return;
+  const L=dpLive(rec); if(!L||typeof window.cardSave!=='function') return;
+  if(el.dataset.busy) return; /* one save at a time per box */
+  const prev=el.dataset.prev||''; let val=String(el.value||'').trim(); const payload={};
+  if(act==='hrvalue'){
+    val=val.replace(/[£,\s]/g,'');
+    if(val!==''&&!(/^\d+(\.\d+)?$/.test(val)&&Math.round(Number(val))>0)){ el.value=prev; toast('HR value not saved: type a number, for example 140000.',5000); return; }
+    if(val!=='') val=String(Math.round(Number(val))); /* whole pounds, so the card and the Sheet always agree */
+    if(val===prev) { el.value=prev; return; }
+    payload.value=val;
+  }else{
+    if(val===prev) return;
+    if(val!==''&&!/^\d{4}-\d{2}-\d{2}$/.test(val)){ el.value=prev; toast(DP_LABEL[act]+' not saved: the date was not understood.',5000); return; }
+    payload.date=val;
+  }
+  el.disabled=true; el.dataset.busy='1';
+  const pn=el.closest('.deal-panel'); const nt=pn&&pn.querySelector('.dp-note'); const keepNote=nt?nt.textContent:'';
+  if(nt) nt.textContent='Saving '+DP_LABEL[act]+'…';
+  let cur=rec;
+  try{
+    const d=await window.cardSave(rec,act,payload);
+    const vals=act==='hrvalue'?{hrValue:d.hrValue==null?null:Number(d.hrValue),hrValueDate:String(d.hrValueDate||'')}:{[DP_FIELD[act]]:val};
+    dpNoteWrite(String(rec.id),vals);
+    cur=records.find(r=>r.id===rec.id)||rec; /* a refresh may have swapped the record while the save was on the wire */
+    [rec,cur].forEach(r=>{ const l=dpLive(r); if(l) Object.assign(l,vals); });
+    toast(val===''?DP_LABEL[act]+' cleared on Live deals.':DP_LABEL[act]+' saved: '+(act==='hrvalue'?gbp(val):dpDate(val))+'.',3500);
+  }catch(e){
+    el.value=prev;
+    const why=String(e&&e.message||e);
+    if(why==='no connection'){ toast(DP_LABEL[act]+' not confirmed: no reply from the Sheet. Checking now; if the box shows the old value, type it again.',7000);
+      try{ setTimeout(()=>{ try{ refreshData({manual:true}); }catch(_){} },1500); }catch(_){} }
+    else toast(DP_LABEL[act]+' not saved: '+why+'.',6500);
+    cur=records.find(r=>r.id===rec.id)||rec;
+  }
+  /* redraw every copy of this house's panel on screen from the record, so the box, its date note and Today button agree */
+  try{ document.querySelectorAll('.deal-panel').forEach(p=>{ if(p.dataset.dpRec===String(cur.id)){ p.outerHTML=dealPanel(cur); } });
+    if(keepNote) document.querySelectorAll('.deal-panel').forEach(p=>{ if(p.dataset.dpRec===String(cur.id)){ const n2=p.querySelector('.dp-note'); if(n2) n2.textContent=keepNote; } });
+  }catch(_){ el.disabled=false; }
+}
+document.addEventListener('change',e=>{
+  const el=e.target&&e.target.closest&&e.target.closest('[data-dp-save]'); if(!el) return;
+  e.stopPropagation();
+  /* A date box saves when he leaves it (Done on the iPhone), not on every turn of the date wheel, so a half-picked date is never saved. */
+  if(el.type==='date'){ if(document.activeElement!==el) dpSaveField(el); return; }
+  dpSaveField(el);
+},true);
+document.addEventListener('focusout',e=>{
+  const el=e.target&&e.target.closest&&e.target.closest('input[type="date"][data-dp-save]'); if(!el||el.dataset.busy) return;
+  dpSaveField(el);
+},true);
+document.addEventListener('keydown',e=>{ /* Enter in the HR value box saves it */
+  const el=e.target&&e.target.closest&&e.target.closest('input[data-dp-save="hrvalue"]'); if(!el||e.key!=='Enter') return;
+  e.preventDefault(); e.stopPropagation(); el.blur();
+},true);
+document.addEventListener('click',e=>{
+  const b=e.target&&e.target.closest&&e.target.closest('[data-dp-today]'); if(!b) return;
+  e.preventDefault(); e.stopPropagation();
+  const panel=b.closest('.deal-panel'); const el=panel&&panel.querySelector('input[data-dp-save="'+b.dataset.dpToday+'"]'); if(!el) return;
+  if(el.dataset.busy) return;
+  const n=new Date(); el.value=n.getFullYear()+'-'+String(n.getMonth()+1).padStart(2,'0')+'-'+String(n.getDate()).padStart(2,'0');
+  dpSaveField(el);
 },true);
 /* v3.21.2 (12/11/2026, Go Live card test): the Home Report link sat below the fold under the Proceed/Pass bar on a phone.
    A house with a Live deals HR link (column I) now shows an Open Home Report button under the address. No link, no button
@@ -8078,6 +8183,7 @@ async function refreshData(options){
     }
     const commit=()=>{ lastDataSig=sig; markFullApply(); }; /* only once the branch below has completed */
     applyLocalWrites(fresh,startedAt);
+    try{ dpApplyWrites(fresh,startedAt); }catch(_){} /* v3.22.0: a card field saved after this read began is kept */
     records=fresh;
     normaliseRecords();
     if(inspectRecordId&&!records.some(r=>r.id===inspectRecordId)) inspectRecordId='';
@@ -8554,6 +8660,22 @@ async function init(){
       else toast('No agent draft: '+why+'. The Pass is queued.',6500);
     }catch(e){ UO_SENT.delete(id); toast('No agent draft: '+(e&&e.message||e)+'. The Pass is queued.',6500); }
   };
+  /* v3.22.0: one card field to Live deals (hrvalue, viewing, attended, noi, closing). Direct, not queued: it either saves now or says it did not. */
+  window.cardSave=async function(rec,action,payload){
+    if(!rec||!rec.id||!URL0||!KEY0) throw new Error('this browser is not connected to the Sheet');
+    let r;
+    try{ r=await fetch(URL0,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},
+      body:JSON.stringify(Object.assign({},payload||{},{k:KEY0,key:String(rec.id),action:String(action)}))}); }
+    catch(e){ throw new Error('no connection'); }
+    const d=await r.json().catch(()=>({error:'no reply'}));
+    if(!r.ok||!d||d.error||!d.ok){
+      const why=String((d&&d.error)||r.status||'');
+      if(/unknown action/i.test(why)) throw new Error('the Sheet link is on an old script version');
+      if(/no Live deals row/i.test(why)) throw new Error('this house is not on Live deals');
+      throw new Error(why||'no reply');
+    }
+    return d;
+  };
   function toRecords(d){
     const byKey=new Map();
     const get=k=>{ let rec=byKey.get(k); if(!rec){ rec={id:k,createdTime:'',fields:{}}; byKey.set(k,rec); } return rec; };
@@ -8598,7 +8720,7 @@ async function init(){
       f.__engine={hasRow:true,max:mo,profit:num(r[18]),stressProfit:num(r[19]),rag:String(r[20]==null?'':r[20]),status:String(r[21]==null?'':r[21])};
       /* v3.18.0 (31/10/2026): the raw Live deals row for the house card (dealPanel). W Thread URL and X Viewing date are read when the web app returns them (cols>23); a shorter row shows GAP. */
       const s_=v=>String(v==null?'':v).trim();
-      f.__live={agent:s_(r[3]),email:s_(r[4]),hrSent:s_(r[6]),hrIn:s_(r[7]),hrLink:s_(r[8]),hrValue:num(r[9]),hrValueDate:s_(r[10]),max:mo,status:s_(r[21]),thread:s_(r[22]),viewing:s_(r[23]),cols:r.length};
+      f.__live={agent:s_(r[3]),email:s_(r[4]),hrSent:s_(r[6]),hrIn:s_(r[7]),hrLink:s_(r[8]),hrValue:num(r[9]),hrValueDate:s_(r[10]),max:mo,status:s_(r[21]),thread:s_(r[22]),viewing:s_(r[23]),viewed:s_(r[24]),noi:s_(r[25]),closing:s_(r[26]),cols:r.length}; /* v3.22.0: Y Viewed, Z Note of interest, AA Closing date */
       const op=num(r[13]); if(op!=null) f[F.offerPrice]=op;
       if(r[14]) f[F.offerSubmitted]=iso(r[14]);
       if(OUTCOME_PASSED.test(String(r[15]||'').trim())) f[F.stage]='Passed';

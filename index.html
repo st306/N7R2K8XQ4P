@@ -1241,7 +1241,7 @@
 </head>
 <body>
 <header>
-  <div class="brand"><h1>Property Brain · v3.22.1</h1><div class="sub">Buy better deals faster through superior intelligence · build 2026-11-12 · STP Deals [LIVE]</div></div>
+  <div class="brand"><h1>Property Brain · v3.22.2</h1><div class="sub">Buy better deals faster through superior intelligence · build 2026-11-12 · STP Deals [LIVE]</div></div>
   <button class="hdr-search" id="hdrSearch" type="button" aria-label="Search for a house by street, postcode or agent"><span aria-hidden="true">⌕</span> Search</button>
   <button class="hdr-more" id="hdrMore" type="button" aria-expanded="false" aria-label="Search, refresh and tools">☰</button>
   <div class="modes" aria-label="Dashboard mode">
@@ -1392,7 +1392,7 @@ function isEdinburghRec(r){ const f=(r&&r.fields)||{}; return isEdinburghZone((f
    listings, quoted plot names and unnumbered same-street pairs are not merged unless cross-portal at the same price and beds; decision
    bar padding includes the safe area and re-checks on resize; fades show cut-off tabs. Update banner fires only when App Control is
    NEWER than BUILD (the phone copy runs ahead of Drive). Rollback: commit 4aecf44 (v3.13.4). */
-const BUILD='3.22.1'; /* v3.22.1 (13/11/2026, Stu 16:29: no search on the phone): a Search button on the phone header opens the search box with the cursor in it. Rollback: git revert this commit (previous 528c9ba). */ const BUILD_3220_NOTE='3.22.0'; /* v3.22.0 (12/11/2026, Go Live, Stu Yes 23:45): house card boxes for HR value, Viewing date, Viewed, Note of interest and Closing date, saved to Live deals J/K, X, Y, Z, AA through the Sheet link (script Version 13). Rollback: git revert this commit (previous e4551db). */ const BUILD_3212_NOTE='3.21.2'; /* v3.21.2 (12/11/2026, Go Live card test): Open Home Report button under the address on the house card when Live deals has an HR link. Rollback: git revert this commit (previous 274f698). */ const BUILD_3211_NOTE='3.21.1'; /* v3.21.1 (12/11/2026, Stu in-app 11 Nov 01:26: save message covered the bottom buttons): on phones the toast shows at the top and ignores taps. Rollback: git revert this commit (previous cba3206). */ const BUILD_3210_NOTE='3.21.0'; /* v3.21.0 (09/11/2026, Stu: "approve stage 2"): triage card is Yes or No, with Yes, needs refurb (writes R) under it; No Picture, Watch and Yes + analysis removed from triage (buttons, phone bar, keys P, W, Shift+Y). Old R, P and Watch data untouched; Watch screen and Review unchanged. Rollback: git revert this commit (previous fe6a6cc). */ /* v3.20.0 (04/11/2026, Stu: "Yes, run the rename"): the five Airtable field IDs kept in Brain fields (Potential deal, Triage date, Decision, Pass reason, Notes) are now potential_deal, triage_date, airtable_decision, pass_reason, notes when the page is connected to the Sheet. Old keys are still read and are renamed on read and on save. Airtable-token mode keeps the old IDs. Rollback: git revert this commit and restore the sheet tab ARCHIVE_Brain fields_20261104 over Brain fields. */ /* v3.19.0 (03/11/2026): Pass - Under Offer now calls the Sheet link underOffer action (Gmail draft, never sent). */ /* v3.18.0 (31/10/2026): house card Live deals panel (HR in, HR link, HR value, agent, email, thread W, Max offer + PROVISIONAL, viewing X; blank = GAP), Request Home Report and Draft decline open Gmail compose (nothing sent), Book a viewing sorted by agent then town. Rollback: git revert, previous e4b74ec. */ /* v3.17.0 (30/10/2026): HR in date counts as report in; six Pass reasons; 1 h cache keyed on build. Rollback: git revert, previous 72b734a. */ /* v3.15.0 (26/10/2026): reads and writes the STP Deals Sheet once connected (adapter at the foot of the page); unconnected browsers keep v3.14.0 Airtable behaviour. Rollback: commit 7d22d2d. */ const BUILD_3140_NOTE='3.14.0'; /* v3.14.0 (20/10/2026): Review tab runs on the Deal Engine maths. Rollback: commit 12ca561 (v3.13.5). */ const BUILD_PREV_NOTE='3.13.5'; /* v3.13.5 changelog above. Previous: v3.13.4 (18/10/2026), rollback commit 4aecf44. Before that: v3.13.3 (18/10/2026), rollback commit 2cd1d1d. Before that: v3.13.2 (15/10/2026): v3.13.2 (15/10/2026): red-flag button logs to the Property Sprint Register (tbl5l7bViIJjBvfzz), not the dead capture queue. */
+const BUILD='3.22.2'; /* v3.22.2 (17/11/2026, Stu "batch yes"): tap the saving pill to save a copy of unsaved decisions for Claude to write in bulk, then clear them once Claude confirms. Rollback: git revert this commit (previous dfb9408). */ const BUILD_3221_NOTE='3.22.1'; /* v3.22.1 (13/11/2026, Stu 16:29: no search on the phone): a Search button on the phone header opens the search box with the cursor in it. Rollback: git revert this commit (previous 528c9ba). */ const BUILD_3220_NOTE='3.22.0'; /* v3.22.0 (12/11/2026, Go Live, Stu Yes 23:45): house card boxes for HR value, Viewing date, Viewed, Note of interest and Closing date, saved to Live deals J/K, X, Y, Z, AA through the Sheet link (script Version 13). Rollback: git revert this commit (previous e4551db). */ const BUILD_3212_NOTE='3.21.2'; /* v3.21.2 (12/11/2026, Go Live card test): Open Home Report button under the address on the house card when Live deals has an HR link. Rollback: git revert this commit (previous 274f698). */ const BUILD_3211_NOTE='3.21.1'; /* v3.21.1 (12/11/2026, Stu in-app 11 Nov 01:26: save message covered the bottom buttons): on phones the toast shows at the top and ignores taps. Rollback: git revert this commit (previous cba3206). */ const BUILD_3210_NOTE='3.21.0'; /* v3.21.0 (09/11/2026, Stu: "approve stage 2"): triage card is Yes or No, with Yes, needs refurb (writes R) under it; No Picture, Watch and Yes + analysis removed from triage (buttons, phone bar, keys P, W, Shift+Y). Old R, P and Watch data untouched; Watch screen and Review unchanged. Rollback: git revert this commit (previous fe6a6cc). */ /* v3.20.0 (04/11/2026, Stu: "Yes, run the rename"): the five Airtable field IDs kept in Brain fields (Potential deal, Triage date, Decision, Pass reason, Notes) are now potential_deal, triage_date, airtable_decision, pass_reason, notes when the page is connected to the Sheet. Old keys are still read and are renamed on read and on save. Airtable-token mode keeps the old IDs. Rollback: git revert this commit and restore the sheet tab ARCHIVE_Brain fields_20261104 over Brain fields. */ /* v3.19.0 (03/11/2026): Pass - Under Offer now calls the Sheet link underOffer action (Gmail draft, never sent). */ /* v3.18.0 (31/10/2026): house card Live deals panel (HR in, HR link, HR value, agent, email, thread W, Max offer + PROVISIONAL, viewing X; blank = GAP), Request Home Report and Draft decline open Gmail compose (nothing sent), Book a viewing sorted by agent then town. Rollback: git revert, previous e4b74ec. */ /* v3.17.0 (30/10/2026): HR in date counts as report in; six Pass reasons; 1 h cache keyed on build. Rollback: git revert, previous 72b734a. */ /* v3.15.0 (26/10/2026): reads and writes the STP Deals Sheet once connected (adapter at the foot of the page); unconnected browsers keep v3.14.0 Airtable behaviour. Rollback: commit 7d22d2d. */ const BUILD_3140_NOTE='3.14.0'; /* v3.14.0 (20/10/2026): Review tab runs on the Deal Engine maths. Rollback: commit 12ca561 (v3.13.5). */ const BUILD_PREV_NOTE='3.13.5'; /* v3.13.5 changelog above. Previous: v3.13.4 (18/10/2026), rollback commit 4aecf44. Before that: v3.13.3 (18/10/2026), rollback commit 2cd1d1d. Before that: v3.13.2 (15/10/2026): v3.13.2 (15/10/2026): red-flag button logs to the Property Sprint Register (tbl5l7bViIJjBvfzz), not the dead capture queue. */
 const CONTROL_TABLE='tblDGKgorkTQkAXBc';
 /* v3.4.0 (28/08/2026), AC-BRAINUX-WINDOW-01 + AC-BRAIN-PROCEEDFLOW-01.
    THE YES BOARD BECOMES THE "WHERE WE ARE" SCREEN. Stu, 27/08, verbatim:
@@ -5922,6 +5922,7 @@ function syncPhoneBar(){
   }
   const on=!!mode;
   bar.classList.toggle('show',on); bar.classList.toggle('pd-triage',mode==='triage'); document.body.classList.toggle('has-pdbar',on);
+  try{ if(window.__sqPill) window.__sqPill(); }catch(_){} /* v3.22.2: keep the saving pill above the bar */
   if(!bar.dataset.wired){ bar.dataset.wired='1'; bar.addEventListener('click',ev=>{
     const b=ev.target.closest('[data-pd]'); if(!b) return;
     if(b.dataset.pd==='more'){ const g=$('btnYes')||$('vYes'); if(g) (g.closest('.verdict')||g.parentElement).scrollIntoView({block:'center',behavior:'smooth'}); return; }
@@ -8792,17 +8793,61 @@ async function init(){
   let sq=[]; try{ const v=JSON.parse(localStorage.getItem(LS_Q)||'[]'); if(Array.isArray(v)) sq=v.filter(x=>x&&x.key&&x.u===URL0); }catch(_){ sq=[]; }
   const sqSave=()=>{ try{ localStorage.setItem(LS_Q,JSON.stringify(sq)); }catch(_){} };
   const inFlight=new Set(); let sqTimer=null, sqSeq=Date.now();
-  window.__brainQ=()=>sq.slice();
+  window.__brainQ=()=>sq.slice(); window.__sqPill=()=>sqPill();
   function sqPill(){
     let el=document.getElementById('saveQ');
     if(!sq.length){ if(el) el.remove(); return; }
-    if(!el){ el=document.createElement('div'); el.id='saveQ'; el.setAttribute('role','status');
-      el.style.cssText='position:fixed;left:12px;bottom:calc(12px + env(safe-area-inset-bottom));z-index:9999;padding:6px 10px;border-radius:999px;font:600 12px/1.2 system-ui,sans-serif;box-shadow:0 1px 4px rgba(0,0,0,.25);pointer-events:none';
+    if(!el){ el=document.createElement('div'); el.id='saveQ'; el.setAttribute('role','status'); el.onclick=sqPanel; /* v3.22.2: tap for the export panel */
+      el.style.cssText='position:fixed;left:12px;bottom:calc(12px + env(safe-area-inset-bottom));z-index:9999;padding:6px 10px;border-radius:999px;font:600 12px/1.2 system-ui,sans-serif;box-shadow:0 1px 4px rgba(0,0,0,.25);pointer-events:auto;cursor:pointer;max-width:calc(100% - 24px)';
       document.body.appendChild(el); }
+    { const bar=document.querySelector('#phoneDecide.show'); el.style.bottom=bar?('calc('+(bar.offsetHeight+8)+'px)'):'calc(12px + env(safe-area-inset-bottom))'; } /* v3.22.2: tappable, so it sits above the decision bar */
     const bad=sq.filter(x=>x.tries>0), worst=bad.reduce((m,x)=>Math.max(m,x.tries),0);
-    if(worst>=5){ el.style.background='#b00020'; el.style.color='#fff'; el.textContent=sq.length+' not saved yet. Save failed '+worst+' times, still retrying. Do not clear this browser.'; }
-    else if(bad.length){ el.style.background='#e8a200'; el.style.color='#111'; el.textContent=sq.length+' saving, save failed, retrying'; }
-    else { el.style.background='#333'; el.style.color='#fff'; el.textContent=sq.length+' saving'; }
+    if(worst>=5){ el.style.background='#b00020'; el.style.color='#fff'; el.textContent=sq.length+' not saved, retrying. Do not clear this browser. Tap'; }
+    else if(bad.length){ el.style.background='#e8a200'; el.style.color='#111'; el.textContent=sq.length+' saving, retrying. Tap'; }
+    else { el.style.background='#333'; el.style.color='#fff'; el.textContent=sq.length+' saving'+(sq.length>=25?'. Tap':''); }
+  }
+  /* v3.22.2 (17/11/2026, Stu "batch yes"): 2,754 decisions sat on the phone's save queue because each save takes 4 to 11 s.
+     Tap the pill: (1) save a copy of every unsaved decision as a file (share sheet or download) to send to Claude, who writes
+     them to the Sheet in bulk; (2) only after Claude confirms, clear exactly the decisions that were in that file. Newer
+     decisions stay queued. The file holds keys and decisions only, never the Sheet link or key. Rollback: git revert this commit. */
+  const LS_EXP='brainExportIds';
+  function sqPanel(){
+    let p=document.getElementById('sqPanel'); if(p){ p.remove(); return; }
+    let exp=null; try{ exp=JSON.parse(localStorage.getItem(LS_EXP)||'null'); }catch(_){ exp=null; }
+    if(!exp||!Array.isArray(exp.ids)) exp=null;
+    const still=exp?sq.filter(x=>exp.ids.includes(x.id)).length:0;
+    p=document.createElement('div'); p.id='sqPanel';
+    p.style.cssText='position:fixed;left:12px;right:12px;bottom:calc(56px + env(safe-area-inset-bottom));z-index:10000;background:#fff;color:#111;border-radius:12px;padding:14px;box-shadow:0 4px 18px rgba(0,0,0,.3);font:14px/1.4 system-ui,sans-serif';
+    p.innerHTML='<b>'+sq.length+' decisions not saved yet</b><p style="margin:6px 0 10px">Save a copy and send it to Claude in the Go Live chat. Claude writes them to the Sheet in one go.</p>'+
+      '<button type="button" id="sqExport" style="width:100%;padding:10px;margin-bottom:8px;border-radius:8px;border:0;background:#1a2a6c;color:#fff;font-weight:600">Save a copy of '+sq.length+' decisions</button>'+
+      (exp?'<button type="button" id="sqClear" style="width:100%;padding:10px;margin-bottom:8px;border-radius:8px;border:1px solid #b00020;background:#fff;color:#b00020;font-weight:600">Claude confirmed file '+esc(exp.name)+': clear its '+still+' decisions</button>':'')+
+      '<button type="button" id="sqClose" style="width:100%;padding:8px;border-radius:8px;border:1px solid #ccc;background:#fff">Close</button>';
+    document.body.appendChild(p);
+    document.getElementById('sqClose').onclick=()=>p.remove();
+    document.getElementById('sqExport').onclick=async()=>{
+      const items=sq.map(x=>({id:x.id,key:x.key,fields:normKeys(x.fields),decision:x.decision||'',at:x.at||0}));
+      const stamp=new Date().toISOString();
+      const name='brain-unsaved-'+stamp.slice(0,16).replace(/[-:T]/g,'')+'.txt';
+      const body=JSON.stringify({kind:'brain-unsaved',build:BUILD,file:name,exported_at:stamp,count:items.length,items});
+      /* The Clear button is armed only once the copy really left the page (share finished or clipboard written), and only for this file. */
+      const arm=()=>{ try{ localStorage.setItem(LS_EXP,JSON.stringify({name,stamp,ids:items.map(x=>x.id)})); }catch(_){} };
+      let done='';
+      try{
+        const file=new File([body],name,{type:'text/plain'});
+        if(navigator.canShare&&navigator.canShare({files:[file]})){ await navigator.share({files:[file],title:name}); done='shared'; }
+      }catch(e){ if(e&&e.name==='AbortError'){ toast('Copy not sent. Nothing changed.',4000); p.remove(); return; } }
+      if(!done){ try{ await navigator.clipboard.writeText(body); done='copied'; }catch(_){} }
+      if(done){ arm(); toast((done==='shared'?'File sent: ':'Copied to clipboard, paste it to Claude: ')+items.length+' decisions ('+name+').',6000); }
+      else toast('Could not make a copy on this phone. Nothing changed.',6000);
+      p.remove();
+    };
+    const c=document.getElementById('sqClear');
+    if(c) c.onclick=()=>{
+      if(!window.confirm('Only do this after Claude has confirmed file '+exp.name+' is on the Sheet. Clear its '+still+' decisions from this phone?')) return;
+      const ids=new Set(exp.ids); sq=sq.filter(x=>!ids.has(x.id)); sqSave();
+      try{ localStorage.removeItem(LS_EXP); }catch(_){}
+      p.remove(); sqPill(); toast('Cleared. '+sq.length+' still to save.',4000);
+    };
   }
   function sqPump(){
     if(sqTimer){ clearTimeout(sqTimer); sqTimer=null; }

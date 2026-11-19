@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""STP Mail Read fetch v1.0 (19 Nov 2026, Go Live; Stu "Approve" 19 Nov 11:04).
+"""STP Mail Read fetch v1.1 (19 Nov 2026, Go Live; Stu "Approve" 19 Nov 11:04).
 
 Pulls the property alert emails for one window from the STP Brain Mail Read web app
 (Apps Script, gmail.readonly, four alert senders only) and writes parser-ready files,
@@ -13,11 +13,14 @@ Writes DIR/thread_NNN.json, each {"id": "mailread_NNN", "messages": [...]} with 
 message fields as Gmail get_thread FULL_CONTENT (id, threadId, sender, subject, date,
 htmlBody, plaintextBody). Line endings are made "\n" (the parser's OnTheMarket pattern
 needs that). OnTheMarket weekly-review emails are left out and counted.
+The window is read oldest first in 2-hour slices. If the time budget (--budget seconds,
+default 480) runs out, it stops at the end of the last slice read in full and reports it as
+"complete_until"; the caller then treats that as its cutoff, so nothing is skipped.
 Prints one JSON line: {"ok", "pages", "messages", "msg": {"RM","ZO","OTM"},
-"newest_msg", "weekly_skipped", "dropped", "fault"}.
+"newest_msg", "weekly_skipped", "dropped", "complete_until", "fault"}.
 Exit 0 when ok, 2 on a fault (the caller then sets HOLD).
 """
-import argparse, json, os, subprocess, sys, time
+import argparse, datetime, json, os, subprocess, sys, time
 
 PORTAL = {'property@alert.rightmove.co.uk': 'RM', 'propertyalerts@comms-2.zoopla.co.uk': 'ZO',
           'property-alerts@mail.onthemarket.com': 'OTM', 'no-reply@onthemarket-mail.com': 'OTM'}
@@ -25,6 +28,7 @@ MAX_PAGES = 150          # 15 messages a page, so up to 2,250 emails a window
 PAUSE = 8                # seconds between pages (Gmail per-minute quota)
 QUOTA_WAIT = 30          # seconds after a quota error
 QUOTA_TRIES = 5
+SLICE = 7200             # seconds per slice, read oldest slice first
 
 
 def post(url, body, tmp):
@@ -69,49 +73,61 @@ def main():
     ap.add_argument('--read-from', required=True)
     ap.add_argument('--cutoff', required=True)
     ap.add_argument('--out', required=True)
+    ap.add_argument('--budget', type=int, default=480)
     a = ap.parse_args()
+    ap_budget = a.budget
     os.makedirs(a.out, exist_ok=True)
     tmp = os.path.join(a.out, '_body.json')
+    iso = lambda t: datetime.datetime.fromtimestamp(t, datetime.timezone.utc).strftime('%Y-%m-%dT%H:%M:%SZ')
     res = {'ok': False, 'pages': 0, 'messages': 0, 'msg': {'RM': 0, 'ZO': 0, 'OTM': 0},
-           'newest_msg': '', 'weekly_skipped': 0, 'dropped': 0, 'fault': ''}
-    token, n = '', 0
-    while True:
-        if n:
-            time.sleep(PAUSE)
-        page, fault = fetch_page(a.url, a.key, a.after, a.before, token, tmp)
-        if fault:
-            res['fault'] = fault + ' (page %d)' % n
+           'newest_msg': '', 'weekly_skipped': 0, 'dropped': 0, 'complete_until': '', 'fault': ''}
+    t0, n, done_to = time.time(), 0, a.after
+    s_from = a.after
+    while s_from < a.before and not res['fault']:
+        s_to = min(s_from + SLICE, a.before)
+        if n and time.time() - t0 > ap_budget:
             break
-        msgs = []
-        for m in page.get('thread', {}).get('messages', []):
-            p = PORTAL.get(str(m.get('sender', '')).strip().lower())
-            if not p:
-                res['dropped'] += 1
-                continue
-            if p == 'OTM' and 'weekly review' in str(m.get('subject', '')).lower():
-                res['weekly_skipped'] += 1
-                continue
-            for k in ('htmlBody', 'plaintextBody'):
-                m[k] = str(m.get(k) or '').replace('\r\n', '\n')
-            msgs.append(m)
-            d = str(m.get('date', ''))
-            if a.read_from < d <= a.cutoff:
-                res['msg'][p] += 1
-                if d > res['newest_msg']:
-                    res['newest_msg'] = d
-        res['dropped'] += int(page.get('dropped') or 0)
-        with open(os.path.join(a.out, 'thread_%03d.json' % n), 'w') as f:
-            json.dump({'id': 'mailread_%03d' % n, 'messages': msgs}, f)
-        res['messages'] += len(msgs)
-        n += 1
-        res['pages'] = n
-        token = page.get('next') or ''
-        if not token:
-            res['ok'] = True
-            break
-        if n >= MAX_PAGES:
-            res['fault'] = 'window capped at %d pages' % MAX_PAGES
-            break
+        token, first, files = '', True, []
+        while True:
+            if n:
+                time.sleep(PAUSE)
+            page, fault = fetch_page(a.url, a.key, s_from, s_to, token, tmp)
+            if fault:
+                res['fault'] = fault + ' (page %d)' % n
+                break
+            msgs = []
+            for m in page.get('thread', {}).get('messages', []):
+                p = PORTAL.get(str(m.get('sender', '')).strip().lower())
+                if not p:
+                    res['dropped'] += 1
+                    continue
+                if p == 'OTM' and 'weekly review' in str(m.get('subject', '')).lower():
+                    res['weekly_skipped'] += 1
+                    continue
+                for k in ('htmlBody', 'plaintextBody'):
+                    m[k] = str(m.get(k) or '').replace('\r\n', '\n')
+                msgs.append(m)
+                d = str(m.get('date', ''))
+                if a.read_from < d <= a.cutoff:
+                    res['msg'][p] += 1
+                    if d > res['newest_msg']:
+                        res['newest_msg'] = d
+            res['dropped'] += int(page.get('dropped') or 0)
+            with open(os.path.join(a.out, 'thread_%03d.json' % n), 'w') as f:
+                json.dump({'id': 'mailread_%03d' % n, 'messages': msgs}, f)
+            res['messages'] += len(msgs)
+            n += 1
+            res['pages'] = n
+            token = page.get('next') or ''
+            if not token:
+                done_to = s_to
+                break
+            if n >= MAX_PAGES:
+                res['fault'] = 'window capped at %d pages' % MAX_PAGES
+                break
+        s_from = s_to
+    res['complete_until'] = iso(done_to)
+    res['ok'] = not res['fault']
     try:
         os.remove(tmp)
     except OSError:

@@ -1241,7 +1241,7 @@
 </head>
 <body>
 <header>
-  <div class="brand"><h1>Property Brain · v3.22.3</h1><div class="sub">Buy better deals faster through superior intelligence · build 2026-11-12 · STP Deals [LIVE]</div></div>
+  <div class="brand"><h1>Property Brain · v3.22.4</h1><div class="sub">Buy better deals faster through superior intelligence · build 2026-11-12 · STP Deals [LIVE]</div></div>
   <button class="hdr-search" id="hdrSearch" type="button" aria-label="Search for a house by street, postcode or agent"><span aria-hidden="true">⌕</span> Search</button>
   <button class="hdr-more" id="hdrMore" type="button" aria-expanded="false" aria-label="Search, refresh and tools">☰</button>
   <div class="modes" aria-label="Dashboard mode">
@@ -1392,7 +1392,7 @@ function isEdinburghRec(r){ const f=(r&&r.fields)||{}; return isEdinburghZone((f
    listings, quoted plot names and unnumbered same-street pairs are not merged unless cross-portal at the same price and beds; decision
    bar padding includes the safe area and re-checks on resize; fades show cut-off tabs. Update banner fires only when App Control is
    NEWER than BUILD (the phone copy runs ahead of Drive). Rollback: commit 4aecf44 (v3.13.4). */
-const BUILD='3.22.3'; /* v3.22.3 (17/11/2026, Stu T): Triage health strip shows Inputs and Data only; Pipeline removed (it read retired Airtable fields and was always red). Tapping a light says why. Rollback: git revert this commit (previous 8130a57). */ const BUILD_3222_NOTE='3.22.2'; /* v3.22.2 (17/11/2026, Stu "batch yes"): tap the saving pill to save a copy of unsaved decisions for Claude to write in bulk, then clear them once Claude confirms. Rollback: git revert this commit (previous dfb9408). */ const BUILD_3221_NOTE='3.22.1'; /* v3.22.1 (13/11/2026, Stu 16:29: no search on the phone): a Search button on the phone header opens the search box with the cursor in it. Rollback: git revert this commit (previous 528c9ba). */ const BUILD_3220_NOTE='3.22.0'; /* v3.22.0 (12/11/2026, Go Live, Stu Yes 23:45): house card boxes for HR value, Viewing date, Viewed, Note of interest and Closing date, saved to Live deals J/K, X, Y, Z, AA through the Sheet link (script Version 13). Rollback: git revert this commit (previous e4551db). */ const BUILD_3212_NOTE='3.21.2'; /* v3.21.2 (12/11/2026, Go Live card test): Open Home Report button under the address on the house card when Live deals has an HR link. Rollback: git revert this commit (previous 274f698). */ const BUILD_3211_NOTE='3.21.1'; /* v3.21.1 (12/11/2026, Stu in-app 11 Nov 01:26: save message covered the bottom buttons): on phones the toast shows at the top and ignores taps. Rollback: git revert this commit (previous cba3206). */ const BUILD_3210_NOTE='3.21.0'; /* v3.21.0 (09/11/2026, Stu: "approve stage 2"): triage card is Yes or No, with Yes, needs refurb (writes R) under it; No Picture, Watch and Yes + analysis removed from triage (buttons, phone bar, keys P, W, Shift+Y). Old R, P and Watch data untouched; Watch screen and Review unchanged. Rollback: git revert this commit (previous fe6a6cc). */ /* v3.20.0 (04/11/2026, Stu: "Yes, run the rename"): the five Airtable field IDs kept in Brain fields (Potential deal, Triage date, Decision, Pass reason, Notes) are now potential_deal, triage_date, airtable_decision, pass_reason, notes when the page is connected to the Sheet. Old keys are still read and are renamed on read and on save. Airtable-token mode keeps the old IDs. Rollback: git revert this commit and restore the sheet tab ARCHIVE_Brain fields_20261104 over Brain fields. */ /* v3.19.0 (03/11/2026): Pass - Under Offer now calls the Sheet link underOffer action (Gmail draft, never sent). */ /* v3.18.0 (31/10/2026): house card Live deals panel (HR in, HR link, HR value, agent, email, thread W, Max offer + PROVISIONAL, viewing X; blank = GAP), Request Home Report and Draft decline open Gmail compose (nothing sent), Book a viewing sorted by agent then town. Rollback: git revert, previous e4b74ec. */ /* v3.17.0 (30/10/2026): HR in date counts as report in; six Pass reasons; 1 h cache keyed on build. Rollback: git revert, previous 72b734a. */ /* v3.15.0 (26/10/2026): reads and writes the STP Deals Sheet once connected (adapter at the foot of the page); unconnected browsers keep v3.14.0 Airtable behaviour. Rollback: commit 7d22d2d. */ const BUILD_3140_NOTE='3.14.0'; /* v3.14.0 (20/10/2026): Review tab runs on the Deal Engine maths. Rollback: commit 12ca561 (v3.13.5). */ const BUILD_PREV_NOTE='3.13.5'; /* v3.13.5 changelog above. Previous: v3.13.4 (18/10/2026), rollback commit 4aecf44. Before that: v3.13.3 (18/10/2026), rollback commit 2cd1d1d. Before that: v3.13.2 (15/10/2026): v3.13.2 (15/10/2026): red-flag button logs to the Property Sprint Register (tbl5l7bViIJjBvfzz), not the dead capture queue. */
+const BUILD='3.22.4'; /* v3.22.4 (20/11/2026, Stu T 16:54; triage rows 30, 31, 32): map tiles from OpenStreetMap (CARTO now wants a key); houses with only a part postcode (e.g. KA13) get a pin at the area centre and houses with none are listed under the map; Proceed no longer asks for a viewing date. Rollback: git revert this commit (previous a78de71 page, dd91419 main). */ const BUILD_3223_NOTE='3.22.3'; /* v3.22.3 (17/11/2026, Stu T): Triage health strip shows Inputs and Data only; Pipeline removed (it read retired Airtable fields and was always red). Tapping a light says why. Rollback: git revert this commit (previous 8130a57). */ const BUILD_3222_NOTE='3.22.2'; /* v3.22.2 (17/11/2026, Stu "batch yes"): tap the saving pill to save a copy of unsaved decisions for Claude to write in bulk, then clear them once Claude confirms. Rollback: git revert this commit (previous dfb9408). */ const BUILD_3221_NOTE='3.22.1'; /* v3.22.1 (13/11/2026, Stu 16:29: no search on the phone): a Search button on the phone header opens the search box with the cursor in it. Rollback: git revert this commit (previous 528c9ba). */ const BUILD_3220_NOTE='3.22.0'; /* v3.22.0 (12/11/2026, Go Live, Stu Yes 23:45): house card boxes for HR value, Viewing date, Viewed, Note of interest and Closing date, saved to Live deals J/K, X, Y, Z, AA through the Sheet link (script Version 13). Rollback: git revert this commit (previous e4551db). */ const BUILD_3212_NOTE='3.21.2'; /* v3.21.2 (12/11/2026, Go Live card test): Open Home Report button under the address on the house card when Live deals has an HR link. Rollback: git revert this commit (previous 274f698). */ const BUILD_3211_NOTE='3.21.1'; /* v3.21.1 (12/11/2026, Stu in-app 11 Nov 01:26: save message covered the bottom buttons): on phones the toast shows at the top and ignores taps. Rollback: git revert this commit (previous cba3206). */ const BUILD_3210_NOTE='3.21.0'; /* v3.21.0 (09/11/2026, Stu: "approve stage 2"): triage card is Yes or No, with Yes, needs refurb (writes R) under it; No Picture, Watch and Yes + analysis removed from triage (buttons, phone bar, keys P, W, Shift+Y). Old R, P and Watch data untouched; Watch screen and Review unchanged. Rollback: git revert this commit (previous fe6a6cc). */ /* v3.20.0 (04/11/2026, Stu: "Yes, run the rename"): the five Airtable field IDs kept in Brain fields (Potential deal, Triage date, Decision, Pass reason, Notes) are now potential_deal, triage_date, airtable_decision, pass_reason, notes when the page is connected to the Sheet. Old keys are still read and are renamed on read and on save. Airtable-token mode keeps the old IDs. Rollback: git revert this commit and restore the sheet tab ARCHIVE_Brain fields_20261104 over Brain fields. */ /* v3.19.0 (03/11/2026): Pass - Under Offer now calls the Sheet link underOffer action (Gmail draft, never sent). */ /* v3.18.0 (31/10/2026): house card Live deals panel (HR in, HR link, HR value, agent, email, thread W, Max offer + PROVISIONAL, viewing X; blank = GAP), Request Home Report and Draft decline open Gmail compose (nothing sent), Book a viewing sorted by agent then town. Rollback: git revert, previous e4b74ec. */ /* v3.17.0 (30/10/2026): HR in date counts as report in; six Pass reasons; 1 h cache keyed on build. Rollback: git revert, previous 72b734a. */ /* v3.15.0 (26/10/2026): reads and writes the STP Deals Sheet once connected (adapter at the foot of the page); unconnected browsers keep v3.14.0 Airtable behaviour. Rollback: commit 7d22d2d. */ const BUILD_3140_NOTE='3.14.0'; /* v3.14.0 (20/10/2026): Review tab runs on the Deal Engine maths. Rollback: commit 12ca561 (v3.13.5). */ const BUILD_PREV_NOTE='3.13.5'; /* v3.13.5 changelog above. Previous: v3.13.4 (18/10/2026), rollback commit 4aecf44. Before that: v3.13.3 (18/10/2026), rollback commit 2cd1d1d. Before that: v3.13.2 (15/10/2026): v3.13.2 (15/10/2026): red-flag button logs to the Property Sprint Register (tbl5l7bViIJjBvfzz), not the dead capture queue. */
 const CONTROL_TABLE='tblDGKgorkTQkAXBc';
 /* v3.4.0 (28/08/2026), AC-BRAINUX-WINDOW-01 + AC-BRAIN-PROCEEDFLOW-01.
    THE YES BOARD BECOMES THE "WHERE WE ARE" SCREEN. Stu, 27/08, verbatim:
@@ -2361,13 +2361,8 @@ async function proceedDecision(rec){
   if(!rec||saving) return;
   saving=true;
   try{
-    const raw=window.prompt('Book the viewing — date as DD/MM/YYYY, or leave blank to record Proceed without a date yet:','');
+    /* v3.22.4 (20/11/2026, triage row 32, Stu 19 Nov): Proceed no longer asks for a viewing date. The card's viewing date box still writes Live deals X. */
     const fields={[F.decision]:'Proceed'};
-    if(raw&&raw.trim()){
-      const m=raw.trim().match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
-      if(m) fields[F.viewingDate]=new Date(Number(m[3]),Number(m[2])-1,Number(m[1]),10,0).toISOString();
-      else toast('Date not understood — Proceed recorded, viewing not booked. Use DD/MM/YYYY.');
-    }
     await patchFields(rec,fields);
     /* 27/08/2026, Stu (live, in-app): "I lose track of when I click proceed
        on the Review board — where it goes and if a request is made." The
@@ -2379,7 +2374,7 @@ async function proceedDecision(rec){
        a manual step until the redesigned Proceed flow (AC-BRAIN-PROCEEDFLOW-01)
        ships. Longer toast + the destination is now visibly highlighted on
        the Yes board it lands on. */
-    toast('Marked Proceed — no viewing request sent.'+(fields[F.viewingDate]?' Viewing booked for '+raw.trim()+'.':' No date given yet.')+(ybSeq&&ybSeq.ids.slice(ybSeq.i+1).some(id=>{const x=records.find(r=>r.id===id);return x&&!isArchived(x)&&!ybIsPassed(x)&&!ybCleared[id]&&!sameStatus(dealOf(x),STATUS.watch);})?' → next card':(inReviewQueue()?' → next in Review':' → Yes board')),3600);
+    toast('Marked Proceed — no viewing request sent.'+(ybSeq&&ybSeq.ids.slice(ybSeq.i+1).some(id=>{const x=records.find(r=>r.id===id);return x&&!isArchived(x)&&!ybIsPassed(x)&&!ybCleared[id]&&!sameStatus(dealOf(x),STATUS.watch);})?' → next card':(inReviewQueue()?' → next in Review':' → Yes board')),3600);
     afterReviewDecision(rec); /* v3.13.1: was goToYesBoardAfterDecision(rec) */
   }catch(e){ alert(e.message); }
   finally{ saving=false; }
@@ -5039,7 +5034,11 @@ async function initViewingsMap(list){
     });
   });
   const off=list.length-placed.length, note=document.getElementById('viewNotOnMap');
-  if(note) note.textContent=off?('Not on map: '+off+' (no postcode match)'):'';
+  /* v3.22.4 (triage row 31): name the houses that have no pin, each a Google Maps link, and say how many pins are area centres. */
+  const areaN=placed.filter(r=>isAreaOnly(postcodeOf(r))).length;
+  const offRows=list.filter(r=>placed.indexOf(r)<0);
+  if(note) note.innerHTML=(areaN?('<div>'+areaN+' pin'+(areaN===1?'':'s')+' at the area centre only (part postcode).</div>'):'')+
+    (off?('<div><b>Not on the map, no postcode ('+off+'):</b> '+offRows.slice(0,60).map(r=>'<a href="'+esc(gmapsUrl(r))+'" target="_blank" rel="noopener">'+esc(recordLabel(r))+'</a>').join(' · ')+(off>60?' · and '+(off-60)+' more':'')+'</div>'):'');
   setTimeout(()=>{ if(mapInstance) mapInstance.invalidateSize(); },0);
 }
 function renderYesBoard(app){
@@ -5756,8 +5755,13 @@ async function markReportRead(rec){
 }
 function postcodeOf(rec){
   const text=[(rec.fields||{})[F.addr],cachedNotes(rec).subj].join(' ').toUpperCase();
-  const m=text.match(/\b([A-Z]{1,2}\d[A-Z\d]?\s*\d[A-Z]{2})\b/); return m?m[1].replace(/\s+/,' ').replace(/(.+)(\d[A-Z]{2})$/,'$1 $2').trim():'';
+  const m=text.match(/\b([A-Z]{1,2}\d[A-Z\d]?\s*\d[A-Z]{2})\b/); if(m) return m[1].replace(/\s+/,' ').replace(/(.+)(\d[A-Z]{2})$/,'$1 $2').trim();
+  /* v3.22.4 (triage row 31): most Buy list addresses hold only the first half of the postcode ("Dalry Road, Kilwinning KA13").
+     Use the last such part in the address; the pin then sits at that area's centre (see geocodeMissing). */
+  const outs=String((rec.fields||{})[F.addr]||'').toUpperCase().match(/\b[A-Z]{1,2}\d[A-Z\d]?\b/g)||[];
+  return outs.length?outs[outs.length-1]:'';
 }
+function isAreaOnly(pc){ return !!pc&&!/\s/.test(pc); } /* v3.22.4: a part postcode (no space) */
 /* v3.8.0 (14/09/2026), board pass change 4. Stu: "show all need-to-view dots
    by rough street vicinity so groupings are visible."
    TWO THINGS WERE WRONG AND BOTH ARE FIXED HERE AND IN renderMapMarkers.
@@ -5789,7 +5793,22 @@ async function loadLeaflet(){
   return new Promise(resolve=>{const s=document.createElement('script');s.src='vendor/leaflet/leaflet.js';s.onload=()=>resolve(true);s.onerror=()=>resolve(false);document.head.appendChild(s);});
 }
 async function geocodeMissing(list){
-  const pcs=[...new Set(list.map(postcodeOf).filter(Boolean).map(p=>p.toUpperCase()))].filter(p=>!geoCache[p]);
+  const allPcs=[...new Set(list.map(postcodeOf).filter(Boolean).map(p=>p.toUpperCase()))].filter(p=>!geoCache[p]);
+  const pcs=allPcs.filter(p=>!isAreaOnly(p));
+  /* v3.22.4 (triage row 31): part postcodes are looked up one at a time as areas. Only Scottish areas are kept, so a road
+     name that happens to look like one (M8, A77) never puts a pin in England. A miss is cached as {lat:null} so it is not asked again. */
+  const outs=allPcs.filter(isAreaOnly).slice(0,150);
+  for(const o of outs){
+    try{
+      const r=await fetch('https://api.postcodes.io/outcodes/'+encodeURIComponent(o));
+      if(r.status===404){ geoCache[o]={lat:null,area:true}; continue; }
+      if(!r.ok) throw new Error('area lookup '+r.status);
+      const x=((await r.json())||{}).result;
+      const scot=x&&[].concat(x.country||[]).some(c=>/scotland/i.test(String(c)));
+      geoCache[o]=(x&&scot&&x.latitude!=null)?{lat:x.latitude,lng:x.longitude,district:[].concat(x.admin_district||[])[0]||'',area:true}:{lat:null,area:true};
+    }catch(_){break;}
+  }
+  if(outs.length) saveJson(LS.geo,geoCache);
   for(let i=0;i<pcs.length;i+=100){
     const batch=pcs.slice(i,i+100);
     try{
@@ -5816,11 +5835,11 @@ function renderMapMarkers(list){
   list.forEach(r=>{const pc=postcodeOf(r); if(pc) (byPc[pc]=byPc[pc]||[]).push(r.id);});
   const fan=(pc,id,lat)=>{
     const ids=byPc[pc]||[]; const n=ids.length; if(n<2) return [0,0];
-    const i=ids.indexOf(id); const ring=0.00035*(1+Math.floor(i/8));
+    const i=ids.indexOf(id); const ring=(isAreaOnly(pc)?0.004:0.00035)*(1+Math.floor(i/8)); /* v3.22.4: area-centre pins fan wider (about 450 m a ring) */
     const a=(2*Math.PI*(i%8))/Math.min(n,8);
     return [ring*Math.cos(a),(ring*Math.sin(a))/Math.max(0.2,Math.cos(lat*Math.PI/180))];
   };
-  list.forEach(r=>{const pc=postcodeOf(r),g=geoCache[pc];if(!g||g.lat==null)return;const cat=mapCategory(r),f=r.fields||{};const off=fan(pc,r.id,g.lat);const m=L.circleMarker([g.lat+off[0],g.lng+off[1]],{radius:(cat==='opportunity'||cat==='needview')?8:6,color:mapColour(cat),fillColor:mapColour(cat),fillOpacity:.72,weight:2});m.bindPopup('<div class="popup-title">'+esc(recordLabel(r))+'</div><div class="popup-meta">'+esc((cat==='needview'?'Need to view — no date yet':statusLabel(r))+' · '+gbp(f[F.ask])+' · '+(agentOf(r)||'agent not captured'))+'</div><div class="popup-meta">'+esc(pc+((byPc[pc]||[]).length>1?(' · '+(byPc[pc]||[]).length+' here, shown fanned out'):''))+'</div><button type="button" class="popup-btn" data-map-open="'+esc(r.id)+'">Open record</button>');m.on('popupopen',()=>{setTimeout(()=>{const b=document.querySelector('[data-map-open="'+cssEscape(r.id)+'"]');if(b)b.onclick=()=>activateRecord(r);},0);});m.addTo(mapMarkers);pts.push([g.lat,g.lng]);});
+  list.forEach(r=>{const pc=postcodeOf(r),g=geoCache[pc];if(!g||g.lat==null)return;const cat=mapCategory(r),f=r.fields||{};const off=fan(pc,r.id,g.lat);const m=L.circleMarker([g.lat+off[0],g.lng+off[1]],{radius:(cat==='opportunity'||cat==='needview')?8:6,color:mapColour(cat),fillColor:mapColour(cat),fillOpacity:.72,weight:2});m.bindPopup('<div class="popup-title">'+esc(recordLabel(r))+'</div><div class="popup-meta">'+esc((cat==='needview'?'Need to view — no date yet':statusLabel(r))+' · '+gbp(f[F.ask])+' · '+(agentOf(r)||'agent not captured'))+'</div><div class="popup-meta">'+esc(pc+(isAreaOnly(pc)?' · area centre only, no full postcode':'')+((byPc[pc]||[]).length>1?(' · '+(byPc[pc]||[]).length+' here, shown fanned out'):''))+'</div><button type="button" class="popup-btn" data-map-open="'+esc(r.id)+'">Open record</button>');m.on('popupopen',()=>{setTimeout(()=>{const b=document.querySelector('[data-map-open="'+cssEscape(r.id)+'"]');if(b)b.onclick=()=>activateRecord(r);},0);});m.addTo(mapMarkers);pts.push([g.lat,g.lng]);});
   if(pts.length) mapInstance.fitBounds(pts,{padding:[28,28],maxZoom:12});
   const mapped=document.getElementById('mapMapped');if(mapped)mapped.textContent=pts.length;
   const missing=document.getElementById('mapMissing');if(missing)missing.textContent=list.length-pts.length;
@@ -5831,7 +5850,8 @@ function renderMapMarkers(list){
    when it refuses a request. CARTO Positron (no key) stays the basemap, now with linked attribution. If the
    tiles still fail (most errors and no tile loaded) or the map library cannot load, the panel is replaced by
    Google Maps search links for each address, so Stu still has a working map route rather than a dead panel. */
-function mapTiles(){ return L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',{subdomains:'abcd',maxZoom:19,attribution:'&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions" target="_blank" rel="noopener">CARTO</a>'}); }
+/* v3.22.4 (20/11/2026, triage row 30): CARTO tiles now paint "API KEY REQUIRED" as images, so no tile ever errors and the fallback never ran. Back to OpenStreetMap's own tiles (the page is served from github.io, not file://). */
+function mapTiles(){ return L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,attribution:'&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a> contributors'}); }
 function gmapsUrl(rec){
   const label=String(recordLabel(rec)||''), pc=String(postcodeOf(rec)||'').replace(/\s+/g,' ').trim();
   const q=(pc&&label.toUpperCase().replace(/\s+/g,'').indexOf(pc.replace(/\s+/g,''))<0)?(label+' '+pc):label;

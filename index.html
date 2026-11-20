@@ -1113,6 +1113,14 @@
 .hdr-more{display:none}
 .hdr-search{display:none} /* v3.22.1: phone only, see the 600px block */
 .yb-tabs{display:none}
+/* v3.23.0: Buckets strip, phone and desktop */
+.bk-strip{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;margin:0 0 10px;padding:6px 0}
+.bk-strip::-webkit-scrollbar{display:none}
+.bk-btn{flex:0 0 auto;min-height:44px;padding:8px 14px;border:1px solid var(--line);border-radius:22px;background:#fff;color:var(--ink);font-size:13.5px;font-weight:750;white-space:nowrap;cursor:pointer}
+.bk-btn b{margin-left:4px;padding:1px 8px;border-radius:12px;background:var(--soft);color:var(--muted);font-size:12px}
+.bk-btn.on{background:var(--navy);border-color:var(--navy);color:#fff}
+.bk-btn.on b{background:rgba(255,255,255,.2);color:#fff}
+@media (max-width:600px){.bk-strip{position:sticky;top:0;z-index:12;gap:4px;margin:0 -10px 8px;padding:8px 10px;background:var(--bg,#f3f5f9);border-bottom:1px solid var(--line);touch-action:pan-x pan-y}.bk-btn{padding:8px 9px;font-size:12.5px}.bk-btn b{margin-left:3px;padding:1px 6px;font-size:11.5px}}
 #phoneDecide{display:none}
 @media (max-width:1480px) and (min-width:1181px){
   header { flex-wrap:wrap; row-gap:8px; }
@@ -1241,16 +1249,17 @@
 </head>
 <body>
 <header>
-  <div class="brand"><h1>Property Brain · v3.22.4</h1><div class="sub">Buy better deals faster through superior intelligence · build 2026-11-12 · STP Deals [LIVE]</div></div>
+  <div class="brand"><h1>Property Brain · v3.23.0</h1><div class="sub">Buy better deals faster through superior intelligence · build 2026-11-12 · STP Deals [LIVE]</div></div>
   <button class="hdr-search" id="hdrSearch" type="button" aria-label="Search for a house by street, postcode or agent"><span aria-hidden="true">⌕</span> Search</button>
   <button class="hdr-more" id="hdrMore" type="button" aria-expanded="false" aria-label="Search, refresh and tools">☰</button>
   <div class="modes" aria-label="Dashboard mode">
     <button class="mode" id="modeToday" type="button">Today</button>
-    <button class="mode" id="modeTriage" type="button">Triage</button>
-    <button class="mode" id="modeYesBoard" type="button">Yes board</button>
-    <button class="mode" id="modeViewings" type="button">Book a viewing</button>
-    <button class="mode" id="modeReview" type="button">Review</button>
-    <button class="mode" id="modeWatch" type="button">Watch list</button>
+    <!-- v3.23.0 (20/11/2026, triage row 29): two doors, Today and Buckets. The other four buttons stay in the page, hidden, so nothing that looks them up breaks; their screens open from Today and from the Buckets strip. -->
+    <button class="mode" id="modeTriage" type="button" style="display:none" tabindex="-1" aria-hidden="true">Triage</button>
+    <button class="mode" id="modeYesBoard" type="button">Buckets</button>
+    <button class="mode" id="modeViewings" type="button" style="display:none" tabindex="-1" aria-hidden="true">Book a viewing</button>
+    <button class="mode" id="modeReview" type="button" style="display:none" tabindex="-1" aria-hidden="true">Review</button>
+    <button class="mode" id="modeWatch" type="button" style="display:none" tabindex="-1" aria-hidden="true">Watch list</button>
     <!-- v3.13.0 (12/10/2026), Stu: "I think we're actually going to delete it" (Health); the Map is folded into Book a viewing. Health and Map nav buttons removed; renderHealth and renderMap are kept in the code, dead but restorable. -->
     <button class="mode" id="reportsBadge" type="button" style="display:none"></button>
   </div>
@@ -1392,7 +1401,7 @@ function isEdinburghRec(r){ const f=(r&&r.fields)||{}; return isEdinburghZone((f
    listings, quoted plot names and unnumbered same-street pairs are not merged unless cross-portal at the same price and beds; decision
    bar padding includes the safe area and re-checks on resize; fades show cut-off tabs. Update banner fires only when App Control is
    NEWER than BUILD (the phone copy runs ahead of Drive). Rollback: commit 4aecf44 (v3.13.4). */
-const BUILD='3.22.4'; /* v3.22.4 (20/11/2026, Stu T 16:54; triage rows 30, 31, 32): map tiles from OpenStreetMap (CARTO now wants a key); houses with only a part postcode (e.g. KA13) get a pin at the area centre and houses with none are listed under the map; Proceed no longer asks for a viewing date. Rollback: git revert this commit (previous a78de71 page, dd91419 main). */ const BUILD_3223_NOTE='3.22.3'; /* v3.22.3 (17/11/2026, Stu T): Triage health strip shows Inputs and Data only; Pipeline removed (it read retired Airtable fields and was always red). Tapping a light says why. Rollback: git revert this commit (previous 8130a57). */ const BUILD_3222_NOTE='3.22.2'; /* v3.22.2 (17/11/2026, Stu "batch yes"): tap the saving pill to save a copy of unsaved decisions for Claude to write in bulk, then clear them once Claude confirms. Rollback: git revert this commit (previous dfb9408). */ const BUILD_3221_NOTE='3.22.1'; /* v3.22.1 (13/11/2026, Stu 16:29: no search on the phone): a Search button on the phone header opens the search box with the cursor in it. Rollback: git revert this commit (previous 528c9ba). */ const BUILD_3220_NOTE='3.22.0'; /* v3.22.0 (12/11/2026, Go Live, Stu Yes 23:45): house card boxes for HR value, Viewing date, Viewed, Note of interest and Closing date, saved to Live deals J/K, X, Y, Z, AA through the Sheet link (script Version 13). Rollback: git revert this commit (previous e4551db). */ const BUILD_3212_NOTE='3.21.2'; /* v3.21.2 (12/11/2026, Go Live card test): Open Home Report button under the address on the house card when Live deals has an HR link. Rollback: git revert this commit (previous 274f698). */ const BUILD_3211_NOTE='3.21.1'; /* v3.21.1 (12/11/2026, Stu in-app 11 Nov 01:26: save message covered the bottom buttons): on phones the toast shows at the top and ignores taps. Rollback: git revert this commit (previous cba3206). */ const BUILD_3210_NOTE='3.21.0'; /* v3.21.0 (09/11/2026, Stu: "approve stage 2"): triage card is Yes or No, with Yes, needs refurb (writes R) under it; No Picture, Watch and Yes + analysis removed from triage (buttons, phone bar, keys P, W, Shift+Y). Old R, P and Watch data untouched; Watch screen and Review unchanged. Rollback: git revert this commit (previous fe6a6cc). */ /* v3.20.0 (04/11/2026, Stu: "Yes, run the rename"): the five Airtable field IDs kept in Brain fields (Potential deal, Triage date, Decision, Pass reason, Notes) are now potential_deal, triage_date, airtable_decision, pass_reason, notes when the page is connected to the Sheet. Old keys are still read and are renamed on read and on save. Airtable-token mode keeps the old IDs. Rollback: git revert this commit and restore the sheet tab ARCHIVE_Brain fields_20261104 over Brain fields. */ /* v3.19.0 (03/11/2026): Pass - Under Offer now calls the Sheet link underOffer action (Gmail draft, never sent). */ /* v3.18.0 (31/10/2026): house card Live deals panel (HR in, HR link, HR value, agent, email, thread W, Max offer + PROVISIONAL, viewing X; blank = GAP), Request Home Report and Draft decline open Gmail compose (nothing sent), Book a viewing sorted by agent then town. Rollback: git revert, previous e4b74ec. */ /* v3.17.0 (30/10/2026): HR in date counts as report in; six Pass reasons; 1 h cache keyed on build. Rollback: git revert, previous 72b734a. */ /* v3.15.0 (26/10/2026): reads and writes the STP Deals Sheet once connected (adapter at the foot of the page); unconnected browsers keep v3.14.0 Airtable behaviour. Rollback: commit 7d22d2d. */ const BUILD_3140_NOTE='3.14.0'; /* v3.14.0 (20/10/2026): Review tab runs on the Deal Engine maths. Rollback: commit 12ca561 (v3.13.5). */ const BUILD_PREV_NOTE='3.13.5'; /* v3.13.5 changelog above. Previous: v3.13.4 (18/10/2026), rollback commit 4aecf44. Before that: v3.13.3 (18/10/2026), rollback commit 2cd1d1d. Before that: v3.13.2 (15/10/2026): v3.13.2 (15/10/2026): red-flag button logs to the Property Sprint Register (tbl5l7bViIJjBvfzz), not the dead capture queue. */
+const BUILD='3.23.0'; /* v3.23.0 (20/11/2026, Stu T 16:54; triage row 29; design DESIGN_ScreenCut_20261119 Option A): two nav buttons, Today and Buckets. Today opens the triage card while anything is untriaged (tap Today again for the tiles). Buckets carries one strip: Decide, Book a viewing, With agents, Passed, Watch. The six internal modes, keys, refresh holds and the card are unchanged; the Review nav button is gone (Stu 19 Nov: no review). Rollback: git revert this commit (previous 80af340). */ const BUILD_3224_NOTE='3.22.4'; /* v3.22.4 (20/11/2026, Stu T 16:54; triage rows 30, 31, 32): map tiles from OpenStreetMap (CARTO now wants a key); houses with only a part postcode (e.g. KA13) get a pin at the area centre and houses with none are listed under the map; Proceed no longer asks for a viewing date. Rollback: git revert this commit (previous a78de71 page, dd91419 main). */ const BUILD_3223_NOTE='3.22.3'; /* v3.22.3 (17/11/2026, Stu T): Triage health strip shows Inputs and Data only; Pipeline removed (it read retired Airtable fields and was always red). Tapping a light says why. Rollback: git revert this commit (previous 8130a57). */ const BUILD_3222_NOTE='3.22.2'; /* v3.22.2 (17/11/2026, Stu "batch yes"): tap the saving pill to save a copy of unsaved decisions for Claude to write in bulk, then clear them once Claude confirms. Rollback: git revert this commit (previous dfb9408). */ const BUILD_3221_NOTE='3.22.1'; /* v3.22.1 (13/11/2026, Stu 16:29: no search on the phone): a Search button on the phone header opens the search box with the cursor in it. Rollback: git revert this commit (previous 528c9ba). */ const BUILD_3220_NOTE='3.22.0'; /* v3.22.0 (12/11/2026, Go Live, Stu Yes 23:45): house card boxes for HR value, Viewing date, Viewed, Note of interest and Closing date, saved to Live deals J/K, X, Y, Z, AA through the Sheet link (script Version 13). Rollback: git revert this commit (previous e4551db). */ const BUILD_3212_NOTE='3.21.2'; /* v3.21.2 (12/11/2026, Go Live card test): Open Home Report button under the address on the house card when Live deals has an HR link. Rollback: git revert this commit (previous 274f698). */ const BUILD_3211_NOTE='3.21.1'; /* v3.21.1 (12/11/2026, Stu in-app 11 Nov 01:26: save message covered the bottom buttons): on phones the toast shows at the top and ignores taps. Rollback: git revert this commit (previous cba3206). */ const BUILD_3210_NOTE='3.21.0'; /* v3.21.0 (09/11/2026, Stu: "approve stage 2"): triage card is Yes or No, with Yes, needs refurb (writes R) under it; No Picture, Watch and Yes + analysis removed from triage (buttons, phone bar, keys P, W, Shift+Y). Old R, P and Watch data untouched; Watch screen and Review unchanged. Rollback: git revert this commit (previous fe6a6cc). */ /* v3.20.0 (04/11/2026, Stu: "Yes, run the rename"): the five Airtable field IDs kept in Brain fields (Potential deal, Triage date, Decision, Pass reason, Notes) are now potential_deal, triage_date, airtable_decision, pass_reason, notes when the page is connected to the Sheet. Old keys are still read and are renamed on read and on save. Airtable-token mode keeps the old IDs. Rollback: git revert this commit and restore the sheet tab ARCHIVE_Brain fields_20261104 over Brain fields. */ /* v3.19.0 (03/11/2026): Pass - Under Offer now calls the Sheet link underOffer action (Gmail draft, never sent). */ /* v3.18.0 (31/10/2026): house card Live deals panel (HR in, HR link, HR value, agent, email, thread W, Max offer + PROVISIONAL, viewing X; blank = GAP), Request Home Report and Draft decline open Gmail compose (nothing sent), Book a viewing sorted by agent then town. Rollback: git revert, previous e4b74ec. */ /* v3.17.0 (30/10/2026): HR in date counts as report in; six Pass reasons; 1 h cache keyed on build. Rollback: git revert, previous 72b734a. */ /* v3.15.0 (26/10/2026): reads and writes the STP Deals Sheet once connected (adapter at the foot of the page); unconnected browsers keep v3.14.0 Airtable behaviour. Rollback: commit 7d22d2d. */ const BUILD_3140_NOTE='3.14.0'; /* v3.14.0 (20/10/2026): Review tab runs on the Deal Engine maths. Rollback: commit 12ca561 (v3.13.5). */ const BUILD_PREV_NOTE='3.13.5'; /* v3.13.5 changelog above. Previous: v3.13.4 (18/10/2026), rollback commit 4aecf44. Before that: v3.13.3 (18/10/2026), rollback commit 2cd1d1d. Before that: v3.13.2 (15/10/2026): v3.13.2 (15/10/2026): red-flag button logs to the Property Sprint Register (tbl5l7bViIJjBvfzz), not the dead capture queue. */
 const CONTROL_TABLE='tblDGKgorkTQkAXBc';
 /* v3.4.0 (28/08/2026), AC-BRAINUX-WINDOW-01 + AC-BRAIN-PROCEEDFLOW-01.
    THE YES BOARD BECOMES THE "WHERE WE ARE" SCREEN. Stu, 27/08, verbatim:
@@ -4964,6 +4973,56 @@ function vwAgentGroups(list){
     '</div>';
   }).join('');
 }
+/* v3.23.0 (20/11/2026, triage row 29, Stu 19 Nov 12:14 and 12:32). TWO SCREENS.
+   Today door: the triage card while any house is untriaged, the Today tiles once it is clear. Tapping Today while on the
+   triage card shows the tiles, and tapping it on the tiles goes back to the card, so the tiles are never locked away
+   behind a long triage queue. */
+function hasUntriaged(){ try{ return records.some(r=>!isArchived(r)&&isTriageEligible(r)); }catch(_){ return false; } }
+function todayDoor(){
+  const un=hasUntriaged();
+  if(inspectRecordId||analysisRecordId){ setMode(un?'triage':'today'); return; }
+  if(mode==='triage'){ setMode('today'); return; }
+  setMode(un?'triage':'today');
+}
+/* Buckets strip: one row of five on phone and desktop, drawn at the top of the Yes board, Book a viewing and Watch screens.
+   Decide, With agents and Passed are the Yes board's own columns; Book a viewing and Watch open their screens whole.
+   Counts for the three Yes board columns show only on the Yes board, where they are worked out; no count is ever guessed. */
+let bkCounts=null;
+function bucketsStrip(){
+  let book=0, watchN=0;
+  try{ book=viewingsRows().want.length; }catch(_){ book=0; }
+  try{ watchN=records.filter(r=>!isArchived(r)&&sameStatus(dealOf(r),STATUS.watch)&&!stageClosed(r)).length; }catch(_){ watchN=0; }
+  const c=(mode==='yesboard'&&bkCounts)?bkCounts:null;
+  const on=mode==='viewings'?'viewings':mode==='watch'?'watch':mode==='yesboard'?((ybTab==='book'||ybTab==='bookRefurb')?'viewings':ybTab):'';
+  const b=(k,label,n)=>'<button type="button" class="bk-btn'+(k===on?' on':'')+'" data-bk="'+k+'">'+esc(label)+(n==null?'':' <b>'+n+'</b>')+'</button>';
+  return '<div class="bk-strip" role="tablist" aria-label="Buckets">'+
+    b('decide','Decide',c?c.decide:null)+b('viewings','Book a viewing',book)+b('agent','With agents',c?c.agent:null)+b('passed','Passed',c?c.passed:null)+
+    ((watchN||mode==='watch')?b('watch','Watch',watchN):'')+'</div>';
+}
+function wireBuckets(app){
+  app.querySelectorAll('[data-bk]').forEach(b=>b.onclick=()=>{
+    const k=b.dataset.bk;
+    if(k==='viewings'||k==='watch'){ if(mode!==k) setMode(k); return; }
+    ybTab=k; try{ localStorage.setItem('pbYbTab',ybTab); }catch(_){}
+    yesBoardCurrentId=''; /* the strip, not the last card opened, picks the column */
+    let redraw=false;
+    if(k==='passed'&&filters.ybHidePassed!==false){ filters.ybHidePassed=false; saveJson(LS.filters,filters); redraw=true; } /* asking for Passed shows them; the Hide passed tick on the board hides them again */
+    if(mode!=='yesboard'){ setMode('yesboard'); bkScrollTo(k); return; }
+    if(redraw){ render(); bkScrollTo(k); return; }
+    app.querySelectorAll('[data-bk]').forEach(x=>x.classList.toggle('on',x===b));
+    app.querySelectorAll('[data-ybcol]').forEach(c=>c.classList.toggle('on',c.dataset.ybcol===ybTab));
+    bkScrollTo(k);
+  });
+}
+function bkScrollTo(k){
+  try{
+    const col=document.querySelector('#app [data-ybcol="'+k+'"]'); if(!col) return;
+    const phone=window.matchMedia&&matchMedia('(max-width:600px)').matches;
+    if(phone){ const t=document.querySelector('#app .bk-strip'); if(t&&t.getBoundingClientRect().top<0) t.scrollIntoView({block:'start'}); }
+    else col.scrollIntoView({block:'nearest',inline:'nearest',behavior:'smooth'});
+  }catch(_){}
+}
+function addBuckets(app){ try{ app.insertAdjacentHTML('afterbegin',bucketsStrip()); wireBuckets(app); }catch(e){ console.error('Buckets strip failed',e); } }
 function renderViewings(app){
   /* v3.13.0: tear down the previous map before the DOM it lives in is replaced (no "Map container is already initialized"). */
   if(mapInstance){try{mapInstance.remove();}catch(_){} mapInstance=null;mapMarkers=null;mapLoading=false;}
@@ -5085,9 +5144,11 @@ function renderYesBoard(app){
      picked from a tab strip of column names and counts (default Read and decide). Desktop ignores the strip and the .on class.
      Returning from a card opens the tab that card sits in, so the scroll back to it still lands. */
   const tabCols=[['decide','Read and decide',colDecide],['book','Book a viewing',colBook],['bookRefurb','Refurb viewing',colBookRefurb],['agent','With agents',colAgent]].concat(passedRows.length?[['passed','Passed',passedRows]]:[]);
+  if(ybTab==='book'||ybTab==='bookRefurb') ybTab='decide'; /* v3.23.0: the Book columns are reached from the strip's Book a viewing screen; only a return from a card (next line) opens one here */
   if(yesBoardCurrentId){ const cr=records.find(x=>x.id===yesBoardCurrentId); const ck=cr&&(ybIsPassed(cr)?'passed':ybColumnOf(cr)); if(ck&&tabCols.some(t=>t[0]===ck)) ybTab=ck; }
   if(!tabCols.some(t=>t[0]===ybTab)) ybTab='decide';
-  const tabs='<div class="yb-tabs" role="tablist">'+tabCols.map(t=>'<button type="button" role="tab" class="yb-tab'+(t[0]===ybTab?' on':'')+'" data-yb-tab="'+t[0]+'">'+esc(t[1])+' <b>'+t[2].length+'</b></button>').join('')+'</div>';
+  bkCounts={decide:colDecide.length,agent:colAgent.length,passed:passedRows.length}; /* v3.23.0: for the Buckets strip */
+  const tabs=''; const tabsOld_=()=>'<div class="yb-tabs" role="tablist">'+tabCols.map(t=>'<button type="button" role="tab" class="yb-tab'+(t[0]===ybTab?' on':'')+'" data-yb-tab="'+t[0]+'">'+esc(t[1])+' <b>'+t[2].length+'</b></button>').join('')+'</div>'; /* v3.23.0: the phone-only column strip is replaced by the Buckets strip (addBuckets); kept, unused, for a revert */
   const col=(title,note,list,cls,body,key)=>'<div class="ybcol '+cls+(key===ybTab?' on':'')+'" data-ybcol="'+(key||'')+'">'+
     '<div class="ybcol-h"><h3>'+esc(title)+'</h3><span class="ybcol-n">'+list.length+'</span></div>'+
     '<div class="ybcol-s">'+esc(note)+'</div>'+
@@ -6006,10 +6067,10 @@ function renderUnsafe_(){
   if(inspectRecordId){ renderInspect(app); wireCommon(app); return; }
   if(mode==='today'){ renderToday(app); wireCommon(app); return; }
   if(mode==='map'){ renderMap(app); wireCommon(app); return; }
-  if(mode==='watch'){ renderWatch(app); wireCommon(app); return; }
+  if(mode==='watch'){ renderWatch(app); addBuckets(app); wireCommon(app); return; }
   if(mode==='health'){ renderHealth(app); wireCommon(app); return; }
-  if(mode==='yesboard'){ renderYesBoard(app); wireCommon(app); return; }
-  if(mode==='viewings'){ renderViewings(app); wireCommon(app); return; }
+  if(mode==='yesboard'){ renderYesBoard(app); addBuckets(app); wireCommon(app); return; }
+  if(mode==='viewings'){ renderViewings(app); addBuckets(app); wireCommon(app); return; }
   const rec=analysisRecordId?(records.find(r=>r.id===analysisRecordId)||queue[qi]):queue[qi];
   if(!rec){
     const active=activeFilterCount();
@@ -7942,9 +8003,9 @@ function move(d){
 
 function syncModeButtons(){
   const fs=document.getElementById('filterShell'); if(fs) fs.classList.toggle('hidden',mode==='today');
-  document.getElementById('modeToday').classList.toggle('active',!inspectRecordId&&mode==='today');
+  document.getElementById('modeToday').classList.toggle('active',!inspectRecordId&&(mode==='today'||mode==='triage')); /* v3.23.0: Today is lit for the triage card too */
   document.getElementById('modeTriage').classList.toggle('active',!inspectRecordId&&mode==='triage');
-  document.getElementById('modeYesBoard').classList.toggle('active',!inspectRecordId&&mode==='yesboard');
+  document.getElementById('modeYesBoard').classList.toggle('active',!inspectRecordId&&['yesboard','viewings','watch','review'].includes(mode)); /* v3.23.0: Buckets is lit for every screen behind it */
   document.getElementById('modeViewings').classList.toggle('active',!inspectRecordId&&mode==='viewings');
   document.getElementById('modeReview').classList.toggle('active',!inspectRecordId&&mode==='review');
   document.getElementById('modeWatch').classList.toggle('active',!inspectRecordId&&mode==='watch');
@@ -8438,7 +8499,7 @@ function wireStaticControls(){
   document.getElementById('backReviewedBtn').onclick=openLastReviewed;
   document.getElementById('prevBtn').onclick=()=>move(-1);
   document.getElementById('nextBtn').onclick=()=>move(1);
-  document.getElementById('modeToday').onclick=()=>setMode('today');
+  document.getElementById('modeToday').onclick=()=>todayDoor(); /* v3.23.0 */
   document.getElementById('modeTriage').onclick=()=>setMode('triage');
   document.getElementById('modeYesBoard').onclick=()=>setMode('yesboard');
   document.getElementById('modeViewings').onclick=()=>setMode('viewings');

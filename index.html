@@ -1250,7 +1250,7 @@
 </head>
 <body>
 <header>
-  <div class="brand"><h1>Property Brain · v3.23.0</h1><div class="sub">Buy better deals faster through superior intelligence · build 2026-11-12 · STP Deals [LIVE]</div></div>
+  <div class="brand"><h1>Property Brain · v3.23.0</h1><div class="sub">Buy better deals faster through superior intelligence · build 2026-11-20 · STP Deals [LIVE]</div></div>
   <button class="hdr-search" id="hdrSearch" type="button" aria-label="Search for a house by street, postcode or agent"><span aria-hidden="true">⌕</span> Search</button>
   <button class="hdr-more" id="hdrMore" type="button" aria-expanded="false" aria-label="Search, refresh and tools">☰</button>
   <div class="modes" aria-label="Dashboard mode">
@@ -2362,7 +2362,8 @@ function goToYesBoardAfterDecision(rec){
   yesBoardCurrentId=next?next.id:'';
   setMode('yesboard');
 }
-/* v3.0 (24/08/2026), TRIAGE_REDESIGN_MAP Q4. PROCEED books the viewing where a
+/* v3.22.4: the date prompt described below is gone (triage row 32); Proceed only records the decision.
+   v3.0 (24/08/2026), TRIAGE_REDESIGN_MAP Q4. PROCEED books the viewing where a
    date is given; a blank prompt still records the Decision so the board is
    never blocked waiting on a date nobody has yet. Native prompt() is used
    deliberately — this ships alongside the rest of v3.0 without a new date-
@@ -5098,7 +5099,7 @@ async function initViewingsMap(list){
   const areaN=placed.filter(r=>isAreaOnly(postcodeOf(r))).length;
   const offRows=list.filter(r=>placed.indexOf(r)<0);
   if(note) note.innerHTML=(areaN?('<div>'+areaN+' pin'+(areaN===1?'':'s')+' at the area centre only (part postcode).</div>'):'')+
-    (off?('<div><b>Not on the map, no postcode ('+off+'):</b> '+offRows.slice(0,60).map(r=>'<a href="'+esc(gmapsUrl(r))+'" target="_blank" rel="noopener">'+esc(recordLabel(r))+'</a>').join(' · ')+(off>60?' · and '+(off-60)+' more':'')+'</div>'):'');
+    (off?('<div><b>Not on the map ('+off+', no postcode or not found):</b> '+offRows.slice(0,60).map(r=>'<a href="'+esc(gmapsUrl(r))+'" target="_blank" rel="noopener">'+esc(recordLabel(r))+'</a>').join(' · ')+(off>60?' · and '+(off-60)+' more':'')+'</div>'):'');
   setTimeout(()=>{ if(mapInstance) mapInstance.invalidateSize(); },0);
 }
 function renderYesBoard(app){
@@ -5817,13 +5818,14 @@ async function markReportRead(rec){
 }
 function postcodeOf(rec){
   const text=[(rec.fields||{})[F.addr],cachedNotes(rec).subj].join(' ').toUpperCase();
-  const m=text.match(/\b([A-Z]{1,2}\d[A-Z\d]?\s*\d[A-Z]{2})\b/); if(m) return m[1].replace(/\s+/,' ').replace(/(.+)(\d[A-Z]{2})$/,'$1 $2').trim();
+  const m=text.match(/\b([A-Z]{1,2}\d[A-Z\d]?\s*\d[A-Z]{2})\b/); if(m) return m[1].replace(/\s+/g,'').replace(/(\d[A-Z]{2})$/,' $1'); /* red team 20 Nov: always one space, so two spellings of one postcode share a pin group */
   /* v3.22.4 (triage row 31): most Buy list addresses hold only the first half of the postcode ("Dalry Road, Kilwinning KA13").
-     Use the last such part in the address; the pin then sits at that area's centre (see geocodeMissing). */
-  const outs=String((rec.fields||{})[F.addr]||'').toUpperCase().match(/\b[A-Z]{1,2}\d[A-Z\d]?\b/g)||[];
-  if(outs.length) return outs[outs.length-1];
-  const oc=String((rec.fields||{})[F.outcode]||'').toUpperCase().trim(); /* the house's own area field, when the address has none */
-  return /^[A-Z]{1,2}\d[A-Z\d]?$/.test(oc)?oc:'';
+     Red team 20 Nov: the house's own area field comes first; from the address only a part postcode at the very end counts,
+     so "Flat G1", "Block C3" or "Off A77" never becomes a pin. The pin sits at that area's centre (see geocodeMissing). */
+  const oc=(String((rec.fields||{})[F.outcode]||'').toUpperCase().trim().match(/^[A-Z]{1,2}\d[A-Z\d]?\b/)||[''])[0];
+  if(oc) return oc;
+  const end=String((rec.fields||{})[F.addr]||'').toUpperCase().match(/\b([A-Z]{1,2}\d[A-Z\d]?)[\s,.]*$/);
+  return end?end[1]:'';
 }
 function isAreaOnly(pc){ return !!pc&&!/\s/.test(pc); } /* v3.22.4: a part postcode (no space) */
 /* v3.8.0 (14/09/2026), board pass change 4. Stu: "show all need-to-view dots
@@ -5856,27 +5858,37 @@ async function loadLeaflet(){
   if(!document.querySelector('link[data-leaflet]')){const l=document.createElement('link');l.rel='stylesheet';l.href='vendor/leaflet/leaflet.css';l.dataset.leaflet='1';document.head.appendChild(l);}
   return new Promise(resolve=>{const s=document.createElement('script');s.src='vendor/leaflet/leaflet.js';s.onload=()=>resolve(true);s.onerror=()=>resolve(false);document.head.appendChild(s);});
 }
+let geoFlight=null; /* red team 20 Nov: one lookup run at a time; a redraw during it waits for the same run, then checks for anything new */
 async function geocodeMissing(list){
+  if(geoFlight){ try{ await geoFlight; }catch(_){} }
+  geoFlight=geocodeMissing_(list);
+  try{ await geoFlight; } finally{ geoFlight=null; }
+}
+function geoFetch(url,opt){ const o=Object.assign({},opt||{}); try{ if(window.AbortSignal&&AbortSignal.timeout) o.signal=AbortSignal.timeout(8000); }catch(_){} return fetch(url,o); }
+async function geocodeMissing_(list){
   const allPcs=[...new Set(list.map(postcodeOf).filter(Boolean).map(p=>p.toUpperCase()))].filter(p=>!geoCache[p]);
   const pcs=allPcs.filter(p=>!isAreaOnly(p));
   /* v3.22.4 (triage row 31): part postcodes are looked up one at a time as areas. Only Scottish areas are kept, so a road
      name that happens to look like one (M8, A77) never puts a pin in England. A miss is cached as {lat:null} so it is not asked again. */
   const outs=allPcs.filter(isAreaOnly).slice(0,150);
-  for(const o of outs){
-    try{
-      const r=await fetch('https://api.postcodes.io/outcodes/'+encodeURIComponent(o));
-      if(r.status===404){ geoCache[o]={lat:null,area:true}; continue; }
-      if(!r.ok) throw new Error('area lookup '+r.status);
-      const x=((await r.json())||{}).result;
-      const scot=x&&[].concat(x.country||[]).some(c=>/scotland/i.test(String(c)));
-      geoCache[o]=(x&&scot&&x.latitude!=null)?{lat:x.latitude,lng:x.longitude,district:[].concat(x.admin_district||[])[0]||'',area:true}:{lat:null,area:true};
-    }catch(_){break;}
+  /* red team 20 Nov: eight at a time, each given 8 seconds, so a first open with many areas takes a second or two, not thirty */
+  const areaOne=async o=>{
+    const r=await geoFetch('https://api.postcodes.io/outcodes/'+encodeURIComponent(o));
+    if(r.status===404){ geoCache[o]={lat:null,area:true}; return; }
+    if(!r.ok) throw new Error('area lookup '+r.status);
+    const x=((await r.json())||{}).result;
+    const scot=x&&[].concat(x.country||[]).some(c=>/scotland/i.test(String(c)));
+    geoCache[o]=(x&&scot&&x.latitude!=null)?{lat:x.latitude,lng:x.longitude,district:[].concat(x.admin_district||[])[0]||'',area:true}:{lat:null,area:true};
+  };
+  for(let i=0;i<outs.length;i+=8){
+    const res=await Promise.all(outs.slice(i,i+8).map(o=>areaOne(o).then(()=>true,()=>false)));
+    if(res.every(ok=>!ok)) break; /* the lookup service is not answering: stop, try again next open */
   }
   if(outs.length) saveJson(LS.geo,geoCache);
   for(let i=0;i<pcs.length;i+=100){
     const batch=pcs.slice(i,i+100);
     try{
-      const r=await fetch('https://api.postcodes.io/postcodes',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({postcodes:batch})});
+      const r=await geoFetch('https://api.postcodes.io/postcodes',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({postcodes:batch})});
       if(!r.ok) throw new Error('postcode lookup '+r.status);
       const d=await r.json();
       (d.result||[]).forEach(x=>{const p=String(x.query||'').toUpperCase();geoCache[p]=x.result?{lat:x.result.latitude,lng:x.result.longitude,district:x.result.admin_district,region:x.result.region}:null;});

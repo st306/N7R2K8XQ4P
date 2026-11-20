@@ -1121,7 +1121,7 @@
 .bk-btn.on{background:var(--navy);border-color:var(--navy);color:#fff}
 .bk-btn.on b{background:rgba(255,255,255,.2);color:#fff}
 .bk-s{display:none}
-@media (max-width:600px){.bk-strip{position:sticky;top:0;z-index:12;gap:3px;margin:0 -10px 8px;padding:8px 8px;background:var(--bg,#f3f5f9);border-bottom:1px solid var(--line);touch-action:pan-x pan-y}.bk-btn{flex:1 0 auto;padding:8px 6px;font-size:12px;text-align:center}.bk-l{display:none}.bk-s{display:inline}.bk-btn b{margin-left:2px;padding:1px 5px;font-size:11px}}
+@media (max-width:600px){.bk-strip{gap:3px;margin:0 -10px 8px;padding:8px 8px;background:var(--bg,#f3f5f9);border-bottom:1px solid var(--line);touch-action:pan-x pan-y}.bk-btn{flex:1 0 auto;padding:8px 4px;font-size:11.5px;text-align:center}.bk-l{display:none}.bk-s{display:inline}.bk-btn b{margin-left:2px;padding:1px 4px;font-size:10.5px}.bk-strip.cue-r{-webkit-mask-image:linear-gradient(to right,#000 calc(100% - 44px),transparent);mask-image:linear-gradient(to right,#000 calc(100% - 44px),transparent)}.bk-strip.cue-l{-webkit-mask-image:linear-gradient(to left,#000 calc(100% - 44px),transparent);mask-image:linear-gradient(to left,#000 calc(100% - 44px),transparent)}.bk-strip.cue-l.cue-r{-webkit-mask-image:linear-gradient(to right,transparent,#000 44px,#000 calc(100% - 44px),transparent);mask-image:linear-gradient(to right,transparent,#000 44px,#000 calc(100% - 44px),transparent)}}
 #phoneDecide{display:none}
 @media (max-width:1480px) and (min-width:1181px){
   header { flex-wrap:wrap; row-gap:8px; }
@@ -1655,7 +1655,7 @@ const DEFAULT_APPRAISAL={refurb:28000,contingencyPct:10,professional:0,purchaseL
    records with no refurbished evidence. */
 const EXIT_UPLIFT=1.36;
 let records=[], baseQueue=[], queue=[], qi=0;
-let mode=normaliseMode(localStorage.getItem(LS.mode)||'review');
+let mode=normaliseMode(localStorage.getItem(LS.mode)||'today'); /* v3.23.0: was 'review' */
 let activeTab=localStorage.getItem(LS.tab)||'om';
 let selComp={om:0,sold:0,refurb:0};
 let filters=loadJson(LS.filters,DEFAULT_FILTERS);
@@ -2359,6 +2359,8 @@ function goToYesBoardAfterDecision(rec){
        track of what a decision did, and the quieter message would win over the
        more important one. */
   }
+  /* v3.23.0 red team: when the next house is one to book, go to the Book a viewing screen, not the board's old Book column */
+  const nk=next&&ybColumnOf(next); if(nk==='book'||nk==='bookRefurb'){ yesBoardCurrentId=''; return setMode('viewings'); }
   yesBoardCurrentId=next?next.id:'';
   setMode('yesboard');
 }
@@ -5009,8 +5011,10 @@ function wireBuckets(app){
     yesBoardCurrentId=''; /* the strip, not the last card opened, picks the column */
     let redraw=false;
     if(k==='passed'&&filters.ybHidePassed!==false){ filters.ybHidePassed=false; saveJson(LS.filters,filters); redraw=true; } /* asking for Passed shows them; the Hide passed tick on the board hides them again */
-    if(mode!=='yesboard'){ setMode('yesboard'); bkScrollTo(k); return; }
-    if(redraw){ render(); bkScrollTo(k); return; }
+    const noPassed=()=>{ if(k==='passed'&&!document.querySelector('#app [data-ybcol="passed"]')){ ybTab='decide'; try{ localStorage.setItem('pbYbTab',ybTab); }catch(_){} toast('Nothing passed to show.'); render(); return true; } return false; }; /* red team: never a blank board */
+    if(mode!=='yesboard'){ setMode('yesboard'); if(!noPassed()) bkScrollTo(k); return; }
+    if(redraw){ render(); if(!noPassed()) bkScrollTo(k); return; }
+    if(noPassed()) return;
     app.querySelectorAll('[data-bk]').forEach(x=>x.classList.toggle('on',x===b));
     app.querySelectorAll('[data-ybcol]').forEach(c=>c.classList.toggle('on',c.dataset.ybcol===ybTab));
     bkScrollTo(k);
@@ -5801,7 +5805,11 @@ function renderToday(app){
      those records live. Stated rather than pretending the tile does more. */
   app.querySelectorAll('[data-stage]').forEach(b=>b.onclick=()=>{
     const s=b.dataset.stage;
-    setMode(s==='screen'?'triage':(s==='proceedWanted'?'yesboard':'review'));
+    /* v3.23.0 red team: each tile opens its bucket, never the dropped Review queue */
+    if(s==='screen') return setMode('triage');
+    if(s==='proceedWanted') return setMode('viewings');
+    ybTab=(s==='requested'||s==='offer')?'agent':'decide'; try{ localStorage.setItem('pbYbTab',ybTab); }catch(_){}
+    yesBoardCurrentId=''; setMode('yesboard');
   });
   document.getElementById('todayRefresh').onclick=()=>refreshData({manual:true});
 }
@@ -6027,7 +6035,7 @@ function syncPhoneBar(){
 }
 /* r4: fade the cut-off edge of the mode strip and the Yes board tab strip, and keep it right as they scroll. */
 function syncScrollCue(){
-  document.querySelectorAll('header .modes, #app .yb-tabs').forEach(el=>{
+  document.querySelectorAll('header .modes, #app .yb-tabs, #app .bk-strip').forEach(el=>{
     const set=()=>{ const over=el.scrollWidth>el.clientWidth+2; el.classList.toggle('cue-r',over&&el.scrollLeft+el.clientWidth<el.scrollWidth-2); el.classList.toggle('cue-l',over&&el.scrollLeft>2); };
     if(!el.dataset.cueWired){ el.dataset.cueWired='1'; el.addEventListener('scroll',set,{passive:true}); }
     set();
@@ -8126,8 +8134,9 @@ function activateRecord(rec){
   closeJump();
   const status=dealOf(rec);
   if(isTriageEligible(rec)) return activateInMode('triage',rec.id);
-  if(isReviewEligible(rec)) return activateInMode('review',rec.id);
+  if(isReviewEligible(rec)){ analysisRecordId=''; ybSeq=null; try{ if(location.hash) history.replaceState(null,'',location.href.split('#')[0]); }catch(_){} return openAnalysis(rec.id); } /* v3.23.0 red team: a Yes house opens as its card, never the dropped Review queue */
   if(sameStatus(status,STATUS.watch)){
+    analysisRecordId=''; ybSeq=null; try{ if(location.hash) history.replaceState(null,'',location.href.split('#')[0]); }catch(_){} /* v3.23.0 red team: leave any open card first */
     mode='watch'; localStorage.setItem(LS.mode,mode); inspectRecordId=''; watchFocusId=rec.id; buildQueue();
     if(!queue.some(r=>r.id===rec.id)){ resetFilters(false); watchFocusId=rec.id; }
     render(); return;
@@ -8135,6 +8144,7 @@ function activateRecord(rec){
   inspectRecordId=rec.id; render();
 }
 function activateInMode(target,id){
+  analysisRecordId=''; ybSeq=null; try{ if(location.hash) history.replaceState(null,'',location.href.split('#')[0]); }catch(_){} /* v3.23.0 red team: a search with a card open used to leave the old card on screen while keys acted on the searched house */
   mode=target; localStorage.setItem(LS.mode,mode); inspectRecordId=''; watchFocusId=''; buildQueue(id);
   if(!queue.some(r=>r.id===id)){ resetFilters(false); buildQueue(id); toast('Filters cleared to show the selected record.'); }
   const idx=queue.findIndex(r=>r.id===id); if(idx>=0) qi=idx;
@@ -8516,7 +8526,7 @@ function wireStaticControls(){
   document.getElementById('nextBtn').onclick=()=>move(1);
   document.getElementById('modeToday').onclick=()=>todayDoor(); /* v3.23.0 */
   document.getElementById('modeTriage').onclick=()=>setMode('triage');
-  document.getElementById('modeYesBoard').onclick=()=>setMode('yesboard');
+  document.getElementById('modeYesBoard').onclick=()=>{ if(!analysisRecordId) yesBoardCurrentId=''; setMode('yesboard'); }; /* v3.23.0 red team: only a return from an open card scrolls back to it */
   document.getElementById('modeViewings').onclick=()=>setMode('viewings');
   document.getElementById('modeReview').onclick=()=>setMode('review');
   document.getElementById('modeWatch').onclick=()=>setMode('watch');
@@ -8643,7 +8653,8 @@ async function init(){
     normaliseRecords();
     buildQueue(null,{restore:true}); /* v2.7.3: first load is the ONLY place that reopens on the last-viewed record */
     checkForNewBuild(token);
-    applyHash();
+    /* v3.23.0 red team: a saved Review queue (every opened card saves it) reopens through the Today door instead */
+    if(!applyHash()&&mode==='review'){ mode=hasUntriaged()?'triage':'today'; buildQueue(null,{restore:true}); if(mode==='triage'&&!queue.length){ mode='today'; buildQueue(); } try{ localStorage.setItem(LS.mode,mode); }catch(_){} }
     render();
     const st=document.getElementById('stamp'); if(st) st.textContent='updated '+new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
     startAutoRefresh();

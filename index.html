@@ -1120,7 +1120,8 @@
 .bk-btn b{margin-left:4px;padding:1px 8px;border-radius:12px;background:var(--soft);color:var(--muted);font-size:12px}
 .bk-btn.on{background:var(--navy);border-color:var(--navy);color:#fff}
 .bk-btn.on b{background:rgba(255,255,255,.2);color:#fff}
-@media (max-width:600px){.bk-strip{position:sticky;top:0;z-index:12;gap:4px;margin:0 -10px 8px;padding:8px 10px;background:var(--bg,#f3f5f9);border-bottom:1px solid var(--line);touch-action:pan-x pan-y}.bk-btn{padding:8px 9px;font-size:12.5px}.bk-btn b{margin-left:3px;padding:1px 6px;font-size:11.5px}}
+.bk-s{display:none}
+@media (max-width:600px){.bk-strip{position:sticky;top:0;z-index:12;gap:3px;margin:0 -10px 8px;padding:8px 8px;background:var(--bg,#f3f5f9);border-bottom:1px solid var(--line);touch-action:pan-x pan-y}.bk-btn{flex:1 0 auto;padding:8px 6px;font-size:12px;text-align:center}.bk-l{display:none}.bk-s{display:inline}.bk-btn b{margin-left:2px;padding:1px 5px;font-size:11px}}
 #phoneDecide{display:none}
 @media (max-width:1480px) and (min-width:1181px){
   header { flex-wrap:wrap; row-gap:8px; }
@@ -4979,10 +4980,10 @@ function vwAgentGroups(list){
    behind a long triage queue. */
 function hasUntriaged(){ try{ return records.some(r=>!isArchived(r)&&isTriageEligible(r)); }catch(_){ return false; } }
 function todayDoor(){
-  const un=hasUntriaged();
-  if(inspectRecordId||analysisRecordId){ setMode(un?'triage':'today'); return; }
-  if(mode==='triage'){ setMode('today'); return; }
-  setMode(un?'triage':'today');
+  if(!inspectRecordId&&!analysisRecordId&&mode==='triage'){ setMode('today'); return; }
+  if(!hasUntriaged()){ setMode('today'); return; }
+  setMode('triage');
+  if(!queue.length) setMode('today'); /* nothing the triage screen would show (filters, no-picture houses hidden): the tiles, not an empty card */
 }
 /* Buckets strip: one row of five on phone and desktop, drawn at the top of the Yes board, Book a viewing and Watch screens.
    Decide, With agents and Passed are the Yes board's own columns; Book a viewing and Watch open their screens whole.
@@ -4994,9 +4995,9 @@ function bucketsStrip(){
   try{ watchN=records.filter(r=>!isArchived(r)&&sameStatus(dealOf(r),STATUS.watch)&&!stageClosed(r)).length; }catch(_){ watchN=0; }
   const c=(mode==='yesboard'&&bkCounts)?bkCounts:null;
   const on=mode==='viewings'?'viewings':mode==='watch'?'watch':mode==='yesboard'?((ybTab==='book'||ybTab==='bookRefurb')?'viewings':ybTab):'';
-  const b=(k,label,n)=>'<button type="button" class="bk-btn'+(k===on?' on':'')+'" data-bk="'+k+'">'+esc(label)+(n==null?'':' <b>'+n+'</b>')+'</button>';
+  const b=(k,label,n,short)=>'<button type="button" class="bk-btn'+(k===on?' on':'')+'" data-bk="'+k+'" aria-label="'+esc(label)+'">'+(short?('<span class="bk-l">'+esc(label)+'</span><span class="bk-s">'+esc(short)+'</span>'):esc(label))+(n==null?'':' <b>'+n+'</b>')+'</button>';
   return '<div class="bk-strip" role="tablist" aria-label="Buckets">'+
-    b('decide','Decide',c?c.decide:null)+b('viewings','Book a viewing',book)+b('agent','With agents',c?c.agent:null)+b('passed','Passed',c?c.passed:null)+
+    b('decide','Decide',c?c.decide:null)+b('viewings','Book a viewing',book,'Book viewing')+b('agent','With agents',c?c.agent:null,'Agents')+b('passed','Passed',c?c.passed:null)+
     ((watchN||mode==='watch')?b('watch','Watch',watchN):'')+'</div>';
 }
 function wireBuckets(app){
@@ -5147,7 +5148,7 @@ function renderYesBoard(app){
   if(ybTab==='book'||ybTab==='bookRefurb') ybTab='decide'; /* v3.23.0: the Book columns are reached from the strip's Book a viewing screen; only a return from a card (next line) opens one here */
   if(yesBoardCurrentId){ const cr=records.find(x=>x.id===yesBoardCurrentId); const ck=cr&&(ybIsPassed(cr)?'passed':ybColumnOf(cr)); if(ck&&tabCols.some(t=>t[0]===ck)) ybTab=ck; }
   if(!tabCols.some(t=>t[0]===ybTab)) ybTab='decide';
-  bkCounts={decide:colDecide.length,agent:colAgent.length,passed:passedRows.length}; /* v3.23.0: for the Buckets strip */
+  bkCounts={decide:colDecide.length,agent:colAgent.length,passed:passedCount}; /* passedCount counts them even while Hide passed is ticked */ /* v3.23.0: for the Buckets strip */
   const tabs=''; const tabsOld_=()=>'<div class="yb-tabs" role="tablist">'+tabCols.map(t=>'<button type="button" role="tab" class="yb-tab'+(t[0]===ybTab?' on':'')+'" data-yb-tab="'+t[0]+'">'+esc(t[1])+' <b>'+t[2].length+'</b></button>').join('')+'</div>'; /* v3.23.0: the phone-only column strip is replaced by the Buckets strip (addBuckets); kept, unused, for a revert */
   const col=(title,note,list,cls,body,key)=>'<div class="ybcol '+cls+(key===ybTab?' on':'')+'" data-ybcol="'+(key||'')+'">'+
     '<div class="ybcol-h"><h3>'+esc(title)+'</h3><span class="ybcol-n">'+list.length+'</span></div>'+
@@ -5820,7 +5821,9 @@ function postcodeOf(rec){
   /* v3.22.4 (triage row 31): most Buy list addresses hold only the first half of the postcode ("Dalry Road, Kilwinning KA13").
      Use the last such part in the address; the pin then sits at that area's centre (see geocodeMissing). */
   const outs=String((rec.fields||{})[F.addr]||'').toUpperCase().match(/\b[A-Z]{1,2}\d[A-Z\d]?\b/g)||[];
-  return outs.length?outs[outs.length-1]:'';
+  if(outs.length) return outs[outs.length-1];
+  const oc=String((rec.fields||{})[F.outcode]||'').toUpperCase().trim(); /* the house's own area field, when the address has none */
+  return /^[A-Z]{1,2}\d[A-Z\d]?$/.test(oc)?oc:'';
 }
 function isAreaOnly(pc){ return !!pc&&!/\s/.test(pc); } /* v3.22.4: a part postcode (no space) */
 /* v3.8.0 (14/09/2026), board pass change 4. Stu: "show all need-to-view dots

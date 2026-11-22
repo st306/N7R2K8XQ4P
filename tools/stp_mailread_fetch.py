@@ -1,5 +1,9 @@
 #!/usr/bin/env python3
-"""STP Mail Read fetch v1.2 (19 Nov 2026, Go Live; Stu "Approve" 19 Nov 11:04).
+"""STP Mail Read fetch v1.3 (22 Nov 2026, Go Live; Stu "T fix parser" 22 Nov 10:58). v1.2 19 Nov 2026 (Stu "Approve" 19 Nov 11:04).
+
+v1.3: Gmail after:/before: include a message dated exactly on a slice edge in both slices, so it was
+written and counted twice. The parser drops the repeat (same id), so the run saw "parser read X of Y" and
+held although nothing was missed (seen 21 and 22 Nov). Each message id is now written and counted once.
 
 Pulls the property alert emails for one window from the STP Brain Mail Read web app
 (Apps Script, gmail.readonly, four alert senders only) and writes parser-ready files,
@@ -20,7 +24,8 @@ It keeps reading past the budget (up to 60 s more) until it has passed --must-re
 run's start point), so a run always makes progress; if it still has not, that is a fault.
 DIR/status.json holds the same summary after every page, for a run killed part-way.
 Prints one JSON line: {"ok", "pages", "messages", "msg": {"RM","ZO","OTM"},
-"newest_msg", "weekly_skipped", "dropped", "complete_until", "fault"}.
+"newest_msg", "weekly_skipped", "dropped", "repeats", "complete_until", "fault"}.
+(dropped = wrong sender or no message id; repeats = the same message returned twice, written once.)
 Exit 0 when ok, 2 on a fault (the caller then sets HOLD).
 """
 import argparse, datetime, json, os, subprocess, sys, time
@@ -88,7 +93,7 @@ def main():
     tmp = os.path.join(a.out, '_body.json')
     iso = lambda t: datetime.datetime.fromtimestamp(t, datetime.timezone.utc).strftime('%Y-%m-%dT%H:%M:%SZ')
     res = {'ok': False, 'pages': 0, 'messages': 0, 'msg': {'RM': 0, 'ZO': 0, 'OTM': 0},
-           'newest_msg': '', 'weekly_skipped': 0, 'dropped': 0, 'complete_until': '', 'fault': ''}
+           'newest_msg': '', 'weekly_skipped': 0, 'dropped': 0, 'repeats': 0, 'complete_until': '', 'fault': ''}
     t0, n, done_to = time.time(), 0, a.after
     hard = t0 + ap_budget + 60           # never past this, even before must_reach
     s_from = a.after
@@ -98,6 +103,7 @@ def main():
             json.dump(res, f)
     save_status()
     stopped = False
+    seen = set()             # v1.3: message ids already written (slice edges overlap by the edge second)
     while s_from < a.before and not res['fault'] and not stopped:
         s_to = min(s_from + SLICE, a.before)
         soft = (t0 + ap_budget) if done_to > a.must_reach else hard
@@ -117,6 +123,14 @@ def main():
                 break
             msgs = []
             for m in page.get('thread', {}).get('messages', []):
+                mid = str(m.get('id') or '')
+                if not mid:              # the parser keys on id: a blank one cannot be counted or kept
+                    res['dropped'] += 1
+                    continue
+                if mid in seen:
+                    res['repeats'] += 1
+                    continue
+                seen.add(mid)
                 p = PORTAL.get(str(m.get('sender', '')).strip().lower())
                 if not p:
                     res['dropped'] += 1
